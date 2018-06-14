@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"></meta>
-    <title>My Books</title>
+    <title>My Things</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
     <link rel="stylesheet" href="static/my_books/blaze/blaze.min.css"></link>
     <link rel="stylesheet" href="static/my_books/blaze/blaze.colors.min.css"></link>
@@ -15,7 +15,7 @@
     .c-alert {
       margin-bottom: 0px;
     }
-    .mb-tree-selected, .mb-book-selected {
+    .mt-tree-selected, .mt-item-selected {
       background-color: #dddddd;
     }
     </style>
@@ -25,17 +25,17 @@
     &nbsp;
     </div>
     <div id="mainGrid" class="o-grid">
-      <div id="bookshelvesDiv" class="o-grid__cell o-grid__cell--width-30">
-        <ul id="bookshelves" class="c-tree">
+      <div id="categoriesDiv" class="o-grid__cell o-grid__cell--width-30">
+        <ul id="categories" class="c-tree">
         </ul>
       </div>
       <div class="o-grid__cell">
         <div class="o-grid o-grid--wrap">
-          <div id="authorInfo" class="o-grid__cell o-grid__cell--width-100">
+          <div id="mainCatInfo" class="o-grid__cell o-grid__cell--width-100">
           </div>
-          <div id="categoryInfo" class="o-grid__cell o-grid__cell--width-100">
+          <div id="subCatInfo" class="o-grid__cell o-grid__cell--width-100">
           </div>
-          <div id="bookInfo" class="o-grid__cell o-grid__cell--width-100">
+          <div id="itemInfo" class="o-grid__cell o-grid__cell--width-100">
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 //"use strict";
 // Global Variables
-var defaultAlert = "My Bookshelves";
-var myBookshelves = new Bookshelves();
+var defaultAlert = "My Things";
+var myThings = new Things();
 //Global Functions
 function setAlert(alertText, alertClass = "") {
     $('#alertBox').empty();
@@ -44,53 +44,53 @@ function getRadioVal(form, name) {
 }
 
 // object to hold users bookshelves
-function Bookshelves(users = "", access_token = "") {
+function MainCat(users = "", access_token = "") {
   this.users = users;
   this.access_token = access_token;
   this.kind = '';
   this.items = {};
-  this.numShelves = 0;
+  this.numSubCats = 0;
 };
 
-Bookshelves.prototype.findBookshelf = function(key){
-  var foundBookshelf = null;
-  var theseBookshelves = this;
-  Object.keys(this.items).forEach(function (author) {
-    if(key in theseBookshelves.items[author]) {
-      foundBookshelf = theseBookshelves.items[author][key];
+Things.prototype.findSubCat = function(key){
+  var foundSubCat = null;
+  var theseCats = this;
+  Object.keys(this.items).forEach(function (subCat) {
+    if(key in theseCats.items[subCat]) {
+      foundSubCat = theseCats.items[subCat][key];
     }
   });
-  return foundBookshelf;
+  return foundSubCat;
 }
 
-Bookshelves.prototype.getBookshelves = function(){
+Things.prototype.getSubCats = function(){
   var query = "https://www.googleapis.com/books/v1/users/" + this.users + "/bookshelves?access_token=" + this.access_token;
-  return Promise.resolve($.getJSON(query)).then(this.fillBookshelves.bind(this));
+  return Promise.resolve($.getJSON(query)).then(this.fillSubCats.bind(this));
 }
 
-Bookshelves.prototype.fillBookshelves = function(data){
-  // data is the JSON result of a bookshelves query to Google Books API
+Bookshelves.prototype.fillSubCats = function(data){
+  // data is the JSON result of a subCat query
   this.items = {};
   this.kind = data['kind'];
   for(var indx = 0; indx < data['items'].length; indx++) {
-    // loop through each bookshelf returned
-    var thisBookshelf = new Bookshelf();
-    thisBookshelf.users = this.users;
-    thisBookshelf.access_token = this.access_token;
-    thisBookshelf.getBookshelf(data['items'][indx]);
-    // load the bookshelf with meta data
-    if(!(thisBookshelf.author in this.items)) {
-      // if the author hasn't already been loaded into the dictionary
-      // create an dictionary in which to place the bookshelves for this author
-      this.items[thisBookshelf.author] = {};
+    // loop through each subCat returned
+    var thisSubCat = new SubCat();
+    thisSubCat.users = this.users;
+    thisSubCat.access_token = this.access_token;
+    thisSubCat.getSubCat(data['items'][indx]);
+    // load the subCat with meta data
+    if(!(thisSubCat.mainCat in this.items)) {
+      // if the main category hasn't already been loaded into the dictionary
+      // create an dictionary in which to place the subcats for this main thing
+      this.items[thisSubCat.mainCat] = {};
     }
-    this.items[thisBookshelf.author][thisBookshelf.id]=thisBookshelf;
-    this.numShelves++;
+    this.items[thisSubCat.mainCat][thisSubCat.id]=thisSubCat;
+    this.numSubCats++;
   }
 }
 
-// object to hold a single bookshelf
-function Bookshelf() {
+// object to hold a single subThing
+function SubCat() {
   this.users = null;
   this.access_token;
   this.kind = null;
@@ -99,16 +99,16 @@ function Bookshelf() {
   this.totlItems = 0;
   this.selfLink = null;
   this.title = null;
-  this.author = '';
-  this.category = '';
+  this.mainCat = '';
+  this.subCat = '';
   this.access = null;
   this.updated = null;
   this.created = null;
-  this.volumeCount = null;
-  this.volumesLastUpdated = null;
+  this.itemCount = null;
+  this.itemsLastUpdated = null;
 };
 
-Bookshelf.prototype.getBookshelf = function(data) {
+SubCat.prototype.getSubCat = function(data) {
   this.kind = data['kind'];
   this.id = data['id'];
   this.items = {};
@@ -117,94 +117,94 @@ Bookshelf.prototype.getBookshelf = function(data) {
   if(this.id > 1000) {
     var splitIndex = this.title.indexOf('-');
     if(splitIndex) {
-      this.author = this.title.slice(0, splitIndex-1);
-      this.category = this.title.slice(splitIndex + 2);
+      this.mainCat = this.title.slice(0, splitIndex-1);
+      this.subCat = this.title.slice(splitIndex + 2);
     }
   } else {
-    this.author = 'System Bookshelves';
-    this.category = this.title;
+    this.mainCat = 'System Bookshelves';
+    this.subCat = this.title;
   }
   this.access = data['access'];
   this.updated = data['updated'];
   this.created = data['created'];
-  this.volumeCount = data['volumeCount'];
-  this.volumesLastUpdated = data['volumesLastUpdated'];
+  this.itemCount = data['volumeCount'];
+  this.itemsLastUpdated = data['volumesLastUpdated'];
 }
 
-Bookshelf.prototype.fillBookshelf = function(data){
+SubCat.prototype.fillSubCat = function(data){
   this.totalItems = data['totalItems'];
   this.items = {};
-  var thisBookshelf = this;
+  var thisSubCat = this;
   for(var indx = 0; indx < data['items'].length; indx++) {
     // for each volume retrieved
-    var thisBook = new Book();
-    thisBook.fillBook(data['items'][indx]);
-    thisBookshelf.items[thisBook.id] = thisBook;
+    var thisItem = new Item();
+    thisItem.fillItem(data['items'][indx]);
+    thisSubCat.items[thisItem.id] = thisItem;
   }
 }
 
-// object to hold a single book
-function Book() {
+// object to hold a single item
+function Item() {
   this.kind = null;
   this.id = null;
   this.etag = null
   this.selfLink = null;
-  this.volumeInfo = {};
+  this.itemInfo = {};
 };
 
-Book.prototype.getBook = function(data) {
+Item.prototype.getItem = function(data) {
   this.id = data['id'];
   var query = "https://www.googleapis.com/books/v1/volumes/" + this.id + "?access_token=" + this.access_token;
-  return Promise.resolve($.getJSON(query)).then(this.fillBook.bind(this));
+  return Promise.resolve($.getJSON(query)).then(this.fillItem.bind(this));
 }
 
-Book.prototype.fillBook = function(data) {
+Book.prototype.fillItem = function(data) {
   this.id = data['id'];
   this.kind = data['kind'];
   this.etag = data['etag'];
   this.selfLink = data['selfLink'];
-  this.volumeInfo = data['volumeInfo'];
+  this.itemInfo = data['volumeInfo'];
 }
 
 var toggleCategoryTreeItem = function() {
   if($(this).hasClass('c-tree__item--expandable')) {
     // expand author's categories & collapse any others already expanded
-    $('.mb-author-cat, .mb-book').hide(); // hide all author's categories first
+    $('.mt-sub-cat, .mt-item').hide(); // hide all author's categories first
     $('.c-tree__item--expanded').addClass('c-tree__item--expandable');
     $('.c-tree__item--expanded').removeClass('c-tree__item--expanded');
     $('#' + $('#' + this.id +' span')[0].id.replace('_span','')).show(); // show this author's categories
     $(this).addClass('c-tree__item--expanded');
-    $(this).addClass('mb-tree-selected');
+    $(this).addClass('mt-tree-selected');
     $(this).removeClass('c-tree__item--expandable');
-    $('#authorInfo, #categoryInfo, #bookInfo').empty();
-    $('#authorInfo').append($(this).attr('authorBookshelfKey'));
+    $('#mainCatInfo, #subCatInfo, #itemInfo').empty();
+    $('#mainCat').append($(this).attr('subCatKey'));
   } else {
     // collapse author's categories
-    $('.mb-author-cat, .mb-book').hide();
+    $('.mt-sub-cat, .mt-item').hide();
     $(this).addClass('c-tree__item--expandable');
     $(this).removeClass('c-tree__item--expanded');
-    $(this).removeClass('mb-tree-selected');
-    $('#authorInfo, #categoryInfo, #bookInfo').empty();
+    $(this).removeClass('mt-tree-selected');
+    $('#mainCatInfo, #subCatInfo, #itemInfo').empty();
   }
 }
 
-var toggleBookTreeItem = function(itemId) {
+var toggleItemTreeItem = function(itemId) {
   if($('#' + itemId).hasClass('c-tree__item--expandable')) {
-    // expand books & collapse any others already expanded
+    // expand items & collapse any others already expanded
     $('[id^="cat_"]').filter('.c-tree__item--expanded').addClass('c-tree__item--expandable');
     $('[id^="cat_"]').filter('.c-tree__item--expanded').removeClass('c-tree__item--expanded');
-    $('.mb-book').hide(); // hide all categorie's books first
+    $('.mb-book').hide(); // hide all categorie's items first
     $('#' + itemId.replace('cat_','') + '_list').show(); // show this author's categories
     $('#' + itemId).addClass('c-tree__item--expanded');
-    $('#' + itemId).addClass('mb-tree-selected');
+    $('#' + itemId).addClass('mt-tree-selected');
     $('#' + itemId).removeClass('c-tree__item--expandable');
   } else {
     // collapse categorie's books
-    $('.mb-book').hide();
-    $('#categoryInfo, #bookInfo').empty();
+    $('.mt-item').hide();
+    $('#subCatInfo, #itemInfo').empty();
     $('#' + itemId).addClass('c-tree__item--expandable');
     $('#' + itemId).removeClass('c-tree__item--expanded');
-    $('#' + itemId).removeClass('mb-tree-selected');
+    $('#' + itemId).removeClass('mt-tree-selected');
   }
 }
 
@@ -213,58 +213,56 @@ $(document).ready(function(){
     var canvasWidth = Math.floor(document.getElementsByTagName('html')[0].clientWidth);
     var canvasHeight = Math.floor(document.getElementsByTagName('html')[0].clientHeight);
     var alertHeight = $('#alertBox').outerHeight();
-    $('#bookshelvesDiv').css({'height':canvasHeight - alertHeight, 'overflow':'auto'});
+    $('#categoriesDiv').css({'height':canvasHeight - alertHeight, 'overflow':'auto'});
     var secrets;
     Promise.resolve($.getJSON("static/my_books/constants.js"))
     .then(function(secrets) {
-      myBookshelves = new Bookshelves(secrets['users'],secrets['access_token']);
-      myBookshelves.getBookshelves().then(function() {
-        Object.keys(myBookshelves.items).forEach(function(author) {
-          var authorBookshelves = myBookshelves.items[author];
-          var numBooksInSystemBookshelf = '';
-          var authorNameId = author.replace(/ /g,'_');
-          var authorId = authorNameId + '_list';
-          $('#bookshelves').append('<li id="' + authorNameId + '" authorBookshelfKey="' + author + '" class="c-tree__item"><span id="' + authorId + '_span">' + author + '</span></li>');
-          $('#bookshelves').append('<li><ul id="' + authorId + '" class="c-tree mb-author-cat">');
-          $('#' + authorId).hide();
-          if(Object.keys(authorBookshelves).length > 0) {
-            $('#' + authorNameId).addClass('c-tree__item--expandable');
-            $('#' + authorNameId).click(toggleCategoryTreeItem);
+      myCategories = new Bookshelves(secrets['users'],secrets['access_token']);
+      myCategories.getSubCats().then(function() {
+        Object.keys(myCategories.items).forEach(function(MainCat) {
+          var mainCatSubCats = myCategories.items[mainCat];
+          var numItemsInSystemMainCat = '';
+          var mainCatNameId = mainCat.replace(/ /g,'_');
+          var mainCatId = mainCatNameId + '_list';
+          $('#categories').append('<li id="' + mainCatNameId + '" mainCatSubCatKey="' + mainCat + '" class="c-tree__item"><span id="' + mainCatId + '_span">' + mainCat + '</span></li>');
+          $('#categories').append('<li><ul id="' + mainCatId + '" class="c-tree mt-sub-cat">');
+          $('#' + mainCatId).hide();
+          if(Object.keys(mainCatSubCats).length > 0) {
+            $('#' + mainCatNameId).addClass('c-tree__item--expandable');
+            $('#' + mainCatNameId).click(toggleCategoryTreeItem);
           }
-          Object.keys(authorBookshelves).forEach(function(bookshelfKey) {;
-            var bookshelfCategory = authorBookshelves[bookshelfKey];
-            $('#' + authorId).append('<li id="cat_' + bookshelfCategory.id + '" class="c-tree__item"><span id="cat_' + authorId + '_span">' + bookshelfCategory.category + ' (' + bookshelfCategory.volumeCount + ')</span></li>');
-            $('#' + authorId).append('<li><ul id="' + bookshelfCategory.id + '_list" class="c-tree mb-book">');
-            if(bookshelfCategory.volumeCount > 0) {
-              $('#cat_' + bookshelfCategory.id).addClass('c-tree__item--expandable');
-              $('#cat_' + bookshelfCategory.id).click(function() {
-                var bookshelfId = this.id.replace('cat_', '');
-                var bookshelf = myBookshelves.findBookshelf(bookshelfId);
-                //var bookshelf = myBookshelves.items[bookshelfId];
+          Object.keys(mainCatSubCats).forEach(function(catKey) {;
+            var category = mainCatSubCats[catKey];
+            $('#' + authorId).append('<li id="cat_' + category.id + '" class="c-tree__item"><span id="cat_' + mainCatId + '_span">' + category.category + ' (' + category.itemCount + ')</span></li>');
+            $('#' + authorId).append('<li><ul id="' + category.id + '_list" class="c-tree mt-item">');
+            if(category.itemCount > 0) {
+              $('#cat_' + category.id).addClass('c-tree__item--expandable');
+              $('#cat_' + category.id).click(function() {
+                var categoryId = this.id.replace('cat_', '');
+                var category = myCategories.findSubCat(categoryId);
                 $('#categoryInfo').empty();
-                $('#categoryInfo').append(bookshelf.category);
-                $('[id^="book_"]').remove();
-                var query = "https://www.googleapis.com/books/v1/users/" + bookshelf.users + "/bookshelves/" + bookshelf.id + "/volumes?access_token=" + bookshelf.access_token;
-                Promise.resolve($.getJSON(query)).then(bookshelf.fillBookshelf.bind(bookshelf))
+                $('#categoryInfo').append(category.category);
+                $('[id^="item_"]').remove();
+                var query = "https://www.googleapis.com/books/v1/users/" + category.users + "/bookshelves/" + category.id + "/volumes?access_token=" + category.access_token;
                 .then( function () {
-                  Object.keys(bookshelf.items).forEach(function(bookKey) {
-                    book = bookshelf.items[bookKey];
-                    $('#' + bookshelfId + '_list').append('<li id="book_' + book.id + '" class="c-tree__item"><span id="book_' + book.id + '_span">' + book.volumeInfo['title'] + '</span></li>');
-                    $('#book_' + book.id).click(function() {
-                      var bookId = this.id.replace('book_','');
-                      $('#bookInfo').empty();
-                      $('.mb-book-selected').removeClass('mb-book-selected');
-                      $('#book_' + bookId).addClass('mb-book-selected');
-                      $('#bookInfo').append(bookshelf.items[bookId].volumeInfo['title']);
-                    }); // click function for each book
-                  }); // .forEach book
-                  toggleBookTreeItem(this.id);
-                }.bind(this)); // .then after getting books
-              }); // bookshelf category click function
-            } // if the category has books in it
-            $('#' + authorId).append('</ul></li>'); // end of book c-tree ul
-          }); // .forEach author bookshelf
-        }); // .forEach myBookshelves.items
-      }); // .then after getting myBookshelves
+                  Object.keys(category.items).forEach(function(bookKey) {
+                    item = category.items[bookKey];
+                    $('#' + categoryId + '_list').append('<li id="item_' + item.id + '" class="c-tree__item"><span id="item_' + book.id + '_span">' + item.itemInfo['title'] + '</span></li>');
+                    $('#item_' + item.id).click(function() {
+                      var itemId = this.id.replace('item_','');
+                      $('#itemInfo').empty();
+                      $('.mt-item-selected').removeClass('mt-item-selected');
+                      $('#item_' + itemId).addClass('mt-item-selected');
+                      $('#itemInfo').append(category.items[itemId].itemInfo['title']);
+                    }); // click function for each item
+                  }); // .forEach item
+                  toggleItemTreeItem(this.id);
+                }.bind(this)); // .then after getting items
+              }); // subcategory click function
+            } // if the subcategory has items in it
+            $('#' + mainCatId).append('</ul></li>'); // end of book c-tree ul
+          }); // .forEach mainCat's subCat
+        }); // .forEach myCategories.items
+      }); // .then after getting myCategories
     }); // .then after getting secrets
 });
