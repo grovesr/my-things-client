@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"></meta>
+    <title>My Books</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+    <link rel="stylesheet" href="static/my_books/blaze/blaze.min.css"></link>
+    <link rel="stylesheet" href="static/my_books/blaze/blaze.colors.min.css"></link>
+    <link rel="stylesheet" href="static/font-awesome/fontawesome-free-5.0.13/web-fonts-with-css/css/fontawesome-all.min.css"></link>
+    <script src="static/jquery/jquery-3.2.1.js"></script>
+    <script src="static/my_books/MyBooks.js"></script>
+    <script src="static/p5/p5.js"></script>
+    <script src="static/p5/grafica/lib/grafica.js"></script>
+    <style>
+    .c-alert {
+      margin-bottom: 0px;
+    }
+    .mb-tree-selected, .mb-book-selected {
+      background-color: #dddddd;
+    }
+    </style>
+</head>
+<body class="c-text">
+    <div id="alertBox" class="c-alert">
+    &nbsp;
+    </div>
+    <div id="mainGrid" class="o-grid">
+      <div id="bookshelvesDiv" class="o-grid__cell o-grid__cell--width-30">
+        <ul id="bookshelves" class="c-tree">
+        </ul>
+      </div>
+      <div class="o-grid__cell">
+        <div class="o-grid o-grid--wrap">
+          <div id="authorInfo" class="o-grid__cell o-grid__cell--width-100">
+          </div>
+          <div id="categoryInfo" class="o-grid__cell o-grid__cell--width-100">
+          </div>
+          <div id="bookInfo" class="o-grid__cell o-grid__cell--width-100">
+          </div>
+        </div>
+      </div>
+    </div>
+</body>
+</html>
