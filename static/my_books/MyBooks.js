@@ -1,7 +1,7 @@
 //"use strict";
 // Global Variables
 var defaultAlert = "My Things";
-var myThings = new Things();
+var myCategories = new MainCat();
 //Global Functions
 function setAlert(alertText, alertClass = "") {
     $('#alertBox').empty();
@@ -52,7 +52,7 @@ function MainCat(users = "", access_token = "") {
   this.numSubCats = 0;
 };
 
-Things.prototype.findSubCat = function(key){
+MainCat.prototype.findSubCat = function(key){
   var foundSubCat = null;
   var theseCats = this;
   Object.keys(this.items).forEach(function (subCat) {
@@ -63,12 +63,12 @@ Things.prototype.findSubCat = function(key){
   return foundSubCat;
 }
 
-Things.prototype.getSubCats = function(){
+MainCat.prototype.getSubCats = function(){
   var query = "https://www.googleapis.com/books/v1/users/" + this.users + "/bookshelves?access_token=" + this.access_token;
   return Promise.resolve($.getJSON(query)).then(this.fillSubCats.bind(this));
 }
 
-Bookshelves.prototype.fillSubCats = function(data){
+MainCat.prototype.fillSubCats = function(data){
   // data is the JSON result of a subCat query
   this.items = {};
   this.kind = data['kind'];
@@ -158,7 +158,7 @@ Item.prototype.getItem = function(data) {
   return Promise.resolve($.getJSON(query)).then(this.fillItem.bind(this));
 }
 
-Book.prototype.fillItem = function(data) {
+Item.prototype.fillItem = function(data) {
   this.id = data['id'];
   this.kind = data['kind'];
   this.etag = data['etag'];
@@ -177,7 +177,8 @@ var toggleCategoryTreeItem = function() {
     $(this).addClass('mt-tree-selected');
     $(this).removeClass('c-tree__item--expandable');
     $('#mainCatInfo, #subCatInfo, #itemInfo').empty();
-    $('#mainCat').append($(this).attr('subCatKey'));
+    $('#mainCatInfo').append($(this).attr('subCatKey'));
+    //$('#subCatInfo').append($(this).attr('subCatKey'));
   } else {
     // collapse author's categories
     $('.mt-sub-cat, .mt-item').hide();
@@ -217,14 +218,14 @@ $(document).ready(function(){
     var secrets;
     Promise.resolve($.getJSON("static/my_books/constants.js"))
     .then(function(secrets) {
-      myCategories = new Bookshelves(secrets['users'],secrets['access_token']);
+      myCategories = new MainCat(secrets['users'],secrets['access_token']);
       myCategories.getSubCats().then(function() {
-        Object.keys(myCategories.items).forEach(function(MainCat) {
+        Object.keys(myCategories.items).forEach(function(mainCat) {
           var mainCatSubCats = myCategories.items[mainCat];
           var numItemsInSystemMainCat = '';
           var mainCatNameId = mainCat.replace(/ /g,'_');
           var mainCatId = mainCatNameId + '_list';
-          $('#categories').append('<li id="' + mainCatNameId + '" mainCatSubCatKey="' + mainCat + '" class="c-tree__item"><span id="' + mainCatId + '_span">' + mainCat + '</span></li>');
+          $('#categories').append('<li id="' + mainCatNameId + '" subCatKey="' + mainCat + '" class="c-tree__item"><span id="' + mainCatId + '_span">' + mainCat + '</span></li>');
           $('#categories').append('<li><ul id="' + mainCatId + '" class="c-tree mt-sub-cat">');
           $('#' + mainCatId).hide();
           if(Object.keys(mainCatSubCats).length > 0) {
@@ -233,21 +234,23 @@ $(document).ready(function(){
           }
           Object.keys(mainCatSubCats).forEach(function(catKey) {;
             var category = mainCatSubCats[catKey];
-            $('#' + authorId).append('<li id="cat_' + category.id + '" class="c-tree__item"><span id="cat_' + mainCatId + '_span">' + category.category + ' (' + category.itemCount + ')</span></li>');
-            $('#' + authorId).append('<li><ul id="' + category.id + '_list" class="c-tree mt-item">');
+            $('#' + mainCatId).append('<li id="cat_' + category.id + '" class="c-tree__item"><span id="cat_' + mainCatId + '_span">' + category.subCat + ' (' + category.itemCount + ')</span></li>');
+            $('#' + mainCatId).append('<li><ul id="' + category.id + '_list" class="c-tree mt-item">');
             if(category.itemCount > 0) {
               $('#cat_' + category.id).addClass('c-tree__item--expandable');
               $('#cat_' + category.id).click(function() {
                 var categoryId = this.id.replace('cat_', '');
                 var category = myCategories.findSubCat(categoryId);
-                $('#categoryInfo').empty();
-                $('#categoryInfo').append(category.category);
+                $('#subCatInfo').empty();
+                $('#itemInfo').empty();
+                $('#subCatInfo').append(category.subCat);
                 $('[id^="item_"]').remove();
                 var query = "https://www.googleapis.com/books/v1/users/" + category.users + "/bookshelves/" + category.id + "/volumes?access_token=" + category.access_token;
+                Promise.resolve($.getJSON(query)).then(category.fillSubCat.bind(category))
                 .then( function () {
                   Object.keys(category.items).forEach(function(bookKey) {
                     item = category.items[bookKey];
-                    $('#' + categoryId + '_list').append('<li id="item_' + item.id + '" class="c-tree__item"><span id="item_' + book.id + '_span">' + item.itemInfo['title'] + '</span></li>');
+                    $('#' + categoryId + '_list').append('<li id="item_' + item.id + '" class="c-tree__item"><span id="item_' + item.id + '_span">' + item.itemInfo['title'] + '</span></li>');
                     $('#item_' + item.id).click(function() {
                       var itemId = this.id.replace('item_','');
                       $('#itemInfo').empty();
