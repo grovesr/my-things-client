@@ -121,7 +121,7 @@ SubCat.prototype.getSubCat = function(data) {
       this.subCat = this.title.slice(splitIndex + 2);
     }
   } else {
-    this.mainCat = 'System Bookshelves';
+    this.mainCat = 'System Categories';
     this.subCat = this.title;
   }
   this.access = data['access'];
@@ -245,22 +245,24 @@ $(document).ready(function(){
                 $('#itemInfo').empty();
                 $('#subCatInfo').append(category.subCat);
                 $('[id^="item_"]').remove();
-                var query = "https://www.googleapis.com/books/v1/users/" + category.users + "/bookshelves/" + category.id + "/volumes?access_token=" + category.access_token;
-                Promise.resolve($.getJSON(query)).then(category.fillSubCat.bind(category))
-                .then( function () {
-                  Object.keys(category.items).forEach(function(bookKey) {
-                    item = category.items[bookKey];
-                    $('#' + categoryId + '_list').append('<li id="item_' + item.id + '" class="c-tree__item"><span id="item_' + item.id + '_span">' + item.itemInfo['title'] + '</span></li>');
-                    $('#item_' + item.id).click(function() {
-                      var itemId = this.id.replace('item_','');
-                      $('#itemInfo').empty();
-                      $('.mt-item-selected').removeClass('mt-item-selected');
-                      $('#item_' + itemId).addClass('mt-item-selected');
-                      $('#itemInfo').append(category.items[itemId].itemInfo['title']);
-                    }); // click function for each item
-                  }); // .forEach item
-                  toggleItemTreeItem(this.id);
-                }.bind(this)); // .then after getting items
+                if($(this).hasClass('c-tree__item--expandable')) {
+                  var query = "https://www.googleapis.com/books/v1/users/" + category.users + "/bookshelves/" + category.id + "/volumes?access_token=" + category.access_token;
+                  Promise.resolve($.getJSON(query)).then(category.fillSubCat.bind(category))
+                  .then( function () {
+                    Object.keys(category.items).forEach(function(bookKey) {
+                      item = category.items[bookKey];
+                      $('#' + categoryId + '_list').append('<li id="item_' + item.id + '" class="c-tree__item"><span id="item_' + item.id + '_span">' + item.itemInfo['title'] + '</span></li>');
+                      $('#item_' + item.id).click(function() {
+                        var itemId = this.id.replace('item_','');
+                        $('#itemInfo').empty();
+                        $('.mt-item-selected').removeClass('mt-item-selected');
+                        $('#item_' + itemId).addClass('mt-item-selected');
+                        $('#itemInfo').append(category.items[itemId].itemInfo['title']);
+                      }); // click function for each item
+                    }); // .forEach item
+                  }.bind(this)); // .then after getting items
+                }
+                toggleItemTreeItem(this.id);
               }); // subcategory click function
             } // if the subcategory has items in it
             $('#' + mainCatId).append('</ul></li>'); // end of book c-tree ul
