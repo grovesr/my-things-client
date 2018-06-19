@@ -8,21 +8,36 @@
     <link rel="stylesheet" href="static/my_books/blaze/blaze.colors.min.css"></link>
     <link rel="stylesheet" href="static/font-awesome/fontawesome-free-5.0.13/web-fonts-with-css/css/fontawesome-all.min.css"></link>
     <script src="static/jquery/jquery-3.2.1.js"></script>
-    <script src="static/my_books/MyBooks.js"></script>
-    <script src="static/p5/p5.js"></script>
-    <script src="static/p5/grafica/lib/grafica.js"></script>
+    <script defer src="https://apis.google.com/js/api.js"></script>
+    <script defer src="static/my_books/MyBooks.js"></script>
+    </script>
     <style>
-    .c-alert {
-      margin-bottom: 0px;
+    .icon-blank::before {
+      width: 1em;
+      content: ' ';
     }
+
     .mt-tree-selected, .mt-item-selected {
       background-color: #dddddd;
+    }
+
+    #mainGrid {
+      margin-top: 1em;
     }
     </style>
 </head>
 <body class="c-text">
     <div id="alertBox" class="c-alert">
     &nbsp;
+    </div>
+    <div id="controls" class="o-grid">
+      <div id="process" class="o-grid__cell">
+        <button id="process-button" class="c-button" style="display: none;">Process</button>
+      </div>
+      <div id="auth" class="o-grid__cell" style="align:right">
+        <button id="authorize-button" class="c-button" style="display: none;">Authorize</button>
+        <button id="signout-button" class="c-button" style="display: none;">Sign Out</button>
+      </div>
     </div>
     <div id="mainGrid" class="o-grid">
       <div id="categoriesDiv" class="o-grid__cell o-grid__cell--width-30">
@@ -31,11 +46,28 @@
       </div>
       <div class="o-grid__cell">
         <div class="o-grid o-grid--wrap">
-          <div id="mainCatInfo" class="o-grid__cell o-grid__cell--width-100">
+          <div class="o-grid__cell o-grid__cell--width-100">
+            <h3 id="mainCatInfoHeader" class="mt-info-header" style="display:none">Category: </h3>
+            <div id="mainCatInfo" ></div>
           </div>
-          <div id="subCatInfo" class="o-grid__cell o-grid__cell--width-100">
+          <div class="o-grid__cell o-grid__cell--width-100">
+            <h3 id="subCatInfoHeader" class="mt-info-header" style="display:none">SubCategory: </h3>
+            <div id="subCatInfo"></div>
           </div>
-          <div id="itemInfo" class="o-grid__cell o-grid__cell--width-100">
+          <div class="o-grid__cell o-grid__cell--width-100">
+            <h3 id="itemInfoHeader" class="mt-info-header" style="display:none">Item:
+              <span id="haveReadDiv" style="display:none">
+                <label class="c-toggle">
+                  <input id="haveReadBook" type="checkbox">
+                  <div class="c-toggle__track">
+                    <div class="c-toggle__handle"></div>
+                  </div>
+                  Have Read
+                </label>
+              </span>
+            </h3>
+            <div id="itemInfo">
+            </div>
           </div>
         </div>
       </div>
