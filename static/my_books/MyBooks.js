@@ -513,9 +513,6 @@ var mainFunction = function() {
   .catch(function(err) {
       console.log(err);
     })
-  .then(function() {
-    arrayOfPromises = myCategories.sendItemsToMyThings();
-    Promise.all(arrayOfPromises)})
   .then(loadPage); // .then after getting myCategories
 }
 
