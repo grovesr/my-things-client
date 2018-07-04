@@ -63,6 +63,23 @@ function handleSignoutClick(event) {
  gapi.auth2.getAuthInstance().signOut();
 }
 
+function prepareMyThingsAddNodeQuery(nodeKey, nodeInfo={}) {
+  var url = secrets['myThingsServer'] + '/add/node';
+  data = {};
+  data['name'] = nodeKey;
+  data['owner'] = 'grovesr';
+  data['nodeInfo'] = nodeInfo;
+  return Promise.resolve($.ajax({
+    type: "POST",
+    url: url,
+    data: JSON.stringify(data),
+    contentType: 'application/json',
+    dataType: 'json',
+    crossDomain: true,
+    headers: {'Authorization':'Basic ' + btoa(secrets['myThingsAdminUser'] + ':' + secrets['myThingsAdminPassword'])}
+  }));
+}
+
 //Global Functions
 function setAlert(alertText, alertClass = "") {
    $('#alertBox').empty();
@@ -167,6 +184,16 @@ MainCat.prototype.subCatHasReviewedByKey = function(mainCatKey, subCatKey) {
     }
   }.bind(this));
   return result;
+}
+
+MainCat.prototype.sendItemsToMyThings = function(){
+  var categoryPromises = [];
+  itemKeys = Object.keys(this.items);
+  //for(var indx = 0; indx < itemKeys.length; indx++) {
+  for(var indx = 0; indx < 1; indx++) {
+    categoryPromises.push(prepareMyThingsAddNodeQuery(itemKeys[indx]));
+  }
+  return categoryPromises;
 }
 
 MainCat.prototype.fillSubCatsFromQuery = function(){
@@ -477,15 +504,19 @@ var mainFunction = function() {
     $('#subCatInfo').empty();
     $('#itemInfo').empty();
   }
+  var arrayOfPromises;
   myCategories.fillSubCatsFromQuery()
   .then(function() {
     return myCategories.findSubCatByKey(4).fillSubCatFromQuery(false)})
   .then(function() {
-    return myCategories.findSubCatByKey(5).fillSubCatFromQuery(false)})
-  .then(loadPage)
-  .catch( function(err) {
-    console.log('error in mainFunction ' + err + '\n' + err.stack)
-  }); // .then after getting myCategories
+    myCategories.findSubCatByKey(5).fillSubCatFromQuery(false)})
+  .catch(function(err) {
+      console.log(err);
+    })
+  .then(function() {
+    arrayOfPromises = myCategories.sendItemsToMyThings();
+    Promise.all(arrayOfPromises)})
+  .then(loadPage); // .then after getting myCategories
 }
 
 var loadPage = function(resolve) {
@@ -599,9 +630,16 @@ $(window).on('load', function(){
     var canvasHeight = Math.floor(document.getElementsByTagName('html')[0].clientHeight);
     var alertHeight = $('#alertBox').outerHeight();
     $('#categoriesDiv').css({'height':canvasHeight - alertHeight, 'overflow':'auto'});
-    Promise.resolve($.getJSON("static/my_books/constants.js"))
+    Promise.resolve($.ajax({
+      cache: false,
+      url: "static/my_books/constants.js",
+      dataType: "json"
+    }))
     .then(function(jsonSecrets) {
       secrets = jsonSecrets;
       handleClientLoad();
+    })
+    .catch(function(err) {
+      console.log('error getting secrets ' + err + '\n' + err.stack);
     }); // .then after getting secrets
 });
