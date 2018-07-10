@@ -46,16 +46,38 @@
       </div>
       <div class="o-grid__cell">
         <div class="o-grid o-grid--wrap">
-          <div class="o-grid__cell o-grid__cell--width-100">
-            <h3 id="mainCatInfoHeader" class="mt-info-header" style="display:none">Category: </h3>
-            <div id="mainCatInfo" ></div>
+          <div id="mainCatInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+            <div class="o-grid o-grid--wrap mt-info-header">
+              <div class="o-grid__cell o-grid__cell--width-40">
+                <h3>Category: </h3>
+              </div>
+              <div class="o-grid__cell o-grid__cell--width-60">
+                <button id="send-main-to-my-things-button" class="c-button">Send Author to MyThings</button>
+              </div>
+              <div class="o-grid__cell o-grid__cell--width-100">
+                <div id="mainCatInfo" ></div>
+              </div>
+            </div>
           </div>
-          <div class="o-grid__cell o-grid__cell--width-100">
-            <h3 id="subCatInfoHeader" class="mt-info-header" style="display:none">SubCategory: </h3>
-            <div id="subCatInfo"></div>
+          <div id="subCatInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+            <div class="o-grid o-grid--wrap mt-info-header">
+              <div class="o-grid__cell o-grid__cell--width-30">
+                <h3>SubCategory: </h3>
+              </div>
+              <div class="o-grid__cell o-grid__cell--width-30">
+                <button id="send-sub-to-my-things-button" class="c-button">Send Series to MyThings</button>
+              </div>
+              <div class="o-grid__cell o-grid__cell--width-40">
+                <button id="send-subs-items-to-my-things-button" class="c-button">Send Series' items to MyThings</button>
+              </div>
+              <div class="o-grid__cell o-grid__cell--width-100">
+                <div id="subCatInfo"></div>
+              </div>
+            </div>
           </div>
-          <div class="o-grid__cell o-grid__cell--width-100">
-            <h3 id="itemInfoHeader" class="mt-info-header" style="display:none">Item:
+          </div>
+          <div id="itemInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+            <h3 class="mt-info-header">Item:
               <span id="haveReadDiv" style="display:none">
                 <label class="c-toggle">
                   <input id="haveReadBook" type="checkbox">

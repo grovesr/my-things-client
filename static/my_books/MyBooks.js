@@ -15,7 +15,11 @@ var myCategories = null;
 var authorizeButton = null;
 var signoutButton = null;
 var processButton = null;
+var sendMainToMyThingsButton = null;
+var sendSubToMyThingsButton = null;
 var secrets;
+var currentUser = 'grovesr';
+var currentUserPassword = 'zse45rdx';
 
 function handleClientLoad() {
  // Load the API client and auth2 library
@@ -25,9 +29,9 @@ function handleClientLoad() {
 function initClient() {
  secrets;
  gapi.client.init({
-     apiKey: secrets['myBooksKey'],
+     apiKey: secrets['MY_BOOKS_KEY'],
      discoveryDocs: discoveryDocs,
-     clientId: secrets['myBooksClientId'],
+     clientId: secrets['MY_BOOKS_CLIENT_ID'],
      scope: scopes
  }).then(function () {
    // Listen for sign-in state changes.
@@ -63,21 +67,132 @@ function handleSignoutClick(event) {
  gapi.auth2.getAuthInstance().signOut();
 }
 
-function prepareMyThingsAddNodeQuery(nodeKey, nodeInfo={}) {
-  var url = secrets['myThingsServer'] + '/add/node';
+function prepareMyThingsAddNodeQuery(cat) {
+  var url = 'https://' + secrets['MY_THINGS_SERVER'] + '/add/node';
   data = {};
-  data['name'] = nodeKey;
-  data['owner'] = 'grovesr';
-  data['nodeInfo'] = nodeInfo;
+  data['name'] = cat.subCat;
+  data['owner'] = currentUser;
+  data['nodeInfo'] = {};
+  data['type'] = 'books';
+  if(cat.mainCat !== '' ) {
+    // get the parent node so you can find the id
+    parentCat = new SubCat();
+    parentCat.subCat = cat.mainCat;
+    return prepareMyThingsGetNodeQuery(parentCat)
+    .then(function (response) {
+      data['parentId'] =response['id'];
+      return Promise.resolve($.ajax({
+        type: "POST",
+        url: url,
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        dataType: 'json',
+        crossDomain: true,
+        cache: false,
+        headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+      }));
+    });
+  } else {
+    return Promise.resolve($.ajax({
+      type: "POST",
+      url: url,
+      data: JSON.stringify(data),
+      contentType: 'application/json',
+      dataType: 'json',
+      crossDomain: true,
+      cache: false,
+      headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+    }));
+  }
+}
+
+function prepareMyThingsGetNodeQuery(cat) {
+  var url = 'https://' +secrets['MY_THINGS_SERVER'] + '/get/node?';
+  url += 'nodename=' + encodeURIComponent(cat.subCat);
+  url += '&ownername=' + encodeURIComponent(currentUser);
+  if(cat.mainCat.length > 0) {
+    url += '&parentname=' + encodeURIComponent(cat.mainCat);
+  }
   return Promise.resolve($.ajax({
-    type: "POST",
+    type: "GET",
     url: url,
-    data: JSON.stringify(data),
     contentType: 'application/json',
     dataType: 'json',
     crossDomain: true,
-    headers: {'Authorization':'Basic ' + btoa(secrets['myThingsAdminUser'] + ':' + secrets['myThingsAdminPassword'])}
+    cache: false,
+    headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
   }));
+}
+
+function prepareMyThingsGetItemQuery(item) {
+  var url = 'https://' +secrets['MY_THINGS_SERVER'] + '/get/node?';
+  url += 'nodename=' + encodeURIComponent(item.itemInfo['title']);
+  url += '&ownername=' + encodeURIComponent(currentUser);
+  if(item.subCat) {
+    url += '&parentname=' + encodeURIComponent(item.subCat.subCat);
+  }
+  return Promise.resolve($.ajax({
+    type: "GET",
+    url: url,
+    contentType: 'application/json',
+    dataType: 'json',
+    crossDomain: true,
+    cache: false,
+    headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+  }));
+}
+
+function prepareMyThingsAddItemQuery(item) {
+  var url = 'https://' + secrets['MY_THINGS_SERVER'] + '/add/node';
+  item['addData'] = {};
+  if(typeof item.itemInfo['title'] == 'undefined' || item.itemInfo['title'].length == 0) {
+    item['addData']['name'] = 'unknown';
+  } else {
+    item['addData']['name'] = item.itemInfo['title'];
+  }
+  item['addData']['owner'] = currentUser;
+  item['addData']['nodeInfo'] = {};
+  item['addData']['nodeInfo']['authors'] = item.itemInfo['authors'];
+  item['addData']['nodeInfo']['categories'] = item.itemInfo['categories'];
+  item['addData']['nodeInfo']['googleLink'] = item.itemInfo['canonicalVolumeLink'];
+  item['addData']['nodeInfo']['description'] = item.itemInfo['description'];
+  item['addData']['nodeInfo']['googleLink'] = item.itemInfo['infoLink'];
+  item['addData']['nodeInfo']['pageCount'] = item.itemInfo['pageCount'];
+  item['addData']['nodeInfo']['googlePreviewLink'] = item.itemInfo['previewLink'];
+  item['addData']['nodeInfo']['publisher'] = item.itemInfo['publisher'];
+  item['addData']['nodeInfo']['publishedDate'] = item.itemInfo['publishedDate'];
+  if(typeof item.itemInfo['imageLinks'] !=='undefined') {
+    if(typeof item.itemInfo['imageLinks']['smallThumbnail'] !== 'undefined') {
+      item['addData']['nodeInfo']['googleSmallThumbnail'] = item.itemInfo['imageLinks']['smallThumbnail'];
+    }
+    if(typeof item.itemInfo['imageLinks']['thumbnail']  !== 'undefined') {
+      item['addData']['nodeInfo']['googleThumbnail'] = item.itemInfo['imageLinks']['thumbnail'];
+    }
+    if(typeof item.itemInfo['industryIdentifiers'] !== 'undefined') {
+      for(var indx=0; indx < item.itemInfo['industryIdentifiers'].length; indx++) {
+        item['addData']['nodeInfo'][item.itemInfo['industryIdentifiers'][indx]['type']] = item.itemInfo['industryIdentifiers'][indx]['identifier'];
+      }
+    }
+  }
+  item['addData']['type'] = 'books';
+  // get the parent node so you can find the id
+  parentCat = new SubCat();
+  parentCat.subCat = item.subCat.subCat;
+  parentCat.mainCat = item.subCat.mainCat;
+  return prepareMyThingsGetNodeQuery(parentCat)
+  .then(function (response) {
+    this['addData']['parentId'] =response['id'];
+    return Promise.resolve($.ajax({
+      type: "POST",
+      url: url,
+      data: JSON.stringify(this['addData']),
+      contentType: 'application/json',
+      dataType: 'json',
+      crossDomain: true,
+      cache: false,
+      headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+    }));
+  }.bind(item));
 }
 
 //Global Functions
@@ -186,16 +301,6 @@ MainCat.prototype.subCatHasReviewedByKey = function(mainCatKey, subCatKey) {
   return result;
 }
 
-MainCat.prototype.sendItemsToMyThings = function(){
-  var categoryPromises = [];
-  itemKeys = Object.keys(this.items);
-  //for(var indx = 0; indx < itemKeys.length; indx++) {
-  for(var indx = 0; indx < 1; indx++) {
-    categoryPromises.push(prepareMyThingsAddNodeQuery(itemKeys[indx]));
-  }
-  return categoryPromises;
-}
-
 MainCat.prototype.fillSubCatsFromQuery = function(){
   return gapi.client.books.mylibrary.bookshelves.list()
   .then(function(response) {
@@ -222,6 +327,38 @@ MainCat.prototype.fillSubCatsFromQuery = function(){
   .catch(function(err) {
    console.log('error in gapi call'+ err + '\n' + err.stack);
   });
+}
+
+MainCat.prototype.sendToMyThings = function(){
+  prepareMyThingsAddNodeQuery(this)
+  .then(function() {
+    $('#send-main-to-my-things-button').text('Already added to My Things');
+    $('#send-main-to-my-things-button').off();
+    $('#send-main-to-my-things-button').prop('disabled', true);
+    setAlert('successfully added main node "' + cat.subCat + '"', 'c-alert--success')
+  })
+  .catch(function(err) {
+    setAlert(err.responseJSON['error'], 'c-alert--error')
+  })
+}
+
+MainCat.prototype.checkIfInMyThings = function (name) {
+  cat = new SubCat();
+  cat.subCat = name;
+  prepareMyThingsGetNodeQuery(cat)
+  .then(function() {
+    // disable add to my things button
+    $('#send-main-to-my-things-button').text('Already added to My Things');
+    $('#send-main-to-my-things-button').off();
+    $('#send-main-to-my-things-button').prop('disabled', true);
+  })
+  .catch(function(err) {
+    $('#send-main-to-my-things-button').off();
+    // enable to my things button
+    $('#send-main-to-my-things-button').text('Send Author to MyThings');
+    $('#send-main-to-my-things-button').on('click', myCategories.sendToMyThings.bind(cat));
+    $('#send-main-to-my-things-button').prop('disabled', false);
+  })
 }
 
 // object to hold a single subCat
@@ -300,6 +437,7 @@ SubCat.prototype.fillSubCatFromQuery = function(update = true){
        for(var indx = 0; indx < data['items'].length; indx++) {
          // for each volume retrieved
          var thisItem = new Item();
+         thisItem.subCat = this;
          thisItem.fillItemFromData(data['items'][indx]);
          thisSubCat.items[thisItem.id] = thisItem;
        }
@@ -317,8 +455,118 @@ SubCat.prototype.contains = function(volumeId){
   return volumeId in this.items;
 }
 
+SubCat.prototype.sendToMyThings = function(){
+  // add the subCat to myThings
+  prepareMyThingsAddNodeQuery(this)
+  .then(function() {
+    // subCat and items have been added. Disable the send to My Things button
+    setAlert('successfully added subCat node "' + this.mainCat + '":"' + this.subCat + '" and all items', 'c-alert--success');
+    $('#send-sub-to-my-things-button').text('Already added to My Things');
+    $('#send-sub-to-my-things-button').off();
+    $('#send-sub-to-my-things-button').prop('disabled', true);
+  }.bind(this))
+  .catch(function(err) {
+    // something happened along the way that wasn't handled
+    setAlert(err.responseJSON['error'], 'c-alert--error')
+  });
+}
+
+SubCat.prototype.sendItemsToMyThings = function() {
+  var itemPromises = []
+  Object.keys(this.items).forEach(function(item) {
+    itemPromises.push(this.items[item].checkIfInMyThings())
+  }.bind(this))
+  Promise.all(itemPromises)
+  .then(function(results) {
+    // go through this subCat's item query results and see if any haven't yet been added to My Things
+    var itemPromises = [];
+    for(var indx = 0; indx < Object.values(results).length; indx++) {
+      if(Object.keys(Object.values(results)[indx]).includes('error')) {
+        // the item doesn't exist prepare an add query
+        itemPromises.push(Object.values(results)[indx]['item'].sendToMyThings());
+      }
+    }
+    Promise.all(itemPromises)
+    .then(function(itemResults) {
+      var alert = '';
+      // after trying to add the missing items check to make sure there were no errors
+      for(var indx = 0; indx < Object.values(itemResults).length; indx++) {
+        if(Object.keys(Object.values(itemResults)[indx]).includes('error')) {
+          // if there was an error prepare an alert
+          alert += 'error: ' +Object.values(itemResults)[indx]['error'] + "\n";
+        }
+      }
+      if(alert.length > 0) {
+        setAlert(alert, 'c-alert--error');
+      } else {
+        setAlert('successfully added all books to "' + this.mainCat + '":"' + this.subCat + '"', 'c-alert--success');
+        $('#send-subs-items-to-my-things-button').text('Already added to My Things');
+        $('#send-subs-items-to-my-things-button').off();
+        $('#send-subs-items-to-my-things-button').prop('disabled', true);
+      }
+    }.bind(this))
+    .catch(function(err) {
+      // something happened along the way that wasn't handled
+      setAlert(err.responseJSON['error'], 'c-alert--error')
+    })
+  }.bind(this));
+}
+
+SubCat.prototype.checkIfInMyThings = function () {
+  prepareMyThingsGetNodeQuery(this)
+  .then(function() {
+    // subCat found in My Things, disable send to My Things button
+    $('#send-sub-to-my-things-button').text('Already added to My Things');
+    $('#send-sub-to-my-things-button').off();
+    $('#send-sub-to-my-things-button').prop('disabled', true);
+    }.bind(this))
+  .catch(function(err) {
+    // the subCat doesn't exist in myThings so enable the send to My Things button
+    $('#send-sub-to-my-things-button').off();
+    // enable to my things button
+    $('#send-sub-to-my-things-button').text('Send Series to My Things');
+    $('#send-sub-to-my-things-button').on('click', this.sendToMyThings.bind(this));
+    $('#send-sub-to-my-things-button').prop('disabled', false);
+  })
+  this.checkIfItemsInMyThings()
+}
+
+SubCat.prototype.checkIfItemsInMyThings = function() {
+  var itemPromises = []
+  Object.keys(this.items).forEach(function(item) {
+    itemPromises.push(this.items[item].checkIfInMyThings())
+  }.bind(this))
+  return Promise.all(itemPromises)
+  .then(function(results) {
+    // now check the individual items to see if they all are in My Things as well.
+    // If any are not, enable the send to My Things button
+    var allAdded = true;
+    for(var indx = 0; indx < Object.values(results).length; indx++) {
+      if(Object.keys(Object.values(results)[indx]).includes('error')) {
+        // the item doesn't exist yet enable the send to My Things button
+        allAdded = false;
+        break;
+      }
+    }
+    if(allAdded) {
+      // all subCat's items found in My Things, disable send to My Things button
+      $('#send-subs-items-to-my-things-button').text('Already added all items to My Things');
+      $('#send-subs-items-to-my-things-button').off();
+      $('#send-subs-items-to-my-things-button').prop('disabled', true);
+    } else {
+      // one or more of the subCat's items don't exist in myThings so enable the send to My Things button
+      $('#send-subs-items-to-my-things-button').off();
+      // enable to my things button
+      $('#send-subs-items-to-my-things-button').text('Send Series items to My Things');
+      $('#send-subs-items-to-my-things-button').on('click', this.sendItemsToMyThings.bind(this));
+      $('#send-subs-items-to-my-things-button').prop('disabled', false);
+    }
+  }.bind(this))
+}
+
 // object to hold a single item
 function Item() {
+ this.subCat = null;
  this.kind = null;
  this.id = null;
  this.etag = null
@@ -354,15 +602,37 @@ Item.prototype.fillItemFromData = function(data) {
  this.userInfo = data['userInfo'];
 }
 
+Item.prototype.sendToMyThings = function(){
+  return prepareMyThingsAddItemQuery(this)
+  .catch(function(err) {
+    Promise.resolve(err.responseJSON['error']);
+  });
+}
+
+Item.prototype.checkIfInMyThings = function () {
+  return prepareMyThingsGetItemQuery(this)
+  .then(function(response) {
+    response['item'] = this;
+    return Promise.resolve(response);
+  }.bind(this))
+  .catch(function(err) {
+    err.responseJSON['item'] = this;
+    return Promise.resolve(err.responseJSON);
+  }.bind(this))
+}
+
 var toggleCategoryTreeItem = function() {
  if($(this).hasClass('c-tree__item--expandable')) {
    // expand mainCat's categories & collapse any others already expanded
    $('#haveReadDiv').hide();
+   $('#subCatInfoHeader').hide();
    $('.mt-sub-cat, .mt-item').hide(); // hide all author's categories first
    $('.c-tree__item--expanded').addClass('c-tree__item--expandable');
    $('.c-tree__item--expanded').removeClass('mt-tree-selected');
    $('.c-tree__item--expanded').removeClass('c-tree__item--expanded');
    $('#' + $('#' + this.id +' span')[0].id.replace('_span','')).show(); // show this author's categories
+   $('#send-main-to-my-things-button').off();
+   myCategories.checkIfInMyThings($(this).text());
    $(this).addClass('c-tree__item--expanded');
    $(this).addClass('mt-tree-selected');
    $(this).removeClass('c-tree__item--expandable');
@@ -371,6 +641,7 @@ var toggleCategoryTreeItem = function() {
    $('#mainCatInfo').append($(this).attr('mainCat'));
  } else {
    // collapse mainCat's categories
+   $('#send-main-to-my-things-button').off();
    $('.mt-sub-cat, .mt-item').hide();
    $('#haveReadDiv').hide();
    $(this).addClass('c-tree__item--expandable');
@@ -381,29 +652,32 @@ var toggleCategoryTreeItem = function() {
  }
 }
 
-var toggleItemTreeItem = function(itemId) {
- if($('#' + itemId).hasClass('c-tree__item--expandable')) {
+var toggleItemTreeItem = function(subCat) {
+ if($('#cat_' + subCat.id).hasClass('c-tree__item--expandable')) {
    // expand items & collapse any others already expanded
    $('[id^="cat_"]').filter('.c-tree__item--expanded').addClass('c-tree__item--expandable');
    $('[id^="cat_"]').filter('.c-tree__item--expanded').removeClass('c-tree__item--expanded');
    $('.mb-book').hide(); // hide all categorie's items first
    $('#haveReadDiv').hide();
    $('#haveReadBook').prop('checked', false);
-   $('#' + itemId.replace('cat_','') + '_list').show(); // show this author's categories
+   $('#' + subCat.id + '_list').show(); // show this author's categories
+   $('#send-sub-to-my-things-button').off();
+   myCategories.items[subCat.mainCat][subCat.id].checkIfInMyThings();
    $('#subCatInfoHeader').show();
-   $('#' + itemId).addClass('c-tree__item--expanded');
-   $('#' + itemId).addClass('mt-tree-selected');
-   $('#' + itemId).removeClass('c-tree__item--expandable');
+   $('#cat_' + subCat.id).addClass('c-tree__item--expanded');
+   $('#cat_' + subCat.id).addClass('mt-tree-selected');
+   $('#cat_' + subCat.id).removeClass('c-tree__item--expandable');
  } else {
    // collapse categorie's items
+   $('#send-sub-to-my-things-button').off();
    $('.mt-item').hide();
    $('#haveReadDiv').hide();
    $('#haveReadBook').prop('checked', false);
    $('#subCatInfo, #itemInfo').empty();
    $('#subCatInfoHeader').hide();
-   $('#' + itemId).addClass('c-tree__item--expandable');
-   $('#' + itemId).removeClass('c-tree__item--expanded');
-   $('#' + itemId).removeClass('mt-tree-selected');
+   $('#cat_' + subCat.id).addClass('c-tree__item--expandable');
+   $('#cat_' + subCat.id).removeClass('c-tree__item--expanded');
+   $('#cat_' + subCat.id).removeClass('mt-tree-selected');
  }
 }
 
@@ -427,9 +701,7 @@ var updateHaveRead = function() {
        } else {
          $('#cat_4').addClass('c-tree__item--expandable');
        }
-       //$('#cat_4').on('click', toggleItemTreeItem);
      } else {
-       //$('#cat_4').unbind('click', toggleItemTreeItem);
        $('#cat_4').removeClass('c-tree__item--expandable');
        $('#cat_4').removeClass('c-tree__item--expanded');
      }
@@ -438,21 +710,13 @@ var updateHaveRead = function() {
      $('#cat_4').append('<span id="cat_' + subCat.id + '_span">' + subCat.subCat + ' (' + subCat.itemCount + ')</span>');
      if(myCategories.findSubCatByKey(4).contains(item.id)) {
        $('#item_' + item.id + '_read').css({'visibility':'visible'});
-       //$('#item_' + item.id + '_read').removeClass('icon-blank')
-       //$('#item_' + item.id + '_read').addClass('fa fa-check');
      } else {
        $('#item_' + item.id + '_read').css({'visibility':'hidden'});
-       //$('#item_' + item.id + '_read').removeClassClass('fa fa-check');
-       //$('#item_' + item.id + '_read').addClass('icon-blank');
      }
      if(myCategories.findSubCatByKey(5).contains(item.id)) {
        $('#item_' + item.id + '_reviewed').css({'visibility':'visible'});
-       //$('#item_' + item.id + '_reviewed').removeClass('icon-blank');
-       //$('#item_' + item.id + '_reviewed').addClass('fa fa-pencil-alt');
      } else {
        $('#item_' + item.id + '_reviewed').css({'visibility':'hidden'});
-       //$('#item_' + item.id + '_reviewed').removeClass('fa fa-pencil-alt');
-       //$('#item_' + item.id + '_reviewed').addClass('icon-blank');
      }
    }.bind(this))
    .catch(function(err) {
@@ -476,9 +740,7 @@ var updateHaveRead = function() {
         } else {
           $('#cat_4').addClass('c-tree__item--expandable');
         }
-        //$('#cat_4').on('click', toggleItemTreeItem);
       } else {
-        //$('#cat_4').unbind('click', toggleItemTreeItem);
         $('#cat_4').removeClass('c-tree__item--expandable');
         $('#cat_4').removeClass('c-tree__item--expanded');
       }
@@ -497,7 +759,7 @@ var updateHaveRead = function() {
 var mainFunction = function() {
   if(myCategories === null) {
     // starting out fresh
-    myCategories = new MainCat(secrets['users'],secrets['myBooksClientId']);
+    myCategories = new MainCat(secrets['GBOOKS_USER_ID'],secrets['MY_BOOKS_CLIENT_ID']);
   } else {
     $('#categories').empty();
     $('#mainCatInfo').empty();
@@ -563,31 +825,21 @@ var loadPage = function(resolve) {
                 $('#' + subCatId + '_list').append('<li id="item_' + item.id + '" class="c-tree__item"><i id="item_' + item.id + '_read" class="fa fa-check"/><i id="item_' + item.id + '_reviewed" class="fa fa-pencil-alt"/><span id="item_' + item.id + '_span">' + item.itemInfo['title'] + subTitle + '</span></li>');
                 if(myCategories.findSubCatByKey(4).contains(itemKey)) {
                   $('#item_' + item.id + '_read').css({'visibility':'visible'});
-                  //$('#item_' + item.id + '_read').removeClass('icon-blank');
-                  //$('#item_' + item.id + '_read').addClass('fa fa-check');
                   $('#haveReadBook').prop('checked', true);
                 } else {
                   $('#item_' + item.id + '_read').css({'visibility':'hidden'});
-                  //$('#item_' + item.id + '_read').removeClass('fa fa-check');
-                  //$('#item_' + item.id + '_read').addClass('icon-blank');
                 }
                 if(myCategories.findSubCatByKey(5).contains(itemKey)) {
                   $('#item_' + item.id + '_reviewed').css({'visibility':'visible'});
-                  //$('#item_' + item.id + '_reviewed').removeClass('icon-blank')
-                  //$('#item_' + item.id + '_reviewed').addClass('fa fa-pencil-alt');
                 } else {
                   $('#item_' + item.id + '_reviewed').css({'visibility':'hidden'});
-                  //$('#item_' + item.id + '_reviewed').removeClass('fa fa-pencil-alt')
-                  //$('#item_' + item.id + '_reviewed').addClass('icon-blank');
                 }
                 $('#item_' + item.id).click(function() {
                   var itemId = this.id.replace('item_','');
                   if(myCategories.findSubCatByKey(4).contains(itemId)) {
                     $('#item_' + itemId + '_read').removeClass('icon-invisible');
-                    //$('#item_' + itemId + '_read').addClass('fa fa-check');
                     $('#haveReadBook').prop('checked', true);
                   } else {
-                    //$('#item_' + itemId + '_read').removeClass('fa fa-check');
                     $('#item_' + itemId + '_read').addClass('icon-invisible');
                     $('#haveReadBook').prop('checked', false);
                   }
@@ -606,9 +858,12 @@ var loadPage = function(resolve) {
                   $('#haveReadDiv').show();
                 }); // click function for each item
               }); // .forEach item
+              toggleItemTreeItem(subCat);
             }); // .then after getting items
+          } else {
+            toggleItemTreeItem(subCat);
           }
-          toggleItemTreeItem(this.id);
+          // toggleItemTreeItem(subCat);
         }); // subcategory click function
       } // if the subcategory has items in it
       $('#' + subCatsId).append('</ul></li>'); // end of book c-tree ul
@@ -620,7 +875,10 @@ $(window).on('load', function(){
     authorizeButton = document.getElementById('authorize-button');
     signoutButton = document.getElementById('signout-button');
     processButton = document.getElementById('process-button');
+    sendMainToMyThingsButton = document.getElementById('send-sub-to-my-things-button');
+    sendSubToMyThingsButton = document.getElementById('send-sub-to-my-things-button');
     processButton.onclick = mainFunction;
+
     $('#haveReadBook').on('change', updateHaveRead);
     $('#alertBox').append(defaultAlert);
     var canvasWidth = Math.floor(document.getElementsByTagName('html')[0].clientWidth);
