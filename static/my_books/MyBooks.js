@@ -19,7 +19,7 @@ var sendMainToMyThingsButton = null;
 var sendSubToMyThingsButton = null;
 var secrets;
 var currentUser = 'grovesr';
-var currentUserId = 5;
+var currentUserId = 8;
 var currentUserPassword = 'zse45rdx';
 var currentType = 'books';
 
@@ -75,7 +75,7 @@ function handleSignoutClick(event) {
 }
 
 function prepareMyThingsAddNodeQuery(cat) {
-  var url = 'https://' + secrets['MY_THINGS_SERVER'] + '/add/node';
+  var url = secrets['MY_THINGS_SERVER'] + '/add/node';
   data = {};
   data['name'] = cat.subCat;
   data['owner'] = currentUser;
@@ -114,7 +114,7 @@ function prepareMyThingsAddNodeQuery(cat) {
 }
 
 function prepareMyThingsGetNodeQuery(cat) {
-  var url = 'https://' +secrets['MY_THINGS_SERVER'] + '/get/node?';
+  var url = secrets['MY_THINGS_SERVER'] + '/get/node?';
   url += 'nodename=' + encodeURIComponent(cat.subCat);
   url += '&ownername=' + encodeURIComponent(currentUser);
   if(cat.mainCat.length > 0) {
@@ -132,7 +132,7 @@ function prepareMyThingsGetNodeQuery(cat) {
 }
 
 function prepareMyThingsGetItemQuery(item) {
-  var url = 'https://' +secrets['MY_THINGS_SERVER'] + '/get/node?';
+  var url = secrets['MY_THINGS_SERVER'] + '/get/node?';
   url += 'nodename=' + encodeURIComponent(item.itemInfo['title']);
   url += '&ownername=' + encodeURIComponent(currentUser);
   if(item.subCat) {
@@ -150,7 +150,7 @@ function prepareMyThingsGetItemQuery(item) {
 }
 
 function prepareMyThingsAddItemQuery(item) {
-  var url = 'https://' + secrets['MY_THINGS_SERVER'] + '/add/node';
+  var url = secrets['MY_THINGS_SERVER'] + '/add/node';
   item['addData'] = {};
   if(typeof item.itemInfo['title'] == 'undefined' || item.itemInfo['title'].length == 0) {
     item['addData']['name'] = 'unknown';
@@ -319,9 +319,9 @@ Node.prototype.fillChildNodesFromQuery = function(){
 
 Node.prototype.prepareMyThingsGetChildNodesQuery = function() {
   if(this.id === null) {
-    var url = 'https://' +secrets['MY_THINGS_SERVER'] + '/get/main/nodes?';
+    var url = secrets['MY_THINGS_SERVER'] + '/get/main/nodes?';
   } else {
-    var url = 'https://' +secrets['MY_THINGS_SERVER'] + '/get/nodes?';
+    var url = secrets['MY_THINGS_SERVER'] + '/get/nodes?';
   }
   url += 'ownerId=' + encodeURIComponent(currentUserId);
   url += '&type=' + encodeURIComponent(this.type);
@@ -341,7 +341,7 @@ Node.prototype.prepareMyThingsGetChildNodesQuery = function() {
 }
 
 Node.prototype.prepareMyThingsUpdateNodeQuery = function(props) {
-  var url = 'https://' + secrets['MY_THINGS_SERVER'] + '/update/node/' + encodeURIComponent(this.id);
+  var url = secrets['MY_THINGS_SERVER'] + '/update/node/' + encodeURIComponent(this.id);
   data = {};
   properties = Object.keys(props);
   for(var indx=0; indx < properties.length; indx++) {
