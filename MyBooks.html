@@ -12,9 +12,8 @@
     <script defer src="static/my_books/MyBooks.js"></script>
     </script>
     <style>
-    .icon-blank::before {
-      width: 1em;
-      content: ' ';
+    html.waiting * {
+      cursor: progress;
     }
 
     .mt-tree-selected, .mt-item-selected {
@@ -40,59 +39,56 @@
       </div>
     </div>
     <div id="mainGrid" class="o-grid">
-      <div id="categoriesDiv" class="o-grid__cell o-grid__cell--width-30">
-        <ul id="categories" class="c-tree">
+      <div id="nodesDiv" class="o-grid__cell o-grid__cell--width-30">
+        <ul id="nodes" class="c-tree">
         </ul>
       </div>
       <div class="o-grid__cell">
-        <div class="o-grid o-grid--wrap">
-          <div id="mainCatInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
-            <div class="o-grid o-grid--wrap mt-info-header">
-              <div class="o-grid__cell o-grid__cell--width-40">
-                <h3>Category: </h3>
-              </div>
-              <div class="o-grid__cell o-grid__cell--width-60">
-                <button id="send-main-to-my-things-button" class="c-button">Send Author to MyThings</button>
-              </div>
-              <div class="o-grid__cell o-grid__cell--width-100">
-                <div id="mainCatInfo" ></div>
-              </div>
-            </div>
-          </div>
-          <div id="subCatInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
-            <div class="o-grid o-grid--wrap mt-info-header">
-              <div class="o-grid__cell o-grid__cell--width-30">
-                <h3>SubCategory: </h3>
-              </div>
-              <div class="o-grid__cell o-grid__cell--width-30">
-                <button id="send-sub-to-my-things-button" class="c-button">Send Series to MyThings</button>
-              </div>
-              <div class="o-grid__cell o-grid__cell--width-40">
-                <button id="send-subs-items-to-my-things-button" class="c-button">Send Series' items to MyThings</button>
-              </div>
-              <div class="o-grid__cell o-grid__cell--width-100">
-                <div id="subCatInfo"></div>
-              </div>
-            </div>
-          </div>
-          </div>
-          <div id="itemInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
-            <h3 class="mt-info-header">Item:
-              <span id="haveReadDiv" style="display:none">
-                <label class="c-toggle">
-                  <input id="haveReadBook" type="checkbox">
-                  <div class="c-toggle__track">
-                    <div class="c-toggle__handle"></div>
-                  </div>
-                  Have Read
-                </label>
-              </span>
-            </h3>
-            <div id="itemInfo">
-            </div>
+        <div id="mainNodeInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+          <h3 class="mt-info-header">Main Category:
+            <span id="haveTriedMainNodeDiv" style="display:none">
+              <label class="c-toggle">
+                <input id="main_haveTried" type="checkbox">
+                <div class="c-toggle__track">
+                  <div class="c-toggle__handle"></div>
+                </div>
+                Have Tried
+              </label>
+            </span>
+          </h3>
+          <div id="mainNodeInfo" ></div>
+        </div>
+        <div id="subNodeInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+          <h3 class="mt-info-header">Sub Category:
+            <span id="haveTriedSubNodeDiv" style="display:none">
+              <label class="c-toggle">
+                <input id="sub_haveTried" type="checkbox">
+                <div class="c-toggle__track">
+                  <div class="c-toggle__handle"></div>
+                </div>
+                Have Tried
+              </label>
+            </span>
+          </h3>
+          <div id="subNodeInfo"></div>
+        </div>
+        <div id="itemInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+        <h3 class="mt-info-header">Item:
+            <span id="haveTriedItemDiv" style="display:none">
+              <label class="c-toggle">
+                <input id="item_haveTried" type="checkbox">
+                <div class="c-toggle__track">
+                  <div class="c-toggle__handle"></div>
+                </div>
+                Have Tried
+              </label>
+            </span>
+          </h3>
+          <div id="itemInfo">
           </div>
         </div>
       </div>
     </div>
+  </div>
 </body>
 </html>
