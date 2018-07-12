@@ -19,7 +19,7 @@ var sendMainToMyThingsButton = null;
 var sendSubToMyThingsButton = null;
 var secrets;
 var currentUser = 'grovesr';
-var currentUserId = 8;
+var currentUserId = 9;
 var currentUserPassword = 'zse45rdx';
 var currentType = 'books';
 
