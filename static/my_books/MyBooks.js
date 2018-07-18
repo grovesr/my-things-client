@@ -243,6 +243,28 @@ function getRadioVal(form, name) {
  return val; // return value of checked radio
 }
 
+function AuthorsViewModel() {
+    var self = this;
+    self.authors = ko.observableArray();
+
+    self.beginAdd = function() {
+        alert("Add");
+    }
+    self.beginEdit = function(task) {
+        alert("Edit: " + task.title());
+    }
+    self.remove = function(task) {
+        alert("Remove: " + task.title());
+    }
+    self.markInProgress = function(task) {
+        task.done(false);
+    }
+    self.markDone = function(task) {
+        task.done(true);
+    }
+}
+ko.applyBindings(new NodesViewModel(), $('#nodes')[0]);
+
 function Node(name=null) {
   this.id = null;
   this.name = name;
@@ -1057,6 +1079,6 @@ $(window).on('load', function(){
       enableProcessButton();
     })
     .catch(function(err) {
-      console.log('error getting secrets ' + err + '\n' + err.stack);
+      setAlert('error getting secrets file: ' + err.statusText, 'c-alert--error');
     }); // .then after getting secrets
 });

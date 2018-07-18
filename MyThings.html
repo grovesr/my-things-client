@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>My Things</title>
+
+    <!-- Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+    <link rel="stylesheet" href="static/font-awesome/fontawesome-free-5.0.13/web-fonts-with-css/css/fontawesome-all.min.css"></link>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style>
+    body { padding-top: 70px; /* for top nav bar */}
+    .mt-sub-a { margin-left: 15px; /* to indent sub categories */}
+    div.mt-item-a {margin-left: 30px; /* to indent items */}
+    a.list-group-item {border-color: white; /* to remove borders around the category lists */}
+    .card {border: 0px; box-shadow: none;  /* to remove borders around the category lists */}
+    .badge {float: right; /* to move the category totals to the right of the lists */}
+    a.list-group-item { /* make category lists look like the alert */
+      color: black !important;
+    }
+    a.list-group-item.active { /* to separate adjacent active items and override bold blue active color */
+      background-color: #d6d8d9 !important;
+      border-color: #c6c8c9 !important;
+    }
+    span.fa-pencil-alt {margin-right: 5px;}
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid" id="mainBody">
+      <div class="alert alert-dark" role="alert">
+        Select an Author
+      </div>
+      <div class="row">
+        <!-- begin col-3 for hierarchical category lists-->
+        <div class="col-3">
+          <!-- begin accordian main -->
+          <div class="accordion" id="accordionMain">
+            <!-- begin card main 1 -->
+            <div class="card">
+              <a href="#sub1x" class="list-group-item mt-main-a" data-toggle="collapse" mt-data-id="1">
+                <span><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Main Category 1<span class="badge badge-dark">2</span></span>
+              </a>
+            </div>
+            <!-- end card main 1 -->
+            <!-- begin sub1x collapsed div -->
+            <div id="sub1x" class="collapse mt-main-collapse" data-parent="#accordionMain">
+              <!-- begin sub accordian 1 x -->
+              <div class="accordion" id="accordionSub1x">
+                <!-- begin card 1 1 -->
+                <div class="card">
+                  <a href="#sub11x" class="list-group-item mt-sub-a"  data-toggle="collapse" mt-data-id="11">
+                    <span><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Sub Category 1 1<span class="badge badge-dark">4</span></span>
+                  </a>
+                  <div class="card">
+                    <div id="sub11x" class="collapse mt-sub-collapse mt-item-a" data-parent="#accordionSub1x">
+                      <a href="#1/1/1" class="list-group-item mt-item-a" mt-data-id="111"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 1 1 1</span></a>
+                      <a href="#1/1/2" class="list-group-item mt-item-a" mt-data-id="112"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 1 1 2</span></a>
+                      <a href="#1/1/3" class="list-group-item mt-item-a" mt-data-id="113"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 1 1 3</span></a>
+                      <a href="#1/1/4" class="list-group-item mt-item-a" mt-data-id="114"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 1 1 4</span></a>
+                    </div>
+                  </div>
+                </div>
+                <!-- end card 1 1 -->
+                <!-- begin card 1 2 -->
+                <div class="card">
+                  <a href="#sub12x" class="list-group-item mt-sub-a"  data-toggle="collapse" mt-data-id="12">
+                    <span><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Sub Category 1 2<span class="badge badge-dark">4</span></span>
+                  </a>
+                  <div id="sub12x" class="collapse mt-sub-collapse mt-item-a" data-parent="#accordionSub1x">
+                    <a href="#1/2/1" class="list-group-item mt-item-a" mt-data-id="121"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 1 2 1</span></a>
+                    <a href="#1/2/2" class="list-group-item mt-item-a" mt-data-id="122"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 1 2 2</span></a>
+                    <a href="#1/2/3" class="list-group-item mt-item-a" mt-data-id="123"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 1 2 3</span></a>
+                    <a href="#1/2/4" class="list-group-item mt-item-a" mt-data-id="124"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 1 2 4</span></a>
+                  </div>
+                </div>
+                <!-- end card 12 -->
+              </div>
+              <!-- end sub accordian 1 x -->
+            </div>
+            <!-- end sub1x collapsed div -->
+            <!-- begin card main 2 -->
+            <div class="card">
+              <a href="#sub2x" class="list-group-item mt-main-a"  data-toggle="collapse" mt-data-id="2">
+                <span><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Main Category 2<span class="badge badge-dark">2</span></span>
+              </a>
+            </div>
+            <!-- end card main 2 -->
+            <!-- begin sub2x collapsed div -->
+            <div id="sub2x" class="collapse mt-main-collapse" data-parent="#accordionMain">
+              <!-- begin sub accordian 2 x -->
+              <div class="accordion" id="accordionSub2x">
+                <!-- begin card 2 1 -->
+                <div class="card">
+                  <a href="#sub21x" class="list-group-item mt-sub-a"  data-toggle="collapse" mt-data-id="21">
+                    <span><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Sub Category 2 1<span class="badge badge-dark">4</span></span>
+                  </a>
+                  <div id="sub21x" class="collapse mt-sub-collapse mt-item-a" data-parent="#accordionSub2x">
+                    <a href="#2/1/1" class="list-group-item mt-item-a" mt-data-id="211"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 2 1 1</span></a>
+                    <a href="#2/1/2" class="list-group-item mt-item-a" mt-data-id="212"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 2 1 2</span></a>
+                    <a href="#2/1/3" class="list-group-item mt-item-a" mt-data-id="213"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 2 1 3</span></a>
+                    <a href="#2/1/4" class="list-group-item mt-item-a" mt-data-id="214"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 2 1 4</span></a>
+                  </div>
+                </div>
+                <!-- end card 2 1 -->
+                <!-- begin card 2 2 -->
+                <div class="card">
+                  <a href="#sub22x" class="list-group-item mt-sub-a"  data-toggle="collapse" mt-data-id="22">
+                    <span><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Sub Category 2 2 with a very long category name that I made up<span class="badge badge-dark">4</span></span>
+                  </a>
+                  <div id="sub22x" class="collapse mt-sub-collapse mt-item-a" data-parent="#accordionSub2x">
+                    <a href="#2/2/1" class="list-group-item mt-item-a" mt-data-id="221"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 2 2 1</span></a>
+                    <a href="#2/2/2" class="list-group-item mt-item-a" mt-data-id="222"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 2 2 2</span></a>
+                    <a href="#2/2/3" class="list-group-item mt-item-a" mt-data-id="223"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 2 2 3</span></a>
+                    <a href="#2/2/4" class="list-group-item mt-item-a" mt-data-id="224"><span class="mt-item"><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span>Item 2 2 4</span></a>
+                  </div>
+                </div>
+                <!-- end card 22 -->
+              </div>
+              <!-- end sub accordian 2 x -->
+            </div>
+            <!-- end sub2x collapsed div -->
+          </div>
+          <!-- end accordian main -->
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-9 for item details -->
+        <div  class="col-9 well">
+          Item information
+        </div>
+        <!-- end col-9 -->
+      </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em" crossorigin="anonymous"></script>
+    <script>
+    // ensure that only one main, sub, and item remain active at one time
+    $('a.mt-main-a').on('click', function(e) {
+      $('a.mt-main-a').removeClass('active');
+      $(this).addClass('active');
+    });
+    $('a.mt-sub-a').on('click', function(e) {
+      $('a.mt-sub-a').removeClass('active');
+      $(this).addClass('active');
+    });
+    $('a.mt-item-a').on('click', function(e) {
+      $('a.mt-item-a').removeClass('active');
+      $(this).addClass('active');
+    });
+    $('.mt-main-collapse').on('hide.bs.collapse', function (e) {
+      if ($(this).is(e.target)) {
+        // if a main collapse occurs, make sure the sub divs collapse as well
+        // and that the sub and items go inactive
+        $('.mt-sub-collapse').collapse('hide');
+        $('a.mt-sub-a, a.mt-item-a').removeClass('active');
+      }
+    });
+    $('.mt-sub-collapse').on('hide.bs.collapse', function (e) {
+      if ($(this).is(e.target)) {
+        // if a sub collapse occurs, make sure the items go inactive
+        $('a.mt-item-a').removeClass('active');
+      }
+    })
+    </script>
+  </body>
+</html>
