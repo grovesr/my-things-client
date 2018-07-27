@@ -19,11 +19,9 @@
     <![endif]-->
     <script src="static/knockout/knockout-3.4.2/knockout-3.4.2.js"></script>
     <style>
-    body { padding-top: 70px; /* for top nav bar */}
+    body {padding-top: 70px; /* for top nav bar */}
     .mt-sub-a { margin-left: 15px; /* to indent sub categories */}
     div.mt-item-a {margin-left: 30px; /* to indent items */}
-    a.list-group-item {border-color: white; /* to remove borders around the category lists */}
-    .card {border: 0px; box-shadow: none;  /* to remove borders around the category lists */}
     .badge {float: right; /* to move the category totals to the right of the lists */}
     a.list-group-item { /* make category lists look like the alert */
       color: black !important;
@@ -32,47 +30,113 @@
       background-color: #d6d8d9 !important;
       border-color: #c6c8c9 !important;
     }
-    span.fa-pencil-alt {margin-right: 5px;}
+    span.fa-pencil-alt {
+      margin-right: 5px;
+    }
+    html.waiting * {
+      cursor: wait;
+    }
     </style>
   </head>
   <body>
     <div class="container-fluid" id="mainBody">
-      <div class="alert alert-dark" role="alert">
-        Select an Author
+      <div id="alertBox" class="alert alert-dark" role="alert">
       </div>
       <div class="row">
         <!-- begin col-3 for hierarchical category lists-->
         <div class="col-3">
+          <div class="btn-group btn-group-sm mt-add-buttons mb-1">
+            <button
+              data-bind="attr: {title: 'Add ' + mainLabel()},
+                        style: {opacity: (enableAddMain() ? '1.0': '0.2'),
+                                cursor: (enableAddMain() ? 'pointer': 'not-allowed')},
+                        enable: enableAddMain(),
+                        click: beginAddMain"
+              data-toggle="tooltip"
+              class="btn btn-secondary mr-1">
+              <span class="fa fa-plus fa-xs">
+              </span>
+            </button>
+            <button
+              data-bind="attr: {title: 'Add ' + subLabel()},
+                        style: {opacity: (enableAddSub() ? '1.0': '0.2'),
+                                cursor: (enableAddSub() ? 'pointer': 'not-allowed')},
+                        enable: enableAddSub(),
+                        click: beginAddSub"
+              data-toggle="tooltip"
+              class="btn btn-secondary mr-1">
+              <span class="fa fa-plus fa-xs">
+              </span>
+            </button>
+            <button
+              data-bind="attr: {title: 'Add ' + itemLabel()},
+                        style: {opacity: (enableAddItem() ? '1.0': '0.2'),
+                                cursor: (enableAddItem() ? 'pointer': 'not-allowed')},
+                        enable: enableAddItem(),
+                        click: beginAddItem"
+              data-toggle="tooltip"
+              class="btn btn-secondary">
+              <span class="fa fa-plus fa-xs">
+              </span>
+            </button>
+          </div>
           <!-- begin accordian main -->
           <div class="accordion" id="accordionMain">
             <!-- ko foreach: mainNodes -->
               <!-- begin card main -->
-              <div class="card">
-                <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id }" class="list-group-item mt-main-a" data-toggle="collapse">
-                  <span><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span><span data-bind="text: name()"></span><span class="badge badge-dark" data-bind="text: children().length"></span></span>
+              <div class="card border-0">
+                <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id }"
+                  class="list-group-item mt-main-a text-truncate border-0 mb-1" data-toggle="collapse">
+                  <span>
+                    <span class="badge badge-dark" data-bind="text: children().length"></span>
+                    <span data-bind="attr: {style: 'opacity:' + (haveTried() ? '1.0': '0.2')}"
+                          data-toggle="tooltop" title="tried"
+                          class="fa fa-check fa-xs"></span>
+                    <span data-bind="attr: {style: 'opacity:' + (review() ? '1.0': '0.2')}"
+                          data-toggle="tooltop" title="reviewed"
+                          class="fa fa-pencil-alt fa-xs"></span>
+                    <span data-toggle="tooltip" data-bind="text: name(), attr:{title: name()}"></span>
+                </span>
                 </a>
               </div>
               <!-- end card main -->
               <!-- begin sub node collapsed div -->
-              <div data-bind="attr: { id: 'accordianCollapse_' + id() }" class="collapse mt-main-collapse" data-parent="#accordionMain">
+              <div data-bind="attr: { id: 'accordianCollapse_' + id() }"
+                  class="collapse mt-main-collapse" data-parent="#accordionMain">
                 <!-- begin sub accordian -->
                 <div data-bind="attr: { id: 'accordian_' + id() }" class="accordion">
                   <!-- ko foreach: children -->
                     <!-- begin sub card -->
-                    <div class="card">
-                      <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id()}" class="list-group-item mt-sub-a"  data-toggle="collapse">
-                        <span><span class="fa fa-check fa-xs"></span><span class="fa fa-pencil-alt fa-xs"></span><span data-bind="text: name()"></span><span class="badge badge-dark" data-bind="text: children().length"></span></span>
+                    <div class="card border-0">
+                      <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id()}"
+                        class="list-group-item mt-sub-a text-truncate border-0 mb-1"  data-toggle="collapse">
+                        <span>
+                          <span class="badge badge-dark" data-bind="text: children().length"></span>
+                          <span data-bind="attr: {style: 'opacity:' + (haveTried() ? '1.0': '0.2')}"
+                                data-toggle="tooltip" title="tried"
+                                class="fa fa-check fa-xs"></span>
+                          <span data-bind="attr: {style: 'opacity:' + (review() ? '1.0': '0.2')}"
+                                data-toggle="tooltip" title="reviewed"
+                                class="fa fa-pencil-alt fa-xs"></span>
+                          <span data-toggle="tooltip" data-bind="text: name(), attr:{title: name()}"></span>
+                        </span>
                       </a>
                       <!-- begin item card -->
-                      <div class="card">
+                      <div class="card border-0">
                         <!-- begin item collapse -->
-                        <div data-bind="attr: { id: 'accordianCollapse_' + id(),'data-parent': '#accordian_' + $parent.id() }" class="collapse mt-sub-collapse mt-item-a">
+                        <div data-bind="attr: { id: 'accordianCollapse_' + id(),'data-parent': '#accordian_' + $parent.id() }"
+                            class="collapse mt-sub-collapse mt-item-a">
                           <!-- ko foreach: children -->
-                            <a data-bind="attr: { href: '#item_ ' + id(), 'mt-data-id': id()}" class="list-group-item mt-item-a" >
+                            <a data-bind="attr: { href: '#item_ ' + id(), 'mt-data-id': id()}"
+                              class="list-group-item mt-item-a text-truncate border-0 mb-1" >
                               <span class="mt-item">
-                                <span class="fa fa-check fa-xs"></span>
-                                <span class="fa fa-pencil-alt fa-xs"></span>
-                                <span data-bind="text: name()"></span>
+                                <span data-bind="attr: {style: 'opacity:' + (haveTried() ? '1.0': '0.2')}"
+                                      data-toggle="tooltip" title="tried"
+                                      class="fa fa-check fa-xs"></span>
+                                <span data-bind="attr: {style: 'opacity:' + (review() ? '1.0': '0.2')}"
+                                      data-toggle="tooltip" title="reviewed"
+                                      class="fa fa-pencil-alt fa-xs"></span>
+                                <span data-toggle="tooltip" data-bind="text: name(), attr:{title: name()}"></span>
                               </span>
                             </a>
                           <!-- /ko -->
@@ -94,7 +158,7 @@
         <!-- end col-3 -->
         <!-- begin col-9 for item details -->
         <div  class="col-9 well">
-          Item information
+
         </div>
         <!-- end col-9 -->
       </div>
@@ -102,84 +166,264 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="static/jquery/jquery-3.3.1.min.js"></script>
     <script>
-    function Node(id=0, name=test, children=[]) {
-      var self = this;
-      self.id = ko.observable(id);
-      self.name = ko.observable(name);
-      self.children = ko.observableArray(children);
+    // globals
+    var nodesViewModel = null;
+    var secrets = null;
+    var defaultAlert = "Select Author";
+    var mainLabel = "Author";
+    var subLabel = "Series";
+    var itemLabel = "Book";
+    var triedLabel = "Read";
+
+    $('.fa-check, .fa-pencil-alt').css({'visibility':'hidden'});
+    $('.mt-add-buttons').css({'visibility':'hidden'});
+    setAlert(defaultAlert);
+
+    function setAlert(alertText, alertClass = "") {
+       $('#alertBox').empty();
+       $('#alertBox').removeClass (function (index, className) {
+         return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
+       });
+       if( alertClass.length > 0) {
+           $('#alertBox').addClass(alertClass);
+       } else {
+         $('#alertBox').addClass('alert-dark');
+       };
+       $('#alertBox').append("&nbsp;");
+       $('#alertBox').append(
+         '<button type="button" class="close" aria-label="Close">' +
+            '<span aria-hidden="true">&times;</span>' +
+          '</button>' +
+          '<span id="alertText"></span>'
+        );
+       $('#alertText').text(alertText);
+       $('#alertBox button.close').on('click', function () {
+           $('#alertBox').empty();
+           $('#alertBox').removeClass (function (index, className) {
+             return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
+           });
+           $('#alertBox').addClass('alert-dark');
+           $('#alertBox').append(defaultAlert);
+       });
     }
+
+    function Node(data={}) {
+      var self = this;
+      self.id = ko.observable(0);
+      self.name = ko.observable('');
+      self.type = ko.observable('');
+      self.description = ko.observable('');
+      self.nodeInfo = ko.observable({});
+      self.haveTried = ko.observable(false);
+      self.dateTried = ko.observable(Date());
+      self.review = ko.observable('');
+      self.rating = ko.observable('');
+      self.dateReviewed = ko.observable(Date());
+      self.ownerId = ko.observable(0);
+      self.parentId = ko.observable(0);
+      self.children = ko.observable([]);
+      if(data) {
+        self.loadData(data);
+      }
+
+    }
+
+    Node.prototype.toggleTried = function() {
+      // set self.haveTried, self.dateTried
+      var self = this;
+      self.haveTried(!self.haveTried());
+      if(self.haveTried()) {
+        self.dateTried(Date());
+      }
+      console.log('Node ' + self.name() + ' haveTried aspect has been set to ' + self.haveTried());
+    }
+
+    Node.prototype.remove = function() {
+      var self = this;
+      console.log('Node ' + self.name() + ' is being removed');
+    }
+
+    Node.prototype.beginReview = function() {
+      var self = this;
+      // set self.review, self.rating, self.dateReviewed
+      console.log('Node ' + self.name() + ' is being reviewed');
+    }
+
+    Node.prototype.loadData = function(data) {
+      var self = this;
+      var aspects = [
+        'id', 'name', 'type', 'description', 'nodeInfo','haveTried',
+        'dateTried', 'review', 'rating', 'dateReviewed', 'ownerId',
+        'parentId', 'children'];
+      aspects.forEach(function(aspect) {
+        if(aspect in data) {
+          self[aspect](data[aspect]);
+        }
+      });
+      return self;
+    }
+
     function NodesViewModel() {
       var self = this;
+      self.currentUser = 'grovesr';
+      self.currentUserId = 9;
+      self.currentUserPassword = 'zse45rdx';
+      self.type = '';
+      self.mainLabel = ko.observable(mainLabel);
+      self.subLabel = ko.observable(subLabel);
+      self.itemLabel = ko.observable(itemLabel);
+      self.triedLabel = ko.observable(triedLabel);
       self.mainNodes = ko.observableArray();
-      var subItems11 = [
-        new Node(id=111, name='Item 1 1 1', children=[]),
-        new Node(id=112, name='Item 1 1 2', children=[]),
-        new Node(id=113, name='Item 1 1 3', children=[]),
-        new Node(id=114, name='Item 1 1 4', children=[]),
-      ];
-      var subItems12 = [
-        new Node(id=121, name='Item 1 2 1', children=[]),
-        new Node(id=122, name='Item 1 2 2', children=[]),
-        new Node(id=123, name='Item 1 2 3', children=[]),
-        new Node(id=124, name='Item 1 2 4', children=[]),
-      ];
-      var subItems21 = [
-        new Node(id=211, name='Item 2 1 1', children=[]),
-        new Node(id=212, name='Item 2 1 2', children=[]),
-        new Node(id=213, name='Item 2 1 3', children=[]),
-        new Node(id=214, name='Item 2 1 4', children=[]),
-      ];
-      var subItems22 = [
-        new Node(id=221, name='Item 2 2 1', children=[]),
-        new Node(id=222, name='Item 2 2 2', children=[]),
-        new Node(id=223, name='Item 2 2 3', children=[]),
-        new Node(id=224, name='Item 2 2 4', children=[]),
-      ];
-      var subNodes1 = [
-        new Node(id=11, name='Sub Category 1 1', children=subItems11),
-        new Node(id=12, name='Sub Category 1 2', children=subItems12),
-      ];
-      var subNodes2 = [
-        new Node(id=21, name='Sub Category 2 1', children=subItems21),
-        new Node(id=22, name='Sub Category 2 2', children=subItems22),
-      ];
-      self.mainNodes.push(new Node(id=1, name='Main Category 1', children=subNodes1));
-      self.mainNodes.push(new Node(id=2, name='Main Category 2', children=subNodes2));
+      self.enableAddMain = ko.observable(true);
+      self.enableAddSub = ko.observable(false);
+      self.enableAddItem = ko.observable(false);
     }
-    ko.applyBindings(new NodesViewModel(), $('#mainBody')[0]);
+
+    NodesViewModel.prototype.beginAddMain = function() {
+      var self = this;
+      console.log('add a new main node');
+    }
+
+    NodesViewModel.prototype.beginAddSub = function() {
+      var self = this;
+      console.log('add a new sub node');
+    }
+
+    NodesViewModel.prototype.beginAddItem = function() {
+      var self = this;
+      console.log('add a new item');
+    }
+
+    NodesViewModel.prototype.getNodes = function() {
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/get/nodes?';
+      url += 'ownerId=' + encodeURIComponent(self.currentUserId);
+      url += '&type=' + encodeURIComponent(self.type);
+      return self.ajax('GET', url)
+      .then(function(response) {
+        // build parents structure
+        var parents = {};
+        response.nodes.forEach(function(node) {
+          if(!(node.parentId in parents)) {
+            parents[node.parentId] = [];
+          }
+          parents[node.parentId].push(new Node(node));
+        });
+        var rootNode = self.buildNodeHierarchy(parents);
+        self.mainNodes(rootNode.children());
+      });
+    }
+
+    NodesViewModel.prototype.buildNodeHierarchy = function(parents, node=null, parentId='') {
+      var self = this;
+      var sameParentList;
+      var children;
+      if(parentId in parents) {
+        sameParentList = parents[parentId];
+      } else {
+        // this is a leaf node
+        return node;
+      }
+      sameParentList.forEach(function(sibling) {
+        // for each node with  the same parent
+        if(node === null) {
+          // this is the first time through the recursion
+          node = sibling;
+        } else {
+          if(!('children' in node)) {
+            node.children([]);
+          }
+          node.children().push(sibling);
+        }
+        self.buildNodeHierarchy(parents, sibling, sibling.id());
+      });
+      return node;
+    }
+
+    NodesViewModel.prototype.ajax = function(method, uri, data) {
+      var self = this;
+      var request = {
+        url: uri,
+        type: method,
+        contentType: "application/json",
+        accepts: "application/json",
+        cache: false,
+        dataType: 'json',
+        data: JSON.stringify(data),
+        headers: {'Authorization':'Basic ' + btoa(self.currentUser + ':' + self.currentUserPassword)}
+      };
+      return Promise.resolve($.ajax(request))
+      .catch(function(err) {
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON, 'alert-danger')
+        } else {
+          setAlert(err.statusText, 'alert-danger')
+        }
+      });
+    }
+
+    var loadKnockout = function() {
+      nodesViewModel = new NodesViewModel();
+      nodesViewModel.type='books';
+      $("html").addClass("waiting");
+      nodesViewModel.getNodes()
+      .then(function() {
+        $("html").removeClass("waiting");
+        $('.mt-add-buttons').css({'visibility':'visible'});
+        ko.applyBindings(nodesViewModel, $('#mainBody')[0]);
+        // ensure that only one main, sub, and item remain active at one time
+        $('a.mt-main-a').on('click', function(e) {
+          $('a.mt-main-a').removeClass('active');
+          $(this).addClass('active');
+          nodesViewModel.enableAddSub(true);
+        });
+        $('a.mt-sub-a').on('click', function(e) {
+          $('a.mt-sub-a').removeClass('active');
+          $(this).addClass('active');
+          nodesViewModel.enableAddItem(true);
+        });
+        $('a.mt-item-a').on('click', function(e) {
+          $('a.mt-item-a').removeClass('active');
+          $(this).addClass('active');
+        });
+        $('.mt-main-collapse').on('hide.bs.collapse', function (e) {
+          if ($(this).is(e.target)) {
+            // if a main collapse occurs, make sure the sub divs collapse as well
+            // and that the sub and items go inactive
+            $('.mt-sub-collapse').collapse('hide');
+            $('a.mt-sub-a, a.mt-item-a').removeClass('active');
+            nodesViewModel.enableAddItem(false);
+          }
+        });
+        $('.mt-sub-collapse').on('hide.bs.collapse', function (e) {
+          if ($(this).is(e.target)) {
+            // if a sub collapse occurs, make sure the items go inactive
+            $('a.mt-item-a').removeClass('active');
+          }
+        })
+      })
+    }
+
+    $("html").addClass("waiting");
+    Promise.resolve($.ajax({
+      cache: false,
+      url: "static/my_books/.secrets.js",
+      dataType: "json"
+    }))
+    .then(function(jsonSecrets) {
+      $("html").removeClass("waiting");
+      secrets = jsonSecrets;
+      //handleClientLoad();
+      loadKnockout();
+    })
+    .catch(function(err) {
+      setAlert('error getting secrets file: ' + err.statusText, 'alert-danger');
+    }); // .then after getting secrets
+
     </script>
     <script src="static/popper/popper.js-1.14.3/dist/umd/popper.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <!-- Latest compiled and minified JavaScript -->
     <script src="static/bootstrap/bootstrap-4.1.2/js/bootstrap.min.js"></script>
-    <script>
-    // ensure that only one main, sub, and item remain active at one time
-    $('a.mt-main-a').on('click', function(e) {
-      $('a.mt-main-a').removeClass('active');
-      $(this).addClass('active');
-    });
-    $('a.mt-sub-a').on('click', function(e) {
-      $('a.mt-sub-a').removeClass('active');
-      $(this).addClass('active');
-    });
-    $('a.mt-item-a').on('click', function(e) {
-      $('a.mt-item-a').removeClass('active');
-      $(this).addClass('active');
-    });
-    $('.mt-main-collapse').on('hide.bs.collapse', function (e) {
-      if ($(this).is(e.target)) {
-        // if a main collapse occurs, make sure the sub divs collapse as well
-        // and that the sub and items go inactive
-        $('.mt-sub-collapse').collapse('hide');
-        $('a.mt-sub-a, a.mt-item-a').removeClass('active');
-      }
-    });
-    $('.mt-sub-collapse').on('hide.bs.collapse', function (e) {
-      if ($(this).is(e.target)) {
-        // if a sub collapse occurs, make sure the items go inactive
-        $('a.mt-item-a').removeClass('active');
-      }
-    })
-    </script>
   </body>
 </html>
