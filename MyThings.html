@@ -19,10 +19,18 @@
     <![endif]-->
     <script src="static/knockout/knockout-3.4.2/knockout-3.4.2.js"></script>
     <style>
-    body {padding-top: 70px; /* for top nav bar */}
+    body {padding-top: 70px; /* for top nav bar */
+          height: 100vh;
+    }
+    /*
+    span {
+      font-size: 85%
+    }
+    */
     .mt-sub-a { margin-left: 15px; /* to indent sub categories */}
     div.mt-item-a {margin-left: 30px; /* to indent items */}
     .badge {float: right; /* to move the category totals to the right of the lists */}
+    .mt-edit-field-button {float: right; /* move edit pencils  button to the right of field*/}
     a.list-group-item { /* make category lists look like the alert */
       color: black !important;
     }
@@ -36,20 +44,24 @@
     html.waiting * {
       cursor: wait;
     }
+    #itemDescription, #itemReview {
+      height: 10vh;
+    }
+    #itemImage {
+      width: 100%;
+    }
     </style>
   </head>
   <body>
     <div class="container-fluid" id="mainBody">
       <div id="alertBox" class="alert alert-dark" role="alert">
+        &nbsp;
       </div>
       <div class="row">
-        <!-- begin col-3 for hierarchical category lists-->
         <div class="col-3">
           <div class="btn-group btn-group-sm mt-add-buttons mb-1">
             <button
               data-bind="attr: {title: 'Add ' + mainLabel()},
-                        style: {opacity: (enableAddMain() ? '1.0': '0.2'),
-                                cursor: (enableAddMain() ? 'pointer': 'not-allowed')},
                         enable: enableAddMain(),
                         click: beginAddMain"
               data-toggle="tooltip"
@@ -59,8 +71,6 @@
             </button>
             <button
               data-bind="attr: {title: 'Add ' + subLabel()},
-                        style: {opacity: (enableAddSub() ? '1.0': '0.2'),
-                                cursor: (enableAddSub() ? 'pointer': 'not-allowed')},
                         enable: enableAddSub(),
                         click: beginAddSub"
               data-toggle="tooltip"
@@ -70,32 +80,75 @@
             </button>
             <button
               data-bind="attr: {title: 'Add ' + itemLabel()},
-                        style: {opacity: (enableAddItem() ? '1.0': '0.2'),
-                                cursor: (enableAddItem() ? 'pointer': 'not-allowed')},
                         enable: enableAddItem(),
                         click: beginAddItem"
               data-toggle="tooltip"
-              class="btn btn-secondary">
+              class="btn btn-secondary text-capitalize">
               <span class="fa fa-plus fa-xs">
               </span>
             </button>
           </div>
+        </div>
+        <div class="col-9">
+          <div class="row mt-edit-buttons">
+            <div class="col text-center">
+              <button
+                data-bind="enable: enableCancelItemEdit(),
+                          click: beginCancelItemEdit"
+                title="Cancel"
+                data-toggle="tooltip"
+                class="btn btn-secondary btn-sm mt-item-edit-control">
+                Cancel
+              </button>
+            </div>
+            <div class="col text-center">
+              <button
+                data-bind="enable: enableDeleteItem(),
+                          click: beginDeleteItem"
+                title="Delete"
+                data-toggle="tooltip"
+                class="btn btn-secondary btn-sm mt-item-edit-control">
+                Delete
+              </button>
+            </div>
+            <div class="col text-center">
+              <button
+                data-bind="enable: enableSaveItem(),
+                          click: beginSaveItem"
+                title="Save"
+                class="btn btn-secondary btn-sm mt-item-edit-control">
+                Save
+              </button>
+            </div>
+            <div class="col-1 form-inline text-center">
+              <input id="enItemEd" class="form-horizontal checkbox" type="checkbox"></input>
+              <label for="enItemEd" class="label">Edit</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <!-- begin col-3 for hierarchical category lists-->
+        <div class="col-3">
           <!-- begin accordian main -->
-          <div class="accordion" id="accordionMain">
+          <div class="accordion" id="accordionMain" style="height: 75vh;overflow-y: scroll;">
             <!-- ko foreach: mainNodes -->
               <!-- begin card main -->
               <div class="card border-0">
                 <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id }"
                   class="list-group-item mt-main-a text-truncate border-0 mb-1" data-toggle="collapse">
                   <span>
-                    <span class="badge badge-dark" data-bind="text: children().length"></span>
-                    <span data-bind="attr: {style: 'opacity:' + (haveTried() ? '1.0': '0.2')}"
-                          data-toggle="tooltop" title="tried"
+                    <span class="badge badge-secondary" data-bind="text: children().length"></span>
+                    <span data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
+                                      title: (collapsed() ? 'expand' : 'collapse')}"
+                          data-toggle="tooltip"></span>
+                    <span data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
+                          data-toggle="tooltip" title="tried"
                           class="fa fa-check fa-xs"></span>
-                    <span data-bind="attr: {style: 'opacity:' + (review() ? '1.0': '0.2')}"
-                          data-toggle="tooltop" title="reviewed"
+                    <span data-bind="style: {opacity: (leavesHaveReviewed() ? '1.0': '0.2')}"
+                          data-toggle="tooltip" title="reviewed"
                           class="fa fa-pencil-alt fa-xs"></span>
-                    <span data-toggle="tooltip" data-bind="text: name(), attr:{title: name()}"></span>
+                    <span data-toggle="tooltip" data-bind="text: name, attr: {title: name}"></span>
                 </span>
                 </a>
               </div>
@@ -108,17 +161,20 @@
                   <!-- ko foreach: children -->
                     <!-- begin sub card -->
                     <div class="card border-0">
-                      <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id()}"
+                      <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id}"
                         class="list-group-item mt-sub-a text-truncate border-0 mb-1"  data-toggle="collapse">
                         <span>
-                          <span class="badge badge-dark" data-bind="text: children().length"></span>
-                          <span data-bind="attr: {style: 'opacity:' + (haveTried() ? '1.0': '0.2')}"
+                          <span class="badge badge-secondary" data-bind="text: children().length"></span>
+                          <span data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
+                                            title: (collapsed() ? 'expand' : 'collapse')}"
+                                data-toggle="tooltip"></span>
+                          <span data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
                                 data-toggle="tooltip" title="tried"
                                 class="fa fa-check fa-xs"></span>
-                          <span data-bind="attr: {style: 'opacity:' + (review() ? '1.0': '0.2')}"
+                          <span data-bind="style: {opacity: (leavesHaveReviewed() ? '1.0': '0.2')}"
                                 data-toggle="tooltip" title="reviewed"
                                 class="fa fa-pencil-alt fa-xs"></span>
-                          <span data-toggle="tooltip" data-bind="text: name(), attr:{title: name()}"></span>
+                          <span data-toggle="tooltip" data-bind="text: name, attr:{title: name}"></span>
                         </span>
                       </a>
                       <!-- begin item card -->
@@ -127,16 +183,18 @@
                         <div data-bind="attr: { id: 'accordianCollapse_' + id(),'data-parent': '#accordian_' + $parent.id() }"
                             class="collapse mt-sub-collapse mt-item-a">
                           <!-- ko foreach: children -->
-                            <a data-bind="attr: { href: '#item_ ' + id(), 'mt-data-id': id()}"
+                            <a data-bind="attr: { href: '#item_ ' + id(), 'mt-data-id': id}"
                               class="list-group-item mt-item-a text-truncate border-0 mb-1" >
                               <span class="mt-item">
-                                <span data-bind="attr: {style: 'opacity:' + (haveTried() ? '1.0': '0.2')}"
+                                <span data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
                                       data-toggle="tooltip" title="tried"
                                       class="fa fa-check fa-xs"></span>
-                                <span data-bind="attr: {style: 'opacity:' + (review() ? '1.0': '0.2')}"
+                                <span data-bind="style: {opacity: (review() ? '1.0': '0.2')}"
                                       data-toggle="tooltip" title="reviewed"
                                       class="fa fa-pencil-alt fa-xs"></span>
-                                <span data-toggle="tooltip" data-bind="text: name(), attr:{title: name()}"></span>
+                                <span data-toggle="tooltip" data-bind="text: name,
+                                                                      attr:{title: name, 'mt-data-id': id }">
+                                </span>
                               </span>
                             </a>
                           <!-- /ko -->
@@ -157,11 +215,164 @@
         </div>
         <!-- end col-3 -->
         <!-- begin col-9 for item details -->
-        <div  class="col-9 well">
+        <div  id="itemDtails" class="col-9 card"  style="height: 75vh;overflow-y: scroll;">
+          <div class = "mt-item-edit-form">
+            <div class="row">
+              <div class="col">
+                <input
+                  id="mainName"
+                  data-bind="attr: {title: mainLabel},
+                            textInput: (selectedMainNode() ? selectedMainNode().name : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center"
+                  disabled>
+                </input>
+              </div>
+              <div class="col">
+                <input
+                  id="subName"
+                  data-bind="attr: {title: subLabel},
+                            textInput: (selectedSubNode() ? selectedSubNode().name : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center"
+                  disabled>
+                </input>
+              </div>
+              <div class="col-1">
+                <input
+                  id="itemSortIndex"
+                  data-bind="attr: {title: sortIndexLabel},
+                            textInput: (selectedItem() ? selectedItem().sortIndex : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center mt-item-edit-control"
+                  title="sort index"
+                  disabled>
+                </input>
+              </div>
+              <div class="col">
+                <input
+                  id="itemName"
+                  data-bind="attr: {title: itemLabel()},
+                            textInput: (selectedItem() ? selectedItem().name : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center text mt-item-edit-control"
+                  disabled>
+                </input>
+              </div>
+              <div class="col-2 text-center">
 
+                <input id="tried"
+                       data-bind="checked: (selectedItem() ? selectedItem().haveTried : false)"
+                       class="checkbox mt-item-edit-control"
+                       type="checkbox"
+                       disabled></input>
+                <label for="tried" class="label" data-bind="text: triedLabel"></label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="row">
+                <label for="nodeInfo1" class="col-2 label" data-bind="text: nodeInfo1Label() + ':'"></label>
+                <input id="nodeInfo1"
+                       data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo1Key()] : '')"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo2" class="col-2 label" data-bind="text: nodeInfo2Label() + ':'"></label>
+                  <input id="nodeInfo2"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo2Key()] : '')"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo3" class="col-2 label" data-bind="text: nodeInfo3Label() + ':'"></label>
+                  <input id="nodeInfo3"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo3Key()] : '')"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo4" class="col-2 label" data-bind="text: nodeInfo4Label() + ':'"></label>
+                  <input id="nodeInfo4"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo4Key()] : '')"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo5" class="col-2 label" data-bind="text: nodeInfo5Label() + ':'"></label>
+                  <input id="nodeInfo5"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo5Key()] : '')"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
+                            title="Edit link"
+                            data-bind="click: editItemLink"><span class="fa fa-pencil-alt fa-xs"></span></button>
+                    <label for="nodeInfo6" class="col-2 label" data-bind="text: nodeInfo6Label() + ':'"></label>
+                    <a id="nodeInfo6"
+                       data-bind="text: (selectedItem() ? selectedItem().name(): ''),
+                                  attr: {href: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo6Key()] : '')}"
+                       class="col">
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-2">
+                <input
+                  id="triedDate"
+                  data-bind="attr: {title: 'Date ' + triedLabel()},
+                            textInput: (selectedItem() ? selectedItem().dateTried : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center mt-item-edit-control"
+                  disabled>
+                </input>
+                <img id="itemImage" class="img-responsive" src="static/images/book-generic.jpeg"></img>
+                <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
+                        title="Edit image"
+                        data-bind="click: editItemImage"><span class="fa fa-pencil-alt fa-xs"></span>
+                </button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <label for="itemDescription" class="label">Description:</label>
+                <textarea
+                  id="itemDescription"
+                  data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo().description : '')"
+                  type="textarea"
+                  data-toggle="tooltip"
+                  class="form-control text-wrap mt-item-edit-control"
+                  disabled>
+                </textarea>
+                <label for="itemReview" class="label">Review:</label>
+                <textarea
+                  id="itemReview"
+                  data-bind="textInput: (selectedItem() ? selectedItem().review : '')"
+                  type="textarea"
+                  data-toggle="tooltip"
+                  class="form-control text-wrap mt-item-edit-control"
+                  disabled>
+                </textarea>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- end col-9 -->
       </div>
+      <!-- end row -->
     </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="static/jquery/jquery-3.3.1.min.js"></script>
@@ -169,15 +380,10 @@
     // globals
     var nodesViewModel = null;
     var secrets = null;
-    var defaultAlert = "Select Author";
-    var mainLabel = "Author";
-    var subLabel = "Series";
-    var itemLabel = "Book";
-    var triedLabel = "Read";
+    var nodesType = 'books';
 
     $('.fa-check, .fa-pencil-alt').css({'visibility':'hidden'});
-    $('.mt-add-buttons').css({'visibility':'hidden'});
-    setAlert(defaultAlert);
+    $('.mt-add-buttons, .mt-edit-buttons, .mt-item-edit-form').css({'visibility':'hidden'});
 
     function setAlert(alertText, alertClass = "") {
        $('#alertBox').empty();
@@ -189,53 +395,82 @@
        } else {
          $('#alertBox').addClass('alert-dark');
        };
-       $('#alertBox').append("&nbsp;");
-       $('#alertBox').append(
-         '<button type="button" class="close" aria-label="Close">' +
-            '<span aria-hidden="true">&times;</span>' +
-          '</button>' +
-          '<span id="alertText"></span>'
-        );
+       $('#alertBox').append('<span id="alertText"></span>');
        $('#alertText').text(alertText);
-       $('#alertBox button.close').on('click', function () {
-           $('#alertBox').empty();
-           $('#alertBox').removeClass (function (index, className) {
-             return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
-           });
-           $('#alertBox').addClass('alert-dark');
-           $('#alertBox').append(defaultAlert);
-       });
+       if(alertClass !== "") {
+         $('#alertBox').append(
+           '<button type="button" class="close" aria-label="Close">' +
+              '<span aria-hidden="true">&times;</span>' +
+            '</button>' +
+            '<span id="alertText"></span>'
+          );
+         $('#alertBox button.close').on('click', function () {
+             $('#alertBox').empty();
+             $('#alertBox').removeClass (function (index, className) {
+               return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
+             });
+             $('#alertBox').addClass('alert-dark');
+             $('#alertBox').append(nodesViewModel.defaultAlert());
+         })
+       }
     }
 
-    function Node(data={}) {
+    var Node = function(data={}) {
       var self = this;
-      self.id = ko.observable(0);
-      self.name = ko.observable('');
-      self.type = ko.observable('');
-      self.description = ko.observable('');
-      self.nodeInfo = ko.observable({});
-      self.haveTried = ko.observable(false);
-      self.dateTried = ko.observable(Date());
-      self.review = ko.observable('');
-      self.rating = ko.observable('');
-      self.dateReviewed = ko.observable(Date());
-      self.ownerId = ko.observable(0);
-      self.parentId = ko.observable(0);
-      self.children = ko.observable([]);
+      self.children = ko.observableArray([]);
+      self.collapsed = ko.observable(true);
+      self.uneditedData = {};
+      self.changed = false;
+      self.forgettableAspects = ['children', 'collapsed',
+                                 'uneditedData', 'forgettableAspects',
+                                 'changed'];
       if(data) {
         self.loadData(data);
       }
 
     }
 
-    Node.prototype.toggleTried = function() {
-      // set self.haveTried, self.dateTried
+    Node.prototype.setDateTried = function() {
       var self = this;
-      self.haveTried(!self.haveTried());
       if(self.haveTried()) {
-        self.dateTried(Date());
+        var date = new Date();
+        self.dateTried((date.getMonth()+1)+'/'+date.getDate()+'/'+date.getFullYear());
+      } else {
+        self.dateTried(null);
       }
-      console.log('Node ' + self.name() + ' haveTried aspect has been set to ' + self.haveTried());
+    }
+
+    Node.prototype.findLeaves = function(leaves = []) {
+      var self = this;
+      if(self.children().length === 0) {
+        return leaves.push(self);
+      }
+      self.children().forEach(function(child) {
+        leaves.concat(child.findLeaves(leaves));
+      })
+      return leaves;
+    }
+
+    Node.prototype.leavesHaveTried = function() {
+      var self = this;
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].haveTried()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    Node.prototype.leavesHaveReviewed = function() {
+      var self = this;
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].review()) {
+          return true;
+        }
+      }
+      return false;
     }
 
     Node.prototype.remove = function() {
@@ -251,32 +486,277 @@
 
     Node.prototype.loadData = function(data) {
       var self = this;
-      var aspects = [
-        'id', 'name', 'type', 'description', 'nodeInfo','haveTried',
-        'dateTried', 'review', 'rating', 'dateReviewed', 'ownerId',
-        'parentId', 'children'];
-      aspects.forEach(function(aspect) {
-        if(aspect in data) {
-          self[aspect](data[aspect]);
+      Object.keys(data).forEach(function(aspect) {
+        // dynamically set the Node's aspects based on the JSON data
+        self[aspect] = ko.observable(data[aspect]);
+        if(data[aspect] && typeof data[aspect] === 'object') {
+          Object.keys(data[aspect]).forEach( function(nodeInfoAspect) {
+            if(typeof nodeInfoAspect === 'array') {
+              self[aspect]()[nodeInfoAspect] = ko.observableArray(data[aspect][nodeInfoAspect]);
+            }else {
+              self[aspect]()[nodeInfoAspect] = ko.observable(data[aspect][nodeInfoAspect]);
+            }
+          })
         }
-      });
+       });
       return self;
     }
 
-    function NodesViewModel() {
+    Node.prototype.rememberUneditedData = function() {
       var self = this;
+      self.uneditedData = {};
+      Object.keys(self).forEach(function(aspect) {
+        if(self.forgettableAspects.indexOf(aspect) === -1) {
+          self.uneditedData[aspect] = self[aspect]();
+        }
+      });
+      self.changed = false;
+    }
+
+    Node.prototype.restoreUneditedData = function() {
+      var self = this;
+      Object.keys(self.uneditedData).forEach(function(aspect) {
+        // dynamically set the Node's aspects based on the JSON data
+        self[aspect](self.uneditedData[aspect]);
+      });
+      self.uneditedData = {};
+      self.changed = false;
+    }
+
+    var NodesViewModel = function() {
+      var self = this;
+      self.mainLabels = {'books':'Author',
+                        'wine':'Winery',
+                        'beer':'Brewery',
+                        'other':'Main'}
+      self.subLabels = {'books':'Series',
+                        'wine':'Type',
+                        'beer':'Type',
+                        'other':'Sub'}
+      self.itemLabels = {'books':'Book',
+                        'wine':'Name',
+                        'beer':'Name',
+                        'other':'Item'}
+      self.triedLabels = {'books':'Read',
+                        'wine':'Tried',
+                        'beer':'Tried',
+                        'other':'Tried'}
+      self.sortIndexLabels = {'books':'Series Order',
+                             'wine':'n/a',
+                             'beer':'n/a',
+                             'other':'Sort Index'}
+      self.nodeInfo1Keys = {'books':'publisher',
+                            'wine':'vintage',
+                            'beer':'vintage',
+                            'other':'nodeinfo1'}
+      self.nodeInfo2Keys = {'books':'publishedDate',
+                            'wine':'region',
+                            'beer':'region',
+                            'other':'nodeinfo2'}
+      self.nodeInfo3Keys = {'books':'pageCount',
+                            'wine':'ABV',
+                            'beer':'ABV',
+                            'other':'nodeinfo3'}
+      self.nodeInfo4Keys = {'books':'ISBN_10',
+                            'wine':'taste',
+                            'beer':'IBU',
+                            'other':'nodeinfo4'}
+      self.nodeInfo5Keys = {'books':'ISBN_13',
+                            'wine':'color',
+                            'beer':'SRM',
+                            'other':'nodeinfo5'}
+      self.nodeInfo6Keys = {'books':'googleLink',
+                            'wine':'link',
+                            'beer':'link',
+                            'other':'nodeinfo6'}
+      self.nodeInfo1Labels = {'books':'Publisher',
+                            'wine':'Vintage',
+                            'beer':'Vintage',
+                            'other':'Node Info 1'}
+      self.nodeInfo2Labels = {'books':'Published',
+                            'wine':'Region',
+                            'beer':'Region',
+                            'other':'Node Info 2'}
+      self.nodeInfo3Labels = {'books':'Pages',
+                            'wine':'ABV',
+                            'beer':'ABV',
+                            'other':'Node Info 3'}
+      self.nodeInfo4Labels = {'books':'ISBN(10)',
+                            'wine':'Taste',
+                            'beer':'IBU',
+                            'other':'Node Info 4'}
+      self.nodeInfo5Labels = {'books':'ISBN(13)',
+                            'wine':'Color',
+                            'beer':'SRM',
+                            'other':'Node Info 5'}
+      self.nodeInfo6Labels = {'books':'Link',
+                            'wine':'Link',
+                            'beer':'Link',
+                            'other':'Node Info 6'}
+      self.defaultAlert = ko.observable();
       self.currentUser = 'grovesr';
       self.currentUserId = 9;
       self.currentUserPassword = 'zse45rdx';
-      self.type = '';
-      self.mainLabel = ko.observable(mainLabel);
-      self.subLabel = ko.observable(subLabel);
-      self.itemLabel = ko.observable(itemLabel);
-      self.triedLabel = ko.observable(triedLabel);
-      self.mainNodes = ko.observableArray();
+      self.type = ko.observable();
+      self.mainLabel = ko.observable();
+      self.subLabel = ko.observable();
+      self.itemLabel = ko.observable();
+      self.triedLabel = ko.observable();
+      self.sortIndexLabel = ko.observable();
+      self.nodeInfo1Key = ko.observable();
+      self.nodeInfo2Key = ko.observable();
+      self.nodeInfo3Key = ko.observable();
+      self.nodeInfo4Key = ko.observable();
+      self.nodeInfo5Key = ko.observable();
+      self.nodeInfo6Key = ko.observable();
+      self.nodeInfo1Label = ko.observable();
+      self.nodeInfo2Label = ko.observable();
+      self.nodeInfo3Label = ko.observable();
+      self.nodeInfo4Label = ko.observable();
+      self.nodeInfo5Label = ko.observable();
+      self.nodeInfo6Label = ko.observable();
+      self.defaultAlert = ko.observable();
       self.enableAddMain = ko.observable(true);
       self.enableAddSub = ko.observable(false);
       self.enableAddItem = ko.observable(false);
+      self.enableCancelItemEdit = ko.observable(false);
+      self.enableDeleteItem = ko.observable(false);
+      self.enableSaveItem = ko.observable(false);
+      self.mainNodes = ko.observableArray();
+      self.selectedMainNode = ko.observable(null);
+      self.selectedSubNode = ko.observable(null);
+      self.selectedItem = ko.observable(null);
+      self.rootNode = null;
+      self.adjacencyList = {};
+      self.adjacencyListNodes = {};
+    }
+
+    NodesViewModel.prototype.setType = function(type) {
+      var self = this;
+      self.type(type);
+      self.mainLabel(self.mainLabels[self.type()]);
+      self.subLabel(self.subLabels[self.type()]);
+      self.itemLabel(self.itemLabels[self.type()]);
+      self.triedLabel(self.triedLabels[self.type()]);
+      self.sortIndexLabel(self.sortIndexLabels[self.type()]);
+      self.defaultAlert('Select ' + self.mainLabel());
+      self.nodeInfo1Key(self.nodeInfo1Keys[self.type()]);
+      self.nodeInfo2Key(self.nodeInfo2Keys[self.type()]);
+      self.nodeInfo3Key(self.nodeInfo3Keys[self.type()]);
+      self.nodeInfo4Key(self.nodeInfo4Keys[self.type()]);
+      self.nodeInfo5Key(self.nodeInfo5Keys[self.type()]);
+      self.nodeInfo6Key(self.nodeInfo6Keys[self.type()]);
+      self.nodeInfo1Label(self.nodeInfo1Labels[self.type()]);
+      self.nodeInfo2Label(self.nodeInfo2Labels[self.type()]);
+      self.nodeInfo3Label(self.nodeInfo3Labels[self.type()]);
+      self.nodeInfo4Label(self.nodeInfo4Labels[self.type()]);
+      self.nodeInfo5Label(self.nodeInfo5Labels[self.type()]);
+      self.nodeInfo6Label(self.nodeInfo6Labels[self.type()]);
+    }
+
+    NodesViewModel.prototype.setDateTriedItem = function() {
+      var self = this;
+      if(self.selectedItem()) {
+        self.selectedItem().setDateTried();
+      }
+    }
+
+    NodesViewModel.prototype.enableItemEdit = function() {
+      var self = this;
+      if($('#enItemEd').prop('checked')) {
+        self.enableCancelItemEdit(true);
+        self.enableDeleteItem(true);
+        self.enableSaveItem(true);
+        self.selectedItem().rememberUneditedData();
+        $('.mt-item-edit-control').prop('disabled', false);
+        $('#tried').prop('checked', self.selectedItem().haveTried());
+      } else {
+        // TODO: set changed if any Node observable changes
+        self.enableDeleteItem(false);
+        self.enableSaveItem(false);
+        self.enableCancelItemEdit(false);
+        $('.mt-item-edit-control').prop('disabled', true);
+        if(self.selectedItem().changed) {
+          console.log('Waning! You will lose current changes to this item. Proceed and revert to previous data?');
+          self.selectedItem().restoreUneditedData();
+        }
+      }
+    }
+
+    NodesViewModel.prototype.loadItem = function() {
+      var self = this;
+      self.selectedItem(self.findNode($('a.mt-item-a.active').attr('mt-data-id')))
+      if($('.mt-edit-buttons, .mt-item-edit-form').css('visibility') === 'hidden') {
+        // only do this if it is currently hidden
+        $('.mt-edit-buttons, .mt-item-edit-form').css({'visibility':'visible'});
+      }
+      self.enableItemEdit();
+    }
+
+    NodesViewModel.prototype.unloadItem = function() {
+      var self = this;
+      if($('.mt-edit-buttons, .mt-item-edit-form').css('visibility') === 'visible') {
+        // only do this if it is currently visible
+        $('.mt-edit-buttons, .mt-item-edit-form').css({'visibility':'hidden'});
+      }
+      $('#enItemEd').prop('checked', false);
+      self.enableItemEdit();
+    }
+
+    NodesViewModel.prototype.findNode = function(id) {
+      // TO DO: make this recursive
+      var self = this;
+      var foundNode = null;
+      for(var indx=0; indx<self.mainNodes().length; indx++) {
+        var mainNode = self.mainNodes()[indx];
+        if(mainNode.id() == id) {
+          foundNode = mainNode;
+          break;
+        }
+        for(var subIndx=0; subIndx< mainNode.children().length; subIndx++) {
+          var subNode = mainNode.children()[subIndx];
+          if(subNode.id() == id) {
+            foundNode = subNode;
+            break;
+          }
+          for(var itemIndx=0; itemIndx<subNode.children().length; itemIndx++) {
+            var item = subNode.children()[itemIndx];
+            if(item.id() == id) {
+              foundNode = item;
+              break;
+            }
+          }
+        }
+      }
+      return foundNode;
+    }
+
+    NodesViewModel.prototype.beginCancelItemEdit = function() {
+      var self = this;
+      $('#enItemEd').prop('checked', false);
+      self.enableItemEdit();
+    }
+
+    NodesViewModel.prototype.beginDeleteItem = function() {
+      var self = this;
+        console.log('Waning! This will permanently remove this item from the database. Proceed?');
+        setAlert('Successfully deleted item', 'alert-success');
+    }
+
+    NodesViewModel.prototype.editItemLink = function() {
+      var self = this;
+      console.log('Display edit item link dialog');
+    }
+
+    NodesViewModel.prototype.editItemImage = function() {
+      var self = this;
+      console.log('Display edit item image dialog');
+    }
+
+    NodesViewModel.prototype.beginSaveItem = function() {
+      var self = this;
+      console.log('save item');
+      setAlert('Successfully saved item', 'alert-success');
     }
 
     NodesViewModel.prototype.beginAddMain = function() {
@@ -298,28 +778,27 @@
       var self = this;
       var url = secrets['MY_THINGS_SERVER'] + '/get/nodes?';
       url += 'ownerId=' + encodeURIComponent(self.currentUserId);
-      url += '&type=' + encodeURIComponent(self.type);
+      url += '&type=' + encodeURIComponent(self.type());
       return self.ajax('GET', url)
       .then(function(response) {
-        // build parents structure
-        var parents = {};
+        // build adjacencyList structure
         response.nodes.forEach(function(node) {
-          if(!(node.parentId in parents)) {
-            parents[node.parentId] = [];
+          if(!(node.parentId in self.adjacencyList)) {
+            self.adjacencyList[node.parentId] = [];
           }
-          parents[node.parentId].push(new Node(node));
+          self.adjacencyList[node.parentId].push(new Node(node));
         });
-        var rootNode = self.buildNodeHierarchy(parents);
-        self.mainNodes(rootNode.children());
-      });
+        var root = self.buildNodeHierarchy();
+        self.mainNodes = root.children;
+      })
     }
 
-    NodesViewModel.prototype.buildNodeHierarchy = function(parents, node=null, parentId='') {
+    NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null) {
       var self = this;
       var sameParentList;
       var children;
-      if(parentId in parents) {
-        sameParentList = parents[parentId];
+      if(parentId in self.adjacencyList) {
+        sameParentList = self.adjacencyList[parentId];
       } else {
         // this is a leaf node
         return node;
@@ -330,12 +809,9 @@
           // this is the first time through the recursion
           node = sibling;
         } else {
-          if(!('children' in node)) {
-            node.children([]);
-          }
-          node.children().push(sibling);
+          node.children.push(sibling);
         }
-        self.buildNodeHierarchy(parents, sibling, sibling.id());
+        self.buildNodeHierarchy(sibling, sibling.id());
       });
       return node;
     }
@@ -354,37 +830,46 @@
       };
       return Promise.resolve($.ajax(request))
       .catch(function(err) {
+        $("html").removeClass("waiting");
         if(typeof err.responseJSON !== 'undefined') {
           setAlert(err.responseJSON, 'alert-danger')
         } else {
-          setAlert(err.statusText, 'alert-danger')
+          setAlert('error in NodesViewModel ajax call: ' + err.statusText, 'alert-danger')
         }
       });
     }
 
     var loadKnockout = function() {
       nodesViewModel = new NodesViewModel();
-      nodesViewModel.type='books';
+      nodesViewModel.setType(nodesType);
       $("html").addClass("waiting");
       nodesViewModel.getNodes()
       .then(function() {
         $("html").removeClass("waiting");
+        setAlert(nodesViewModel.defaultAlert());
+        $('.fa-check, .fa-pencil-alt').css({'visibility':'visible'});
         $('.mt-add-buttons').css({'visibility':'visible'});
         ko.applyBindings(nodesViewModel, $('#mainBody')[0]);
         // ensure that only one main, sub, and item remain active at one time
         $('a.mt-main-a').on('click', function(e) {
           $('a.mt-main-a').removeClass('active');
           $(this).addClass('active');
+          nodesViewModel.selectedMainNode(nodesViewModel.findNode($(this).attr('mt-data-id')));
           nodesViewModel.enableAddSub(true);
         });
         $('a.mt-sub-a').on('click', function(e) {
           $('a.mt-sub-a').removeClass('active');
           $(this).addClass('active');
+          nodesViewModel.selectedSubNode(nodesViewModel.findNode($(this).attr('mt-data-id')));
           nodesViewModel.enableAddItem(true);
         });
         $('a.mt-item-a').on('click', function(e) {
+          if(nodesViewModel.selectedItem()) {
+            nodesViewModel.unloadItem();
+          }
           $('a.mt-item-a').removeClass('active');
           $(this).addClass('active');
+          nodesViewModel.loadItem();
         });
         $('.mt-main-collapse').on('hide.bs.collapse', function (e) {
           if ($(this).is(e.target)) {
@@ -392,16 +877,37 @@
             // and that the sub and items go inactive
             $('.mt-sub-collapse').collapse('hide');
             $('a.mt-sub-a, a.mt-item-a').removeClass('active');
+            nodesViewModel.unloadItem();
             nodesViewModel.enableAddItem(false);
+            // switch collapse icon to '+'
+            nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
           }
         });
         $('.mt-sub-collapse').on('hide.bs.collapse', function (e) {
           if ($(this).is(e.target)) {
             // if a sub collapse occurs, make sure the items go inactive
             $('a.mt-item-a').removeClass('active');
+            nodesViewModel.unloadItem();
+            // switch collapse icon to '+'
+            nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
           }
         })
-      })
+        $('.mt-main-collapse').on('show.bs.collapse', function (e) {
+          if ($(this).is(e.target)) {
+            // switch collapse icon to '-'
+            nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(false);
+          }
+        });
+        $('.mt-sub-collapse').on('show.bs.collapse', function (e) {
+          if ($(this).is(e.target)) {
+            // switch collapse icon to '-'
+            nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(false);
+          }
+        })
+      });
+      $('#enItemEd').prop('checked', false);
+      $('#enItemEd').on('change', nodesViewModel.enableItemEdit.bind(nodesViewModel));
+      $('#tried').on('change', nodesViewModel.setDateTriedItem.bind(nodesViewModel));
     }
 
     $("html").addClass("waiting");
@@ -410,15 +916,21 @@
       url: "static/my_books/.secrets.js",
       dataType: "json"
     }))
+    .catch(function(err) {
+      $("html").removeClass("waiting");
+      setAlert('error getting secrets file: ' + err.statusText, 'alert-danger');
+    })
     .then(function(jsonSecrets) {
       $("html").removeClass("waiting");
       secrets = jsonSecrets;
-      //handleClientLoad();
+    }) // .then after getting secrets
+    .then(function() {
       loadKnockout();
     })
     .catch(function(err) {
-      setAlert('error getting secrets file: ' + err.statusText, 'alert-danger');
-    }); // .then after getting secrets
+      console.log(err.stack)
+    })
+    ;
 
     </script>
     <script src="static/popper/popper.js-1.14.3/dist/umd/popper.min.js"></script>
