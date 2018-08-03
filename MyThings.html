@@ -415,12 +415,14 @@
        }
     }
 
-    var Node = function(data={}) {
+    var Node = function(initialize=true, data={}) {
       var self = this;
-      self.children = ko.observableArray([]);
-      self.collapsed = ko.observable(true);
-      self.uneditedData = {};
-      self.changed = false;
+      if(initialize) {
+        self.children = ko.observableArray([]);
+        self.collapsed = ko.observable(true);
+        self.uneditedData = {};
+        self.changed = false;
+      }
       self.forgettableAspects = ['children', 'collapsed',
                                  'uneditedData', 'forgettableAspects',
                                  'changed'];
@@ -511,6 +513,20 @@
         }
       });
       self.changed = false;
+    }
+
+    Node.prototype.sanitize = function() {
+      var self = this;
+      var sanitizedNode = new Node(false);
+      sanitizedNode.forgettableAspects = sanitizedNode.forgettableAspects.concat(['ownerId', 'parentId']);
+      Object.keys(self).forEach(function(aspect) {
+        if(sanitizedNode.forgettableAspects.indexOf(aspect) === -1) {
+          if(self[aspect]()) {
+            sanitizedNode[aspect] = self[aspect];
+          }
+        }
+      });
+      return sanitizedNode;
     }
 
     Node.prototype.restoreUneditedData = function() {
@@ -676,7 +692,7 @@
         self.enableSaveItem(false);
         self.enableCancelItemEdit(false);
         $('.mt-item-edit-control').prop('disabled', true);
-        if(self.selectedItem().changed) {
+        if(self.selectedItem() && self.selectedItem().changed) {
           console.log('Waning! You will lose current changes to this item. Proceed and revert to previous data?');
           self.selectedItem().restoreUneditedData();
         }
@@ -755,8 +771,20 @@
 
     NodesViewModel.prototype.beginSaveItem = function() {
       var self = this;
-      console.log('save item');
-      setAlert('Successfully saved item', 'alert-success');
+      var url = self.selectedItem().uri().replace('http://', 'https://');
+      var saveData = self.selectedItem().sanitize();
+      self.ajax('PUT', url, saveData)
+      .then(function(response) {
+        setAlert('Successfully updated "' + response.name +'"', 'alert-success')
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          setAlert('error in NodesViewModel ajax call: ' + err.statusText, 'alert-danger')
+        }
+      });
     }
 
     NodesViewModel.prototype.beginAddMain = function() {
@@ -776,7 +804,7 @@
 
     NodesViewModel.prototype.getNodes = function() {
       var self = this;
-      var url = secrets['MY_THINGS_SERVER'] + '/get/nodes?';
+      var url = secrets['MY_THINGS_SERVER'] + '/nodes?';
       url += 'ownerId=' + encodeURIComponent(self.currentUserId);
       url += '&type=' + encodeURIComponent(self.type());
       return self.ajax('GET', url)
@@ -786,11 +814,19 @@
           if(!(node.parentId in self.adjacencyList)) {
             self.adjacencyList[node.parentId] = [];
           }
-          self.adjacencyList[node.parentId].push(new Node(node));
+          self.adjacencyList[node.parentId].push(new Node(true, node));
         });
         var root = self.buildNodeHierarchy();
         self.mainNodes = root.children;
       })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          setAlert('error in NodesViewModel ajax call: ' + err.statusText, 'alert-danger')
+        }
+      });
     }
 
     NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null) {
@@ -825,18 +861,10 @@
         accepts: "application/json",
         cache: false,
         dataType: 'json',
-        data: JSON.stringify(data),
+        data: ko.toJSON(data),
         headers: {'Authorization':'Basic ' + btoa(self.currentUser + ':' + self.currentUserPassword)}
       };
       return Promise.resolve($.ajax(request))
-      .catch(function(err) {
-        $("html").removeClass("waiting");
-        if(typeof err.responseJSON !== 'undefined') {
-          setAlert(err.responseJSON, 'alert-danger')
-        } else {
-          setAlert('error in NodesViewModel ajax call: ' + err.statusText, 'alert-danger')
-        }
-      });
     }
 
     var loadKnockout = function() {
