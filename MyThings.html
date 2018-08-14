@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>My Things</title>
+
+    <!-- Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="static/bootstrap/bootstrap-4.1.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/font-awesome/fontawesome-free-5.0.13/web-fonts-with-css/css/fontawesome-all.min.css"></link>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script src="static/knockout/knockout-3.4.2/knockout-3.4.2.js"></script>
+    <style>
+    body {
+          height: 100vh;
+          padding-top: 4.5rem;
+    }
+    /*
+    span {
+      font-size: 85%
+    }
+    */
+    .mt-sub-a { margin-left: 15px; /* to indent sub categories */}
+    div.mt-item-a {margin-left: 30px; /* to indent items */}
+    .badge {float: right; /* to move the category totals to the right of the lists */}
+    .mt-edit-field-button {float: right; /* move edit pencils  button to the right of field*/}
+    .mt-trash {float: right;}
+    .mt-dialog-input {width: 100%;}
+    a.list-group-item { /* make category lists look like the alert */
+      color: black !important;
+    }
+    a.list-group-item.active { /* to separate adjacent active items and override bold blue active color */
+      background-color: #d6d8d9 !important;
+      border-color: #c6c8c9 !important;
+    }
+    span.fa-pencil-alt {
+      margin-right: 5px;
+    }
+    .fa-star {color: green;}
+    html.waiting * {
+      cursor: wait;
+    }
+
+    #itemDescription, #itemReview {
+      height: 10vh;
+    }
+    #itemImage {
+      width: 100%;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid" id="mainBody">
+      <nav class="navbar navbar-expand-md navbar-light fixed-top bg-light nav-center">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-center" id="navbarCollapse">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <span class="nav-link btn btn-sm">My</span>
+            </li>
+            <li class="nav-item">
+              <select class="custom-select"
+                      id="typesSelect">
+                <!-- ko foreach: types -->
+                  <option data-bind="text: type,
+                                     value: type"></option>
+                <!-- /ko -->
+              </select>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <div id="alertBox" class="alert alert-dark" role="alert">
+        &nbsp;
+      </div>
+      <div class="row">
+        <div class="col-3">
+          <div class="btn-group btn-group-sm mt-add-buttons mb-1">
+            <button
+              data-bind="attr: {title: addMainLabel},
+                        enable: enableAddMain(),
+                        click: beginAddMain"
+              data-toggle="tooltip"
+              class="btn btn-secondary mr-1">
+              <span class="fa fa-plus fa-xs">
+              </span>
+            </button>
+            <button
+              data-bind="attr: {title: addSubLabel},
+                        enable: enableAddSub(),
+                        click: beginAddSub"
+              data-toggle="tooltip"
+              class="btn btn-secondary mr-1">
+              <span class="fa fa-plus fa-xs">
+              </span>
+            </button>
+            <button
+              data-bind="attr: {title: addItemLabel},
+                        enable: enableAddItem(),
+                        click: beginAddItem"
+              data-toggle="tooltip"
+              class="btn btn-secondary text-capitalize">
+              <span class="fa fa-plus fa-xs">
+              </span>
+            </button>
+          </div>
+        </div>
+        <div class="col-9">
+          <div class="row mt-edit-buttons">
+            <div class="col text-center">
+              <button
+                data-bind="click: beginCancelItemEdit"
+                title="Cancel"
+                data-toggle="tooltip"
+                class="btn btn-secondary btn-sm mt-item-edit-control"
+                disabled>
+                Cancel
+              </button>
+            </div>
+            <div class="col text-center">
+              <button
+                data-bind="click: beginDeleteItem"
+                title="Delete"
+                data-toggle="tooltip"
+                class="btn btn-secondary btn-sm mt-item-edit-control"
+                disabled>
+                Delete
+              </button>
+            </div>
+            <div class="col text-center">
+              <button
+                data-bind="click: saveItem"
+                title="Save"
+                class="btn btn-secondary btn-sm mt-item-edit-control"
+                disabled>
+                Save
+              </button>
+            </div>
+            <div class="col-1 form-inline text-center">
+              <input id="enItemEd" class="form-horizontal checkbox" type="checkbox"></input>
+              <label for="enItemEd" class="label">Edit</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <!-- begin col-3 for hierarchical category lists-->
+        <div class="col-3">
+          <!-- begin accordian main -->
+          <div class="accordion" id="accordianMain" style="height: 75vh;overflow-y: scroll;">
+            <!-- ko foreach: mainNodes -->
+              <!-- begin card main -->
+              <div class="card border-0">
+                <span>
+                  <i
+                    data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
+                               attr:{title: 'Delete ' + $root.mainLabel()},
+                               click: $root.beginDeleteMainNode"
+                    class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
+                    data-toggle="tooltip"></i>
+                    <i
+                      data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
+                                 attr:{title: 'Edit ' + $root.mainLabel()},
+                                 click: $root.beginEditMainNode"
+                      class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
+                      data-toggle="tooltip"></i>
+                  <a data-bind="attr: { href: '#accordianCollapse_' + id(),
+                                        'mt-data-id': id},
+                                click: $root.handleMainClick"
+                    class="list-group-item mt-main-a text-truncate border-0 mb-1" data-toggle="collapse">
+                    <span>
+                      <span class="badge badge-secondary" data-bind="text: children().length"></span>
+                      <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
+                                        title: (collapsed() ? 'expand' : 'collapse')}"
+                            data-toggle="tooltip"></i>
+                      <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
+                            data-toggle="tooltip" title="tried"
+                            class="fa fa-check fa-xs"></i>
+                      <span class="fa-stack fa-fw"
+                            data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
+                            data-toggle="tooltip" title="rating">
+                        <i class="far fa-star fa-stack-2x pb-1"></i>
+                        <i class="fa fa-text fa-xs pl-1"
+                           data-bind="text: averageRating()"></i>
+                      </span>
+                      <span data-toggle="tooltip"
+                            data-html="true"
+                            data-bind="text: name,
+                                       attr: {title: nodeTooltip}"
+                            class="mt-tooltip">
+                      </span>
+                  </span>
+                  </a>
+                </span>
+              </div>
+              <!-- end card main -->
+              <!-- begin sub node collapsed div -->
+              <div data-bind="attr: { id: 'accordianCollapse_' + id() }"
+                  class="collapse mt-main-collapse" data-parent="#accordianMain">
+                <!-- begin sub accordian -->
+                <div data-bind="attr: { id: 'accordian_' + id() }" class="accordion">
+                  <!-- ko foreach: children -->
+                    <!-- begin sub card -->
+                    <div class="card border-0">
+                      <span>
+                        <i
+                          data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
+                                     attr:{title: 'Delete ' + $root.subLabel()},
+                                     click: $root.beginDeleteSubNode"
+                          class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
+                          data-toggle="tooltip"></i>
+                          <i
+                            data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
+                                       attr:{title: 'Edit ' + $root.subLabel()},
+                                       click: $root.beginEditSubNode"
+                            class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
+                            data-toggle="tooltip"></i>
+                        <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id},
+                                      click: $root.handleSubClick"
+                          class="list-group-item mt-sub-a text-truncate border-0 mb-1"  data-toggle="collapse">
+                          <span>
+                            <span class="badge badge-secondary" data-bind="text: children().length"></span>
+                            <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
+                                              title: (collapsed() ? 'expand' : 'collapse')}"
+                                  data-toggle="tooltip"></i>
+                            <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
+                                  data-toggle="tooltip" title="tried"
+                                  class="fa fa-check fa-xs"></i>
+                            <span class="fa-stack fa-fw"
+                                  data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
+                                  data-toggle="tooltip" title="rating">
+                              <i class="far fa-star fa-stack-2x pb-1"></i>
+                              <i class="fa fa-text fa-xs pl-1"
+                                 data-bind="text: averageRating()"></i>
+                            </span>
+                            <span data-toggle="tooltip"
+                                  data-html="true"
+                                  data-bind="text: name,
+                                             attr: {title: nodeTooltip}"
+                                  class="mt-tooltip">
+                            </span>
+                          </span>
+                        </a>
+                      </span>
+                      <!-- begin item card -->
+                      <div class="card border-0">
+                        <!-- begin item collapse -->
+                        <div data-bind="attr: { id: 'accordianCollapse_' + id(),'data-parent': '#accordian_' + $parent.id() }"
+                            class="collapse mt-sub-collapse mt-item-a">
+                          <!-- ko foreach: children -->
+                            <a data-bind="attr: { href: '#item_ ' + id(), 'mt-data-id': id},
+                                         click: $root.handleItemClick"
+                              class="list-group-item mt-item-a text-truncate border-0 mb-1" >
+                              <span class="mt-item">
+                                <i data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
+                                      data-toggle="tooltip" title="tried"
+                                      class="fa fa-check fa-xs"></i>
+                                <span class="fa-stack fa-fw"
+                                      data-bind="style: {opacity: (rating() !== null && rating() !== '' ? '1.0': '0.5')}"
+                                      data-toggle="tooltip" title="rating">
+                                  <i class="far fa-star fa-stack-2x pb-1"></i>
+                                  <i class="fa fa-text fa-xs pl-1"
+                                     data-bind="text: (rating() ? rating() : '')"></i>
+                                </span>
+                                <span data-bind="visible: rating() !== null" class="mr-1 ml-1">
+                                  (<span data-bind="text: sortIndex"
+                                         class="mt-tooltip"></span>)
+                                </span>
+                                <span data-toggle="tooltip" data-bind="text: name,
+                                                                      attr:{title: name, 'mt-data-id': id }">
+                                </span>
+                              </span>
+                            </a>
+                          <!-- /ko -->
+                        </div>
+                        <!-- end item collapse -->
+                      </div>
+                      <!-- end item card -->
+                    </div>
+                    <!-- end sub card -->
+                  <!-- /ko -->
+                </div>
+                <!-- end sub accordian -->
+              </div>
+              <!-- end sub node collapsed div -->
+            <!-- /ko -->
+          </div>
+          <!-- end accordian main -->
+        </div>
+        <!-- end col-3 -->
+        <!-- begin col-9 for item details -->
+        <div  id="itemDtails" class="col-9 card"  style="height: 75vh;overflow-y: scroll;">
+          <div class = "mt-item-edit-form">
+            <div class="row">
+              <div class="col">
+                <input
+                  id="mainName"
+                  data-bind="attr: {title: mainLabel,
+                                    placeholder: mainLabel},
+                            textInput: (selectedMainNode() ? selectedMainNode().name : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center"
+                  disabled>
+                </input>
+              </div>
+              <div class="col">
+                <input
+                  id="subName"
+                  data-bind="attr: {title: subLabel,
+                                    placeholder: subLabel},
+                            textInput: (selectedSubNode() ? selectedSubNode().name : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center"
+                  disabled>
+                </input>
+              </div>
+              <div class="col-1">
+                <input
+                  id="itemSortIndex"
+                  data-bind="attr: {title: sortIndexLabel,
+                                    placeholder: '#'},
+                            textInput: (selectedItem() ? selectedItem().sortIndex : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center mt-item-edit-control"
+                  title="sort index"
+                  disabled>
+                </input>
+              </div>
+              <div class="col">
+                <input
+                  id="itemName"
+                  data-bind="attr: {title: itemLabel,
+                                    placeholder: itemLabel},
+                            textInput: (selectedItem() ? selectedItem().name : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center text mt-item-edit-control"
+                  disabled>
+                </input>
+              </div>
+              <div class="col-2 text-center">
+
+                <input id="tried"
+                       data-bind="checked: (selectedItem() ? selectedItem().haveTried : false)"
+                       class="checkbox mt-item-edit-control"
+                       type="checkbox"
+                       disabled></input>
+                <label for="tried" class="label" data-bind="text: triedLabel"></label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="row">
+                <label for="nodeInfo1" class="col-2 label" data-bind="text: nodeInfo1Label() + ':'"></label>
+                <input id="nodeInfo1"
+                       data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo1Key()] : ''),
+                                  attr:{placeholder: nodeInfo1Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo2" class="col-2 label" data-bind="text: nodeInfo2Label() + ':'"></label>
+                  <input id="nodeInfo2"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo2Key()] : ''),
+                                    attr:{placeholder: nodeInfo2Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo3" class="col-2 label" data-bind="text: nodeInfo3Label() + ':'"></label>
+                  <input id="nodeInfo3"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo3Key()] : ''),
+                                    attr:{placeholder: nodeInfo3Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo4" class="col-2 label" data-bind="text: nodeInfo4Label() + ':'"></label>
+                  <input id="nodeInfo4"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo4Key()] : ''),
+                                    attr:{placeholder: nodeInfo4Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                  <button class="btn btn-secondary btn-sm col-1 mt-item-edit-control"
+                     data-toggle="tooltip"
+                     data-bind="click: fillItemFromGoogle,
+                                visible: type() === 'books',
+                                attr: {title: 'Attempt to fill information from books.google.com'}"
+                     disabled>
+                     <span data-bind="html: fillItemFromGoogleIcon"></span>
+                  </button>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo5" class="col-2 label"
+                         data-bind="text: nodeInfo5Label() + ':'"></label>
+                  <input id="nodeInfo5"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo5Key()] : ''),
+                                    attr:{placeholder: nodeInfo5Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
+                            title="Edit link"
+                            data-bind="click: $root.beginEditItemLink"
+                            disabled>
+                            <span class="fa fa-edit fa-xs"></span>
+                    </button>
+                    <label for="nodeInfo6" class="col-2 label" data-bind="text: nodeInfo6Label() + ':'"></label>
+                    <a id="nodeInfo6"
+                       data-bind="text: (selectedItem() ? selectedItem().name(): ''),
+                                  attr: {href: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo6Key()] : '')}"
+                       class="col">
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-2">
+                <input
+                  id="triedDate"
+                  data-bind="attr: {title: 'Date ' + triedLabel(),
+                                    placeholder: 'Date ' + triedLabel()},
+                            textInput: (selectedItem() ? selectedItem().dateTried : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  class="form-control text-center mt-item-edit-control"
+                  disabled>
+                </input>
+                <img id="itemImage" class="img-responsive" src="static/images/book-generic.jpeg"></img>
+                <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
+                        title="Edit image"
+                        data-bind="click: editItemImage"
+                        disabled>
+                        <span class="fa fa-edit fa-xs"></span>
+                </button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <label for="itemDescription" class="label">Description:</label>
+                <textarea
+                  id="itemDescription"
+                  data-bind="textInput: (selectedItem() ? selectedItem().description : ''),
+                             attr: {title: (selectedItem() ? selectedItem().nodeDescriptionTooltip : '')}"
+                  type="textarea"
+                  data-toggle="tooltip"
+                  class="form-control text-wrap mt-item-edit-control"
+                  placeholder="Description"
+                  disabled>
+                </textarea>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-1">
+                <label for="reviewedDate" class="label">Reviewed:</label>
+              </div>
+              <div class="col-2">
+                <input
+                  id="reviewedDate"
+                  data-bind="textInput: (selectedItem() ? selectedItem().dateReviewed : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  title="Reviewd Date"
+                  class="form-control text-center mt-item-edit-control"
+                  placeholder="Review Date"
+                  disabled>
+                </input>
+              </div>
+              <div class="col-1 text-right">
+                <label for="rating" class="label">Rating(0-5):</label>
+              </div>
+              <div class="col-2">
+                <input
+                  id="rating"
+                  data-bind="textInput: (selectedItem() ? selectedItem().rating : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  title="Rating"
+                  class="form-control text-center mt-item-edit-control"
+                  placeholder="Rating"
+                  disabled>
+                </input>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <textarea
+                  id="itemReview"
+                  data-bind="textInput: (selectedItem() ? selectedItem().review : '')"
+                  type="textarea"
+                  data-toggle="tooltip"
+                  class="form-control text-wrap mt-item-edit-control"
+                  placeholder="Review"
+                  disabled>
+                </textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end col-9 -->
+      </div>
+      <!-- end row -->
+      <div id="confirmCancelItemEdit" class="modal hide fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirm</h5>
+              <button type="button" class="close" data-dismiss="modal" data-bind="click: continueItemEdit" aria-label="Cancel">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Warning! You will lose current changes to <span data-bind="text: itemLabel"></span> item. Proceed and revert to previous data?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bind="click: continueItemEdit">Continue Editing</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: proceedWithCancelItemEdit">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="confirmDeleteItem" class="modal hide fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirm</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Warning! This will permanently remove the <span data-bind="text: itemLabel"></span> from the database. Proceed?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel Delete</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: proceedWithItemDelete">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="confirmDeleteMainNode" class="modal hide fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirm</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Warning! This will permanently remove the <span data-bind="text: mainLabel"></span> and all <span data-bind="text: subLabel"></span> and <span data-bind="text: itemLabel"></span>s from the database. Proceed?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel Delete</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: proceedWithMainNodeDelete">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="confirmDeleteSubNode" class="modal hide fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirm</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Warning! This will permanently remove the <span data-bind="text: subLabel"></span> and all <span data-bind="text: itemLabel"></span>s from the database. Proceed?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel Delete</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: proceedWithSubNodeDelete">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- end container-fluid -->
+    <div id="editMainNode" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit <span data-bind="text: (nodesViewModel.selectedMainNode() ? nodesViewModel.selectedMainNode().name() : '')"></span></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="editMainNodeName">Name</label>
+                <div class="controls">
+                  <input class="mt-dialog-input" data-bind="textInput: name" type="inputText" id="editMainNodeName" placeholder="Name">
+                  </input>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="editMainNodeDescription">Description</label>
+                <div class="controls">
+                  <textarea class="mt-dialog-input" data-bind="textInput: description" id="editMainNodeDescription" placeholder="Description">
+                  </textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editMainNode">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="editSubNode" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit <span data-bind="text: (nodesViewModel.selectedSubNode() ? nodesViewModel.selectedSubNode().name() : '')"></span></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="editSubNodeName">Name</label>
+                <div class="controls">
+                  <input class="mt-dialog-input" data-bind="textInput: name" type="inputText" id="editSubNodeName" placeholder="Name">
+                  </input>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="editSubNodeDescription">Description</label>
+                <div class="controls">
+                  <textarea class="mt-dialog-input" data-bind="textInput: description" id="editSubNodeDescription" placeholder="Description">
+                  </textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editSubNode">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="editItemLink" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit <span data-bind="text: nodesViewModel.itemLabel()"></span> URL</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="editLink">Name</label>
+                <div class="controls">
+                  <input class="mt-dialog-input" data-bind="textInput: itemLink" type="url" id="editLink" placeholder="URL">
+                  </input>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editItemLink">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="addMainNode" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add <span data-bind="text: nodesViewModel.mainLabel"></span></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="inputMainNodeName">Name</label>
+                <div class="controls">
+                  <input class="mt-dialog-input" data-bind="textInput: name" type="inputText" id="inputMainNodeName" placeholder="Name">
+                  </input>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="inputMainNodeDescription">Description</label>
+                <div class="controls">
+                  <textarea class="mt-dialog-input" data-bind="textInput: description" id="inputMainNodeDescription" placeholder="Description">
+                  </textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: addMainNode">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="addSubNode" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add  <span data-bind="text: nodesViewModel.subLabel"></span></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="inputSubNodeName">Name</label>
+                <div class="controls">
+                  <input class="mt-dialog-input" data-bind="textInput: name" type="inputText" id="inputSubNodeName" placeholder="Name">
+                  </input>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="inputSubNodeDescription">Description</label>
+                <div class="controls">
+                  <textarea class="mt-dialog-input" data-bind="textInput: description" id="inputSubNodeDescription" placeholder="Description">
+                  </textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: addSubNode">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="static/jquery/jquery-3.3.1.min.js"></script>
+    <script>
+    // globals
+    var nodesViewModel = null;
+    var addMainNodeModel = null;
+    var addSubNodeModel = null;
+    var editMainNodeModel = null;
+    var editSubNodeModel = null;
+    var editItemLinkModel = null;
+    var addTypeModel = null;
+    var secrets = null;
+
+    $('.fa, .far').css({'visibility':'hidden'});
+    $('.mt-add-buttons, .mt-edit-buttons, .mt-item-edit-form, .nav-item').css({'visibility':'hidden'});
+
+    function setAlert(alertText='&nbsp;', alertClass = "") {
+       $('#alertBox').empty();
+       $('#alertBox').removeClass (function (index, className) {
+         return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
+       });
+       if( alertClass.length > 0) {
+           $('#alertBox').addClass(alertClass);
+       } else {
+         $('#alertBox').addClass('alert-dark');
+       };
+       $('#alertBox').append('<span id="alertText"></span>');
+       $('#alertText').html(alertText);
+       if(alertClass !== "") {
+         $('#alertBox').append(
+           '<button type="button" class="close" aria-label="Close">' +
+              '<span aria-hidden="true">&times;</span>' +
+            '</button>' +
+            '<span id="alertText"></span>'
+          );
+         $('#alertBox button.close').on('click', function () {
+             $('#alertBox').empty();
+             $('#alertBox').removeClass (function (index, className) {
+               return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
+             });
+             $('#alertBox').addClass('alert-dark');
+             $('#alertBox').append(nodesViewModel.defaultAlert());
+         })
+       }
+    }
+
+    var Node = function(initialize=true, data={}) {
+      var self = this;
+      if(initialize) {
+        self.children = ko.observableArray([]);
+        self.collapsed = ko.observable(true);
+        self.uneditedData = {};
+        self.changed = false;
+      }
+      self.forgettableAspects = ['children', 'collapsed',
+                                 'uneditedData', 'forgettableAspects',
+                                 'changed', 'nodeTooltip'];
+      if(data) {
+        self.loadData(data);
+      }
+
+      if(initialize) {
+        self.nodeTooltip = ko.pureComputed(function() {
+          var tooltipText = '<b>' + self.name() + ':</b><br>' + (self.description() ? self.description() : '');
+          return tooltipText;
+        });
+        self.nodeDescriptionTooltip = ko.pureComputed(function() {
+          return (self.description() ? self.description() : '');
+        });
+      }
+    }
+
+    Node.prototype.setDateTried = function() {
+      var self = this;
+      if(self.dateTried() === '') {
+        self.dateTried(null);
+      }
+      if(self.haveTried() && !self.dateTried()) {
+        var date = new Date();
+        self.dateTried((date.getMonth()+1)+'/'+date.getDate()+'/'+date.getFullYear());
+      }
+    }
+
+    Node.prototype.setDateReviewed = function() {
+      var self = this;
+      if(self.dateReviewed() === '') {
+        self.dateReviewed(null);
+      }
+      if(self.review() && !self.dateReviewed()) {
+        var date = new Date();
+        self.dateReviewed((date.getMonth()+1)+'/'+date.getDate()+'/'+date.getFullYear());
+      }
+    }
+
+    Node.prototype.findLeaves = function(leaves = []) {
+      var self = this;
+      if(self.children().length === 0) {
+        return leaves.push(self);
+      }
+      self.children().forEach(function(child) {
+        leaves.concat(child.findLeaves(leaves));
+      })
+      return leaves;
+    }
+
+    Node.prototype.leavesHaveTried = function() {
+      var self = this;
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].haveTried()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    Node.prototype.leavesHaveReviewed = function() {
+      var self = this;
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].review()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    Node.prototype.leavesHaveRating = function() {
+      var self = this;
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    Node.prototype.averageRating = function() {
+      var self = this;
+      var numRated = 0;
+      var sumRating = 0;
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
+          numRated++;
+          sumRating += Math.floor(leaves[indx].rating());
+        }
+      }
+      if(numRated === 0) {
+        return null;
+      } else {
+        return Math.round(sumRating / numRated);
+      }
+    }
+
+    Node.prototype.loadData = function(data) {
+      var self = this;
+      Object.keys(data).forEach(function(aspect) {
+        // dynamically set the Node's aspects based on the JSON data
+        self[aspect] = ko.observable(data[aspect]);
+        if(data[aspect] && typeof data[aspect] === 'object') {
+          Object.keys(data[aspect]).forEach( function(nodeInfoAspect) {
+            if(typeof nodeInfoAspect === 'array') {
+              self[aspect]()[nodeInfoAspect] = ko.observableArray(data[aspect][nodeInfoAspect]);
+            }else {
+              if(nodeInfoAspect === 'ISBN_13' && data[aspect]) {
+                self[aspect]()['ISBN'] = ko.observable(data[aspect][nodeInfoAspect]);
+              } else if(nodeInfoAspect === 'ISBN_10' && data[aspect]) {
+                self[aspect]()['ISBN'] = ko.observable(data[aspect][nodeInfoAspect]);
+              } else {
+                self[aspect]()[nodeInfoAspect] = ko.observable(data[aspect][nodeInfoAspect]);;
+              }
+            }
+          })
+        }
+       });
+      return self;
+    }
+
+    Node.prototype.updateNodeInfoData = function(data) {
+      var self = this;
+      Object.keys(data).forEach(function(aspect) {
+        // dynamically set the Node's aspects based on the JSON data
+        if(aspect === 'description') {
+          self[aspect](data[aspect]);
+        } else {
+          self.nodeInfo()[aspect](data[aspect]);
+        }
+      })
+    }
+
+    Node.prototype.rememberUneditedData = function() {
+      var self = this;
+      self.uneditedData = {};
+      Object.keys(self).forEach(function(aspect) {
+        if(self.forgettableAspects.indexOf(aspect) === -1) {
+          if( self[aspect]() && typeof self[aspect]() === 'object') {
+            self.uneditedData[aspect] = {};
+            Object.keys(self[aspect]()).forEach( function(nodeInfoAspect) {
+              self.uneditedData[aspect][nodeInfoAspect] = self[aspect]()[nodeInfoAspect]();
+            })
+          } else {
+            self.uneditedData[aspect] = self[aspect]();
+          }
+        }
+      });
+      self.changed = false;
+    }
+
+    Node.prototype.sanitize = function() {
+      var self = this;
+      var sanitizedNode = new Node(false);
+      sanitizedNode.forgettableAspects = sanitizedNode.forgettableAspects.concat(['ownerId', 'parentId']);
+      Object.keys(self).forEach(function(aspect) {
+        if(sanitizedNode.forgettableAspects.indexOf(aspect) === -1) {
+          sanitizedNode[aspect] = self[aspect];
+        }
+      });
+      return sanitizedNode;
+    }
+
+    Node.prototype.restoreUneditedData = function() {
+      var self = this;
+      Object.keys(self.uneditedData).forEach(function(aspect) {
+        // dynamically set the Node's aspects based on the JSON data
+        if( self.uneditedData[aspect] && typeof self.uneditedData[aspect] === 'object') {
+          Object.keys(self.uneditedData[aspect]).forEach( function(nodeInfoAspect) {
+            self[aspect]()[nodeInfoAspect](self.uneditedData[aspect][nodeInfoAspect]);
+          })
+        } else {
+          self[aspect](self[aspect]());
+        }
+      });
+      self.uneditedData = {};
+      self.changed = false;
+    }
+
+    var NodesViewModel = function() {
+      var self = this;
+      self.mainLabels = {'books':'Author',
+                        'wine':'Winery',
+                        'beer':'Brewery',
+                        'other':'Main'}
+      self.subLabels = {'books':'Series',
+                        'wine':'Type',
+                        'beer':'Type',
+                        'other':'Sub'}
+      self.itemLabels = {'books':'Book',
+                        'wine':'Name',
+                        'beer':'Name',
+                        'other':'Item'}
+      self.triedLabels = {'books':'Read',
+                        'wine':'Tried',
+                        'beer':'Tried',
+                        'other':'Tried'}
+      self.sortIndexLabels = {'books':'Series Order',
+                             'wine':'n/a',
+                             'beer':'n/a',
+                             'other':'Sort Index'}
+      self.nodeInfo1Keys = {'books':'publisher',
+                            'wine':'vintage',
+                            'beer':'vintage',
+                            'other':'nodeinfo1'}
+      self.nodeInfo2Keys = {'books':'publishedDate',
+                            'wine':'region',
+                            'beer':'region',
+                            'other':'nodeinfo2'}
+      self.nodeInfo3Keys = {'books':'pageCount',
+                            'wine':'ABV',
+                            'beer':'ABV',
+                            'other':'nodeinfo3'}
+      self.nodeInfo4Keys = {'books':'ISBN',
+                            'wine':'taste',
+                            'beer':'IBU',
+                            'other':'nodeinfo4'}
+      self.nodeInfo5Keys = {'books':'ASIN',
+                            'wine':'color',
+                            'beer':'SRM',
+                            'other':'nodeinfo5'}
+      self.nodeInfo6Keys = {'books':'googleLink',
+                            'wine':'link',
+                            'beer':'link',
+                            'other':'nodeinfo6'}
+      self.nodeInfo1Labels = {'books':'Publisher',
+                            'wine':'Vintage',
+                            'beer':'Vintage',
+                            'other':'Node Info 1'}
+      self.nodeInfo2Labels = {'books':'Published',
+                            'wine':'Region',
+                            'beer':'Region',
+                            'other':'Node Info 2'}
+      self.nodeInfo3Labels = {'books':'Pages',
+                            'wine':'ABV',
+                            'beer':'ABV',
+                            'other':'Node Info 3'}
+      self.nodeInfo4Labels = {'books':'ISBN',
+                            'wine':'Taste',
+                            'beer':'IBU',
+                            'other':'Node Info 4'}
+      self.nodeInfo5Labels = {'books':'ASIN',
+                            'wine':'Color',
+                            'beer':'SRM',
+                            'other':'Node Info 5'}
+      self.nodeInfo6Labels = {'books':'Link',
+                            'wine':'Link',
+                            'beer':'Link',
+                            'other':'Node Info 6'}
+      self.defaultGoogleIcon = 'G';
+      self.fillItemFromGoogleIcon = ko.observable(self.defaultGoogleIcon);
+      self.defaultAlert = ko.observable();
+      self.currentUser = 'grovesr';
+      self.currentUserId = 9;
+      self.currentUserPassword = 'zse45rdx';
+      self.type = ko.observable('books');
+      self.types = ko.observableArray([
+        {type: ko.observable('books')},
+        {type: ko.observable('beer')},
+        {type: ko.observable('wine')},
+        {type: ko.observable('other')}
+      ]);
+      self.mainLabel = ko.observable();
+      self.subLabel = ko.observable();
+      self.itemLabel = ko.observable();
+      self.triedLabel = ko.observable();
+      self.sortIndexLabel = ko.observable();
+      self.nodeInfo1Key = ko.observable();
+      self.nodeInfo2Key = ko.observable();
+      self.nodeInfo3Key = ko.observable();
+      self.nodeInfo4Key = ko.observable();
+      self.nodeInfo5Key = ko.observable();
+      self.nodeInfo6Key = ko.observable();
+      self.nodeInfo1Label = ko.observable();
+      self.nodeInfo2Label = ko.observable();
+      self.nodeInfo3Label = ko.observable();
+      self.nodeInfo4Label = ko.observable();
+      self.nodeInfo5Label = ko.observable();
+      self.nodeInfo6Label = ko.observable();
+      self.defaultAlert = ko.observable();
+      self.enableAddMain = ko.observable(true);
+      self.enableAddSub = ko.observable(false);
+      self.enableAddItem = ko.observable(false);
+      self.mainNodes = ko.observableArray();
+      self.selectedMainNode = ko.observable(null);
+      self.selectedSubNode = ko.observable(null);
+      self.selectedItem = ko.observable(null);
+      self.previousSelectedItem = null;
+      self.rootNode = null;
+      self.adjacencyList = {};
+      self.addMainLabel = ko.pureComputed(function() {
+        return 'Add ' + self.mainLabel();
+      });
+
+      self.addSubLabel = ko.pureComputed(function() {
+        return 'Add ' + self.subLabel();
+      });
+
+      self.addItemLabel = ko.pureComputed(function() {
+        return 'Add ' + self.itemLabel();
+      });
+    }
+
+    NodesViewModel.prototype.sortBySortIndexOrName = function (left, right) {
+      return (left.sortIndex() !== null && right.sortIndex() !== null ?
+              (left.sortIndex() == right.sortIndex() ? 0 : (left.sortIndex() < right.sortIndex() ? -1 : 1))
+              :
+              (left.name() == right.name() ? 0 : (left.name() < right.name() ? -1 : 1))
+            )
+    };
+
+    NodesViewModel.prototype.initType = function() {
+      var self = this;
+      nodesViewModel.unloadItem();
+      nodesViewModel.type($('#typesSelect').val());
+      nodesViewModel.setType()
+    }
+
+    NodesViewModel.prototype.setLabels = function() {
+      var self = this;
+      self.mainLabel(self.mainLabels[self.type()]);
+      self.subLabel(self.subLabels[self.type()]);
+      self.itemLabel(self.itemLabels[self.type()]);
+      self.triedLabel(self.triedLabels[self.type()]);
+      self.sortIndexLabel(self.sortIndexLabels[self.type()]);
+      self.defaultAlert('Select ' + self.mainLabel());
+      self.nodeInfo1Key(self.nodeInfo1Keys[self.type()]);
+      self.nodeInfo2Key(self.nodeInfo2Keys[self.type()]);
+      self.nodeInfo3Key(self.nodeInfo3Keys[self.type()]);
+      self.nodeInfo4Key(self.nodeInfo4Keys[self.type()]);
+      self.nodeInfo5Key(self.nodeInfo5Keys[self.type()]);
+      self.nodeInfo6Key(self.nodeInfo6Keys[self.type()]);
+      self.nodeInfo1Label(self.nodeInfo1Labels[self.type()]);
+      self.nodeInfo2Label(self.nodeInfo2Labels[self.type()]);
+      self.nodeInfo3Label(self.nodeInfo3Labels[self.type()]);
+      self.nodeInfo4Label(self.nodeInfo4Labels[self.type()]);
+      self.nodeInfo5Label(self.nodeInfo5Labels[self.type()]);
+      self.nodeInfo6Label(self.nodeInfo6Labels[self.type()]);
+      $('.mt-add-buttons button').tooltip('dispose');
+      $('.mt-add-buttons button').tooltip('enable');
+    }
+
+    NodesViewModel.prototype.setType = function() {
+      var self = this;
+      self.setLabels();
+      $("html").addClass("waiting");
+      return nodesViewModel.getNodes()
+      .then(function() {
+        $('.fa, .far').css({'visibility':'visible'});
+        $('.mt-add-buttons, .nav-item').css({'visibility':'visible'});
+      })
+    }
+
+    NodesViewModel.prototype.fillItemFromGoogle = function() {
+      var self = this;
+      if(!nodesViewModel.selectedItem()) {
+        setAlert('No ' + nodesViewModel.itemLabel() + ' selected.', 'alert-danger');
+        return;
+      }
+      if(!('ISBN' in nodesViewModel.selectedItem().nodeInfo()) || nodesViewModel.selectedItem().nodeInfo()['ISBN']().length ===0) {
+        setAlert('No ISBN information in selected ' + nodesViewModel.itemLabel(), 'alert-danger');
+        return;
+      }
+      var url = 'https://www.googleapis.com/books/v1/volumes?q=';
+      url += encodeURIComponent('ISBN=' + nodesViewModel.selectedItem().nodeInfo()['ISBN']());
+      url += '&' + encodeURIComponent('key=' + secrets['MY_BOOKS_KEY']);
+      self.fillItemFromGoogleIcon('<i class="fa fa-spinner fa-spin"></i>');
+      self.ajaxNoAuth('GET', url)
+      .then(function(data) {
+        $("html").removeClass("waiting");
+        self.fillItemFromGoogleIcon(self.defaultGoogleIcon);
+        self.selectedItem().changed  = true;
+        var parsedData = {};
+        if(data.totalItems === 0) {
+          setAlert('No books found with ISBN = ' + nodesViewModel.selectedItem().nodeInfo()['ISBN'](), 'alert-danger');
+        } else {
+          if('description' in data.items[0].volumeInfo) {
+            parsedData['description'] = data.items[0].volumeInfo.description;
+          }
+          if('publisher' in data.items[0].volumeInfo) {
+            parsedData['publisher'] = data.items[0].volumeInfo.publisher;
+          }
+          if('publishedDate' in data.items[0].volumeInfo) {
+            parsedData['publishedDate'] = data.items[0].volumeInfo.publishedDate;
+          }
+          if('pageCount' in data.items[0].volumeInfo) {
+            parsedData['pageCount'] = data.items[0].volumeInfo.pageCount;
+          }
+          if('industryIdentifiers' in data.items[0].volumeInfo) {
+            parsedIsbn = null
+            if(data.items[0].volumeInfo.industryIdentifiers.length >= 1) {
+              if(data.items[0].volumeInfo.industryIdentifiers.length >= 2) {
+                data.items[0].volumeInfo.industryIdentifiers.forEach(function(ident) {
+                  if(ident.type === 'ISBN_13') {
+                    parsedIsbn = ident.identifier;
+                  } else if(!parsedIsbn && ident.type === 'ISBN_10') {
+                    parsedIsbn = ident.identifier;
+                  }
+                })
+              } else {
+                parsedIsbn = data.items[0].volumeInfo.industryIdentifiers[0].identifier;
+              }
+            }
+            if(parsedIsbn) {
+              parsedData['ISBN'] = parsedIsbn;
+            }
+          }
+          if('infoLink' in data.items[0].volumeInfo) {
+            parsedData['googleLink'] = data.items[0].volumeInfo.infoLink;
+          }
+          self.selectedItem().updateNodeInfoData(parsedData)
+        }
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.fillItemFromGoogle ajax call: ' + errorMessage, 'alert-danger')
+        }
+      })
+    }
+
+    NodesViewModel.prototype.setDateTriedItem = function() {
+      var self = this;
+      if(self.selectedItem()) {
+        self.selectedItem().setDateTried();
+      }
+    }
+
+    NodesViewModel.prototype.setDateReviewedItem = function() {
+      var self = this;
+      if(self.selectedItem()) {
+        self.selectedItem().setDateReviewed();
+      }
+    }
+
+    NodesViewModel.prototype.disableItemEdit = function() {
+      var self = this;
+      $('#enItemEd').prop('checked', false)
+      $('.mt-item-edit-control').prop('disabled', true);
+    }
+
+    NodesViewModel.prototype.beginCancelItemEdit = function() {
+      var self = this;
+      if(self.selectedItem() && self.selectedItem().changed) {
+        self.previousSelectedItem = self.selectedItem();
+        $('#confirmCancelItemEdit').modal('show');
+      } else {
+        self.disableItemEdit();
+      }
+    }
+
+    NodesViewModel.prototype.proceedWithCancelItemEdit = function() {
+      var self = this;
+      $('#enItemEd').prop('checked', false)
+      $('.mt-item-edit-control').prop('disabled', true);
+      if(self.selectedItem().changed) {
+        self.selectedItem().restoreUneditedData();
+      }
+      if(self.previousSelectedItem && self.selectedItem() !== self.previousSelectedItem) {
+        self.previousSelectedItem.restoreUneditedData();
+      }
+    }
+
+    NodesViewModel.prototype.continueItemEdit = function() {
+      var self = this;
+      self.selectedItem(self.previousSelectedItem);
+      $('a.mt-item-a').removeClass('active');
+      $($('a[mt-data-id="' + self.previousSelectedItem.id() + '"]')).addClass('active');
+      self.previousSelectedItem = null;
+      $('#enItemEd').prop('checked', true);
+      $('.mt-item-edit-control').prop('disabled', false);
+    }
+
+    NodesViewModel.prototype.enableItemEdit = function() {
+      var self = this;
+      $('#enItemEd').prop('checked', true);
+      self.selectedItem().rememberUneditedData();
+      $('.mt-item-edit-control').prop('disabled', false);
+    }
+
+    NodesViewModel.prototype.setItemChanged = function() {
+      var self = this;
+      if(self.selectedItem()) {
+        self.selectedItem().changed = true;
+      }
+    }
+
+    NodesViewModel.prototype.handleItemEditClick = function() {
+      var self = this;
+      if($('#enItemEd').prop('checked')) {
+        self.enableItemEdit();
+      } else {
+        self.beginCancelItemEdit();
+      }
+    }
+
+    NodesViewModel.prototype.loadItem = function() {
+      var self = this;
+      self.selectedItem(self.findNode($('a.mt-item-a.active').attr('mt-data-id')))
+      if($('.mt-edit-buttons, .mt-item-edit-form').css('visibility') === 'hidden') {
+        // only do this if it is currently hidden
+        $('.mt-edit-buttons, .mt-item-edit-form').css({'visibility':'visible'});
+      }
+      self.disableItemEdit();
+    }
+
+    NodesViewModel.prototype.unloadItem = function() {
+      var self = this;
+      if($('.mt-edit-buttons, .mt-item-edit-form').css('visibility') === 'visible') {
+        // only do this if it is currently visible
+        $('.mt-edit-buttons, .mt-item-edit-form').css({'visibility':'hidden'});
+      }
+      self.beginCancelItemEdit();
+    }
+
+    NodesViewModel.prototype.findNode = function(id) {
+      // TO DO: make this recursive
+      var self = this;
+      var foundNode = null;
+      for(var indx=0; indx<self.mainNodes().length; indx++) {
+        var mainNode = self.mainNodes()[indx];
+        if(mainNode.id() == id) {
+          foundNode = mainNode;
+          break;
+        }
+        for(var subIndx=0; subIndx< mainNode.children().length; subIndx++) {
+          var subNode = mainNode.children()[subIndx];
+          if(subNode.id() == id) {
+            foundNode = subNode;
+            break;
+          }
+          for(var itemIndx=0; itemIndx<subNode.children().length; itemIndx++) {
+            var item = subNode.children()[itemIndx];
+            if(item.id() == id) {
+              foundNode = item;
+              break;
+            }
+          }
+        }
+      }
+      return foundNode;
+    }
+
+    NodesViewModel.prototype.proceedWithMainNodeDelete = function() {
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/';
+      url += encodeURIComponent(self.selectedMainNode().id());
+      self.ajax('DELETE', url)
+      .then(function(response) {
+        $("html").removeClass("waiting");
+        $('a.mt-main-a').removeClass('active');
+        var nodeName = self.selectedMainNode().name();
+        var indexToRemove = self.adjacencyList[self.selectedMainNode().parentId()].indexOf(self.selectedMainNode());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.rootNode.id()].splice(indexToRemove, 1);
+        }
+        self.rootNode.children.remove(self.selectedMainNode());
+        self.mainNodes(self.rootNode.children());
+        self.selectedMainNode(null);
+        self.enableAddSub(false);
+        self.enableAddItem(false);
+        self.unloadItem();
+        $('mt-main-collapse').collapse('hide');
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithMainNodeDelete ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginDeleteMainNode = function() {
+      var self = this;
+      $('#confirmDeleteMainNode').modal('show');
+    }
+
+    NodesViewModel.prototype.beginDeleteSubNode = function() {
+      var self = this;
+      $('#confirmDeleteSubNode').modal('show');
+    }
+
+    NodesViewModel.prototype.beginDeleteItem = function() {
+      var self = this;
+      $('#confirmDeleteItem').modal('show');
+    }
+
+    NodesViewModel.prototype.proceedWithSubNodeDelete = function() {
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/';
+      url += encodeURIComponent(self.selectedSubNode().id());
+      self.ajax('DELETE', url)
+      .then(function(response) {
+        $("html").removeClass("waiting");
+        $('a.mt-sub-a').removeClass('active');
+        var nodeName = self.selectedSubNode().name();
+        var indexToRemove = self.adjacencyList[self.selectedSubNode().parentId()].indexOf(self.selectedSubNode());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.selectedMainNode().id()].splice(indexToRemove, 1);
+        }
+        self.selectedMainNode().children.remove(self.selectedSubNode());
+        self.selectedSubNode(null);
+        self.enableAddItem(false);
+        self.unloadItem();
+        $('mt-sub-collapse').collapse('hide');
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithSubNodeDelete ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.proceedWithItemDelete = function() {
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/';
+      url += encodeURIComponent(self.selectedItem().id());
+      self.ajax('DELETE', url)
+      .then(function(response) {
+        $("html").removeClass("waiting");
+        $('a.mt-item-a').removeClass('active');
+        $('#enItemEd').prop('checked', false);
+        var nodeName = self.selectedItem().name();
+        var indexToRemove = self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.self.selectedSubNode().id()].splice(indexToRemove, 1);
+        }
+        self.selectedSubNode().children.remove(self.selectedItem());
+        self.selectedItem(null);
+        self.unloadItem();
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithItemDelete ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginEditItemLink = function() {
+      editItemLinkModel.itemLink(nodesViewModel.selectedItem().nodeInfo()[nodesViewModel.nodeInfo6Key()]());
+      $('#editItemLink').modal('show');
+    }
+
+    NodesViewModel.prototype.proceedWithEditItemLink = function(itemLink) {
+      var self = this;
+      self.selectedItem().nodeInfo()[self.nodeInfo6Key()](itemLink);
+    }
+
+    NodesViewModel.prototype.editItemImage = function() {
+      var self = this;
+      console.log('Display edit item image dialog');
+    }
+
+    NodesViewModel.prototype.saveItem = function() {
+      var self = this;
+      self.setDateReviewedItem();
+      self.setDateTriedItem();
+      var url = self.selectedItem().uri().replace('http://', 'https://');
+      var saveData = self.selectedItem().sanitize();
+      self.ajax('PUT', url, saveData)
+      .then(function(response) {
+        $("html").removeClass("waiting");
+        self.selectedItem().changed = false;
+        self.selectedItem().rememberUneditedData();
+        setAlert('Successfully updated "' + response.name +'"', 'alert-success');
+        self.selectedSubNode().children.sort(self.sortBySortIndexOrName);
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginEditMainNode = function() {
+      var self = this;
+      editMainNodeModel.name(nodesViewModel.selectedMainNode().name());
+      editMainNodeModel.description(nodesViewModel.selectedMainNode().description());
+      $('#editMainNode').modal('show');
+    }
+
+    NodesViewModel.prototype.proceedWithMainNodeEdit = function(nodeData = {}) {
+      // add a main or sub node
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedMainNode().id();
+      self.ajax('PUT', url, nodeData)
+      .then(function(node) {
+        $("html").removeClass("waiting");
+        self.selectedMainNode().name(node.name);
+        self.selectedMainNode().description(node.description);
+        $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+        $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
+        setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+        self.mainNodes.sort(self.sortBySortIndexOrName);
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithMainNodeEdit ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginEditSubNode = function() {
+      var self = this;
+      editSubNodeModel.name(nodesViewModel.selectedSubNode().name());
+      editSubNodeModel.description(nodesViewModel.selectedSubNode().description());
+      $('#editSubNode').modal('show');
+    }
+
+    NodesViewModel.prototype.proceedWithSubNodeEdit = function(nodeData = {}) {
+      // add a main or sub node
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedSubNode().id();
+      self.ajax('PUT', url, nodeData)
+      .then(function(node) {
+        $("html").removeClass("waiting");
+        self.selectedSubNode().name(node.name);
+        self.selectedSubNode().description(node.description);
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
+        setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+        self.selectedMainNode().children.sort(self.sortBySortIndexOrName);
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithSubNodeEdit ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginAddMain = function() {
+      $('#addMainNode').modal('show');
+    }
+
+    NodesViewModel.prototype.addNode = function(nodeData={}) {
+      // add a main or sub node
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/add/node';
+      self.ajax('POST', url, nodeData)
+      .then(function(node) {
+        $("html").removeClass("waiting");
+        // build adjacencyList structure
+        var addedNode = new Node(true, node);
+        if(!(node.parentId in self.adjacencyList)) {
+          self.adjacencyList[node.parentId] = [];
+        }
+        self.adjacencyList[node.parentId].push(addedNode);
+        var mainParent = self.findNode(node.parentId);
+        if(mainParent) {
+          mainParent.children.push(addedNode);
+          mainParent.children.sort(self.sortBySortIndexOrName);
+        } else {
+          self.rootNode.children.push(addedNode);
+          self.rootNode.children.sort(self.sortBySortIndexOrName);
+          self.mainNodes(self.rootNode.children());
+        }
+
+        if(addedNode.parentId() === self.rootNode.id()) {
+          $('a.mt-main-a').removeClass('active');
+          $('.mt-main-collapse').collapse('hide');
+          $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideMainCollapse);
+          $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowMainCollapse);
+          $($('#accordianCollapse_' + addedNode.id())).collapse('show');
+          self.selectedMainNode(addedNode);
+          self.enableAddSub(true);
+        } else {
+          $('a.mt-sub-a').removeClass('active');
+          $('.mt-sub-collapse').collapse('hide');
+          $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideSubCollapse);
+          $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowSubCollapse);
+          $('#accordianCollapse_' + addedNode.id()).collapse('show');
+          self.selectedSubNode(addedNode);
+          self.enableAddItem(true);
+        }
+        $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
+        setAlert('Successfully Added "' + node.name +'"', 'alert-success');
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.addNode ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginAddSub = function() {
+      $('#addSubNode').modal('show');
+    }
+
+    NodesViewModel.prototype.beginAddItem = function() {
+      var self = this;
+      var nodeInfo = {};
+      nodeInfo[self.nodeInfo1Key()] = null;
+      nodeInfo[self.nodeInfo2Key()] = null;
+      nodeInfo[self.nodeInfo3Key()] = null;
+      nodeInfo[self.nodeInfo4Key()] = null;
+      nodeInfo[self.nodeInfo5Key()] = null;
+      nodeInfo[self.nodeInfo6Key()] = null;
+      var nodeData = {
+        name: 'Change This Name',
+        owner: self.currentUser,
+        type: self.type(),
+        parentId: self.selectedSubNode().id(),
+        nodeInfo: nodeInfo
+      }
+      var url = secrets['MY_THINGS_SERVER'] + '/add/node';
+      self.ajax('POST', url, nodeData)
+      .then(function(node) {
+        $("html").removeClass("waiting");
+        // build adjacencyList structure
+        var addedNode = new Node(true, node);
+        if(!(node.parentId in self.adjacencyList)) {
+          self.adjacencyList[node.parentId] = [];
+        }
+        self.adjacencyList[node.parentId].push(addedNode.id());
+        self.selectedSubNode().children.push(addedNode);
+        $('a.mt-item-a').removeClass('active');
+        $($('a[mt-data-id="' + addedNode.id() + '"]')).addClass('active');
+        self.loadItem();
+        $('#enItemEd').prop('checked', true);
+        self.enableItemEdit();
+        self.selectedItem().rememberUneditedData();
+        self.selectedItem().changed = true;
+        setAlert('Successfully Added ' + self.itemLabel() +'. Now give it a name, edit the properties and save.', 'alert-success');
+        self.selectedSubNode().children.sort(self.sortBySortIndexOrName);
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.beginAddItem ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.getNodes = function() {
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/nodes?';
+      url += 'ownerId=' + encodeURIComponent(self.currentUserId);
+      url += '&type=' + encodeURIComponent(self.type());
+      return self.ajax('GET', url)
+      .then(function(response) {
+        $("html").removeClass("waiting");
+        // build adjacencyList structure
+        self.adjacencyList = {};
+        response.nodes.forEach(function(node) {
+          if(!(node.parentId in self.adjacencyList)) {
+            self.adjacencyList[node.parentId] = [];
+          }
+          self.adjacencyList[node.parentId].push(new Node(true, node));
+        });
+        self.rootNode = self.buildNodeHierarchy();
+        self.mainNodes(self.rootNode.children());
+      });
+    }
+
+    NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null) {
+      var self = this;
+      var sameParentList;
+      var children;
+      if(parentId in self.adjacencyList) {
+        sameParentList = self.adjacencyList[parentId];
+      } else {
+        // this is a leaf node
+        return node;
+      }
+      sameParentList.forEach(function(sibling) {
+        // for each node with  the same parent
+        if(node === null) {
+          // this is the first time through the recursion
+          node = sibling;
+        } else {
+          node.children.push(sibling);
+        }
+        self.buildNodeHierarchy(sibling, sibling.id());
+      });
+      return node;
+    }
+
+    NodesViewModel.prototype.ajax = function(method, uri, data) {
+      var self = this;
+      setAlert();
+      $("html").addClass("waiting");
+      var request = {
+        url: uri,
+        type: method,
+        contentType: "application/json",
+        accepts: "application/json",
+        cache: false,
+        dataType: 'json',
+        data: ko.toJSON(data),
+        headers: {'Authorization':'Basic ' + btoa(self.currentUser + ':' + self.currentUserPassword)}
+      };
+      return Promise.resolve($.ajax(request))
+    }
+
+    NodesViewModel.prototype.ajaxNoAuth = function(method, uri, data) {
+      var self = this;
+      setAlert();
+      $("html").addClass("waiting");
+      var request = {
+        url: uri,
+        type: method,
+        contentType: "application/json",
+        accepts: "application/json",
+        cache: false,
+        dataType: 'json',
+        data: ko.toJSON(data)
+      };
+      return Promise.resolve($.ajax(request))
+    }
+
+    NodesViewModel.prototype.handleMainClick =  function(node, e) {
+      $('a.mt-main-a').removeClass('active');
+      $(e.currentTarget).addClass('active');
+      nodesViewModel.selectedMainNode(node);
+      nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortBySortIndexOrName);
+      nodesViewModel.enableAddSub(true);
+    }
+
+    NodesViewModel.prototype.handleSubClick = function(node, e) {
+      $('a.mt-sub-a').removeClass('active');
+      $(e.currentTarget).addClass('active');
+      nodesViewModel.selectedSubNode(node);
+      nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortBySortIndexOrName);
+      nodesViewModel.enableAddItem(true);
+    }
+
+    NodesViewModel.prototype.handleItemClick = function(node, e) {
+      if(nodesViewModel.selectedItem()) {
+        nodesViewModel.beginCancelItemEdit();
+      }
+      $('a.mt-item-a').removeClass('active');
+      $(e.currentTarget).addClass('active');
+      nodesViewModel.loadItem();
+    }
+
+    var AddMainNodeModel = function() {
+      var self = this;
+      self.name = ko.observable();
+      self.description = ko.observable();
+    }
+
+    AddMainNodeModel.prototype.addMainNode = function() {
+      var self = this;
+      var nodeData = {
+        name: self.name(),
+        owner: nodesViewModel.currentUser,
+        description: self.description(),
+        parentId: nodesViewModel.rootNode.id(),
+        type: nodesViewModel.type()
+      }
+      self.name('');
+      self.description('');
+      nodesViewModel.addNode(nodeData);
+    }
+
+    var AddSubNodeModel = function() {
+      var self = this;
+      self.name = ko.observable();
+      self.description = ko.observable();
+    }
+
+    AddSubNodeModel.prototype.addSubNode = function() {
+      var self = this;
+      var nodeData = {
+        name: self.name(),
+        owner: nodesViewModel.currentUser,
+        description: self.description(),
+        parentId: nodesViewModel.selectedMainNode().id(),
+        type: nodesViewModel.type()
+      }
+      self.name('');
+      self.description('');
+      nodesViewModel.addNode(nodeData);
+    }
+
+    var EditMainNodeModel = function() {
+      var self = this;
+      self.name = ko.observable();
+      self.description = ko.observable();
+    }
+
+    EditMainNodeModel.prototype.editMainNode = function() {
+      var self = this;
+      var nodeData = {
+        name: self.name(),
+        description: self.description(),
+      }
+      self.name('');
+      self.description('');
+      nodesViewModel.proceedWithMainNodeEdit(nodeData);
+    }
+
+    var EditSubNodeModel = function() {
+      var self = this;
+      self.name = ko.observable();
+      self.description = ko.observable();
+    }
+
+    EditSubNodeModel.prototype.editSubNode = function() {
+      var self = this;
+      var nodeData = {
+        name: self.name(),
+        description: self.description(),
+      }
+      self.name('');
+      self.description('');
+      nodesViewModel.proceedWithSubNodeEdit(nodeData);
+    }
+
+    var EditItemLinkModel = function() {
+      var self = this;
+      self.itemLink = ko.observable();
+    }
+
+    EditItemLinkModel.prototype.editItemLink = function() {
+      var self = this;
+      var itemLink = self.itemLink();
+      self.itemLink('');
+      nodesViewModel.proceedWithEditItemLink(itemLink);
+    }
+
+    var handleHideMainCollapse = function (e) {
+      if ($(this).is(e.target)) {
+        // if a main collapse occurs, make sure the sub divs collapse as well
+        // and that the sub and items go inactive
+        $('.mt-sub-collapse').collapse('hide');
+        $('a.mt-sub-a, a.mt-item-a').removeClass('active');
+        nodesViewModel.unloadItem();
+        nodesViewModel.enableAddItem(false);
+        // switch collapse icon to '+'
+        nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
+      }
+    }
+
+    var handleHideSubCollapse = function (e) {
+      if ($(this).is(e.target)) {
+        // if a sub collapse occurs, make sure the items go inactive
+        $('a.mt-item-a').removeClass('active');
+        nodesViewModel.unloadItem();
+        // switch collapse icon to '+'
+        nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
+      }
+    }
+
+    var handleShowMainCollapse = function (e) {
+      if ($(this).is(e.target)) {
+        // switch collapse icon to '-'
+        nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(false);
+      }
+    }
+
+    var handleShowSubCollapse = function (e) {
+      if ($(this).is(e.target)) {
+        // switch collapse icon to '-'
+        nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(false);
+      }
+    }
+
+    var scrollToSelectedMainNode = function() {
+      $('#accordianMain').animate({
+         scrollTop: $('#accordianMain').scrollTop() +
+                      $('a[mt-data-id="' + nodesViewModel.selectedMainNode().id() + '"]').offset().top -
+                      $('#accordianMain').offset().top
+      });
+    }
+
+    var scrollToSelectedSubNode = function() {
+      $('#accordianMain').animate({
+         scrollTop: $('#accordianMain').scrollTop() +
+                      $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]').offset().top -
+                      $('#accordianMain').offset().top
+      });
+    }
+
+    var scrollToSelectedItem = function() {
+      $('#accordianMain').animate({
+         scrollTop: $('#accordianMain').scrollTop() +
+                      $('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]').offset().top -
+                      $('#accordianMain').offset().top
+      });
+    }
+
+    var loadKnockout = function() {
+      nodesViewModel = new NodesViewModel();
+      addMainNodeModel = new AddMainNodeModel();
+      addSubNodeModel = new AddSubNodeModel();
+      editMainNodeModel = new EditMainNodeModel();
+      editSubNodeModel = new EditSubNodeModel();
+      editItemLinkModel = new EditItemLinkModel();
+      nodesViewModel.setType()
+      .then(function() {
+        $("html").removeClass("waiting");
+        ko.applyBindings(nodesViewModel, $('#mainBody, #confirmCancelItemEdit')[0]);
+        ko.applyBindings(addMainNodeModel, $('#addMainNode')[0]);
+        ko.applyBindings(addSubNodeModel, $('#addSubNode')[0]);
+        ko.applyBindings(editMainNodeModel, $('#editMainNode')[0]);
+        ko.applyBindings(editSubNodeModel, $('#editSubNode')[0]);
+        ko.applyBindings(editItemLinkModel, $('#editItemLink')[0]);
+        setAlert(nodesViewModel.defaultAlert());
+        $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
+        //$('.mt-main-collapse').on('hidden.bs.collapse', scrollToSelectedMainNode);
+        $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
+        //$('.mt-sub-collapse').on('hidden.bs.collapse', scrollToSelectedSubNode);
+        $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
+        $('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
+        $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
+        //$('.mt-sub-collapse').on('shown.bs.collapse', scrollToSelectedSubNode);
+        $(function () {
+          $('[data-toggle="tooltip"]').tooltip()
+        })
+        $('#enItemEd').prop('checked', false);
+        $('#enItemEd').on('change', nodesViewModel.handleItemEditClick.bind(nodesViewModel));
+        $('#typesSelect').on('change', nodesViewModel.initType);
+        $('input.mt-item-edit-control').on('change', nodesViewModel.setItemChanged.bind(nodesViewModel));
+        $('#tried').on('change', nodesViewModel.setDateTriedItem.bind(nodesViewModel));
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.setType ajax call: ' + errorMessage, 'alert-danger')
+        }
+      })
+    }
+    setAlert('');
+    $("html").addClass("waiting");
+    Promise.resolve($.ajax({
+      cache: false,
+      url: "static/my_books/.secrets.js",
+      dataType: "json"
+    }))
+    .catch(function(err) {
+      $("html").removeClass("waiting");
+      var errorMessage = err.state();
+      if(err.state() === 'rejected') {
+        errorMessage = 'Possible network issue. Please try again later.';
+      }
+      setAlert('error getting secrets file: ' + errorMessage, 'alert-danger');
+    })
+    .then(function(jsonSecrets) {
+      $("html").removeClass("waiting");
+      secrets = jsonSecrets;
+    }) // .then after getting secrets
+    .then(function() {
+      loadKnockout();
+    })
+    .catch(function(err) {
+      console.log(err.stack)
+    })
+    ;
+
+    </script>
+    <script src="static/popper/popper.js-1.14.3/dist/umd/popper.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="static/bootstrap/bootstrap-4.1.2/js/bootstrap.min.js"></script>
+  </body>
+</html>

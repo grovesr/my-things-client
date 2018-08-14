@@ -8,13 +8,11 @@
     <link rel="stylesheet" href="static/my_books/blaze/blaze.colors.min.css"></link>
     <link rel="stylesheet" href="static/font-awesome/fontawesome-free-5.0.13/web-fonts-with-css/css/fontawesome-all.min.css"></link>
     <script src="static/jquery/jquery-3.2.1.js"></script>
+    <script src="static/knockout/knockout-2.2.1.js"></script>
     <script defer src="https://apis.google.com/js/api.js"></script>
-    <script defer src="static/my_books/MyBooks.js"></script>
-    </script>
     <style>
-    .icon-blank::before {
-      width: 1em;
-      content: ' ';
+    html.waiting * {
+      cursor: progress;
     }
 
     .mt-tree-selected, .mt-item-selected {
@@ -40,37 +38,57 @@
       </div>
     </div>
     <div id="mainGrid" class="o-grid">
-      <div id="categoriesDiv" class="o-grid__cell o-grid__cell--width-30">
-        <ul id="categories" class="c-tree">
+      <div id="nodesDiv" class="o-grid__cell o-grid__cell--width-30">
+        <ul id="nodes" class="c-tree">
         </ul>
       </div>
       <div class="o-grid__cell">
-        <div class="o-grid o-grid--wrap">
-          <div class="o-grid__cell o-grid__cell--width-100">
-            <h3 id="mainCatInfoHeader" class="mt-info-header" style="display:none">Category: </h3>
-            <div id="mainCatInfo" ></div>
-          </div>
-          <div class="o-grid__cell o-grid__cell--width-100">
-            <h3 id="subCatInfoHeader" class="mt-info-header" style="display:none">SubCategory: </h3>
-            <div id="subCatInfo"></div>
-          </div>
-          <div class="o-grid__cell o-grid__cell--width-100">
-            <h3 id="itemInfoHeader" class="mt-info-header" style="display:none">Item:
-              <span id="haveReadDiv" style="display:none">
-                <label class="c-toggle">
-                  <input id="haveReadBook" type="checkbox">
-                  <div class="c-toggle__track">
-                    <div class="c-toggle__handle"></div>
-                  </div>
-                  Have Read
-                </label>
-              </span>
-            </h3>
-            <div id="itemInfo">
-            </div>
+        <div id="mainNodeInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+          <h3 class="mt-info-header">Main Category:
+            <span id="haveTriedMainNodeDiv" style="display:none">
+              <label class="c-toggle">
+                <input id="main_haveTried" type="checkbox">
+                <div class="c-toggle__track">
+                  <div class="c-toggle__handle"></div>
+                </div>
+                Have Tried
+              </label>
+            </span>
+          </h3>
+          <div id="mainNodeInfo" ></div>
+        </div>
+        <div id="subNodeInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+          <h3 class="mt-info-header">Sub Category:
+            <span id="haveTriedSubNodeDiv" style="display:none">
+              <label class="c-toggle">
+                <input id="sub_haveTried" type="checkbox">
+                <div class="c-toggle__track">
+                  <div class="c-toggle__handle"></div>
+                </div>
+                Have Tried
+              </label>
+            </span>
+          </h3>
+          <div id="subNodeInfo"></div>
+        </div>
+        <div id="itemInfoHeader" class="o-grid__cell o-grid__cell--width-100" style="display:none">
+        <h3 class="mt-info-header">Item:
+            <span id="haveTriedItemDiv" style="display:none">
+              <label class="c-toggle">
+                <input id="item_haveTried" type="checkbox">
+                <div class="c-toggle__track">
+                  <div class="c-toggle__handle"></div>
+                </div>
+                Have Tried
+              </label>
+            </span>
+          </h3>
+          <div id="itemInfo">
           </div>
         </div>
       </div>
     </div>
+  </div>
+  <script defer src="static/my_books/MyBooks.js"></script>
 </body>
 </html>
