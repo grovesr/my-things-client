@@ -11,23 +11,34 @@
  //"use strict";
 // Global Variables
 var defaultAlert = "My Books";
-var myCategories = null;
+var myRootNode = null;
 var authorizeButton = null;
 var signoutButton = null;
 var processButton = null;
+var sendMainToMyThingsButton = null;
+var sendSubToMyThingsButton = null;
 var secrets;
+var currentUser = 'grovesr';
+var currentUserId = 9;
+var currentUserPassword = 'zse45rdx';
+var currentType = 'books';
 
 function handleClientLoad() {
  // Load the API client and auth2 library
  gapi.load('client:auth2', initClient);
 }
 
+function enableProcessButton() {
+  processButton.style.display = 'block';
+  processButton.onclick = mainFunction;
+}
+
 function initClient() {
  secrets;
  gapi.client.init({
-     apiKey: secrets['myBooksKey'],
+     apiKey: secrets['MY_BOOKS_KEY'],
      discoveryDocs: discoveryDocs,
-     clientId: secrets['myBooksClientId'],
+     clientId: secrets['MY_BOOKS_CLIENT_ID'],
      scope: scopes
  }).then(function () {
    // Listen for sign-in state changes.
@@ -63,21 +74,132 @@ function handleSignoutClick(event) {
  gapi.auth2.getAuthInstance().signOut();
 }
 
-function prepareMyThingsAddNodeQuery(nodeKey, nodeInfo={}) {
-  var url = secrets['myThingsServer'] + '/add/node';
+function prepareMyThingsAddNodeQuery(cat) {
+  var url = secrets['MY_THINGS_SERVER'] + '/add/node';
   data = {};
-  data['name'] = nodeKey;
-  data['owner'] = 'grovesr';
-  data['nodeInfo'] = nodeInfo;
+  data['name'] = cat.subCat;
+  data['owner'] = currentUser;
+  data['nodeInfo'] = {};
+  data['type'] = 'books';
+  if(cat.mainCat !== '' ) {
+    // get the parent node so you can find the id
+    parentCat = new SubCat();
+    parentCat.subCat = cat.mainCat;
+    return prepareMyThingsGetNodeQuery(parentCat)
+    .then(function (response) {
+      data['parentId'] =response['id'];
+      return Promise.resolve($.ajax({
+        type: "POST",
+        url: url,
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        dataType: 'json',
+        crossDomain: true,
+        cache: false,
+        headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+      }));
+    });
+  } else {
+    return Promise.resolve($.ajax({
+      type: "POST",
+      url: url,
+      data: JSON.stringify(data),
+      contentType: 'application/json',
+      dataType: 'json',
+      crossDomain: true,
+      cache: false,
+      headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+    }));
+  }
+}
+
+function prepareMyThingsGetNodeQuery(cat) {
+  var url = secrets['MY_THINGS_SERVER'] + '/get/node?';
+  url += 'nodename=' + encodeURIComponent(cat.subCat);
+  url += '&ownername=' + encodeURIComponent(currentUser);
+  if(cat.mainCat.length > 0) {
+    url += '&parentname=' + encodeURIComponent(cat.mainCat);
+  }
   return Promise.resolve($.ajax({
-    type: "POST",
+    type: "GET",
     url: url,
-    data: JSON.stringify(data),
     contentType: 'application/json',
     dataType: 'json',
     crossDomain: true,
-    headers: {'Authorization':'Basic ' + btoa(secrets['myThingsAdminUser'] + ':' + secrets['myThingsAdminPassword'])}
+    cache: false,
+    headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
   }));
+}
+
+function prepareMyThingsGetItemQuery(item) {
+  var url = secrets['MY_THINGS_SERVER'] + '/get/node?';
+  url += 'nodename=' + encodeURIComponent(item.itemInfo['title']);
+  url += '&ownername=' + encodeURIComponent(currentUser);
+  if(item.subCat) {
+    url += '&parentname=' + encodeURIComponent(item.subCat.subCat);
+  }
+  return Promise.resolve($.ajax({
+    type: "GET",
+    url: url,
+    contentType: 'application/json',
+    dataType: 'json',
+    crossDomain: true,
+    cache: false,
+    headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+  }));
+}
+
+function prepareMyThingsAddItemQuery(item) {
+  var url = secrets['MY_THINGS_SERVER'] + '/add/node';
+  item['addData'] = {};
+  if(typeof item.itemInfo['title'] == 'undefined' || item.itemInfo['title'].length == 0) {
+    item['addData']['name'] = 'unknown';
+  } else {
+    item['addData']['name'] = item.itemInfo['title'];
+  }
+  item['addData']['owner'] = currentUser;
+  item['addData']['nodeInfo'] = {};
+  item['addData']['nodeInfo']['authors'] = item.itemInfo['authors'];
+  item['addData']['nodeInfo']['nodes'] = item.itemInfo['nodes'];
+  item['addData']['nodeInfo']['googleLink'] = item.itemInfo['canonicalVolumeLink'];
+  item['addData']['nodeInfo']['description'] = item.itemInfo['description'];
+  item['addData']['nodeInfo']['googleLink'] = item.itemInfo['infoLink'];
+  item['addData']['nodeInfo']['pageCount'] = item.itemInfo['pageCount'];
+  item['addData']['nodeInfo']['googlePreviewLink'] = item.itemInfo['previewLink'];
+  item['addData']['nodeInfo']['publisher'] = item.itemInfo['publisher'];
+  item['addData']['nodeInfo']['publishedDate'] = item.itemInfo['publishedDate'];
+  if(typeof item.itemInfo['imageLinks'] !=='undefined') {
+    if(typeof item.itemInfo['imageLinks']['smallThumbnail'] !== 'undefined') {
+      item['addData']['nodeInfo']['googleSmallThumbnail'] = item.itemInfo['imageLinks']['smallThumbnail'];
+    }
+    if(typeof item.itemInfo['imageLinks']['thumbnail']  !== 'undefined') {
+      item['addData']['nodeInfo']['googleThumbnail'] = item.itemInfo['imageLinks']['thumbnail'];
+    }
+    if(typeof item.itemInfo['industryIdentifiers'] !== 'undefined') {
+      for(var indx=0; indx < item.itemInfo['industryIdentifiers'].length; indx++) {
+        item['addData']['nodeInfo'][item.itemInfo['industryIdentifiers'][indx]['type']] = item.itemInfo['industryIdentifiers'][indx]['identifier'];
+      }
+    }
+  }
+  item['addData']['type'] = 'books';
+  // get the parent node so you can find the id
+  parentCat = new SubCat();
+  parentCat.subCat = item.subCat.subCat;
+  parentCat.mainCat = item.subCat.mainCat;
+  return prepareMyThingsGetNodeQuery(parentCat)
+  .then(function (response) {
+    this['addData']['parentId'] =response['id'];
+    return Promise.resolve($.ajax({
+      type: "POST",
+      url: url,
+      data: JSON.stringify(this['addData']),
+      contentType: 'application/json',
+      dataType: 'json',
+      crossDomain: true,
+      cache: false,
+      headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+    }));
+  }.bind(item));
 }
 
 //Global Functions
@@ -119,6 +241,173 @@ function getRadioVal(form, name) {
    }
  }
  return val; // return value of checked radio
+}
+
+function AuthorsViewModel() {
+    var self = this;
+    self.authors = ko.observableArray();
+
+    self.beginAdd = function() {
+        alert("Add");
+    }
+    self.beginEdit = function(task) {
+        alert("Edit: " + task.title());
+    }
+    self.remove = function(task) {
+        alert("Remove: " + task.title());
+    }
+    self.markInProgress = function(task) {
+        task.done(false);
+    }
+    self.markDone = function(task) {
+        task.done(true);
+    }
+}
+ko.applyBindings(new NodesViewModel(), $('#nodes')[0]);
+
+function Node(name=null) {
+  this.id = null;
+  this.name = name;
+  this.type = null;
+  this.ownerId = null;
+  this.parentId = null;
+  this.description = '';
+  this.nodeInfo = {};
+  this.haveTried = false;
+  this.dateTried = new Date();
+  this.review = '';
+  this.rating = 0;
+  this.dateReviewed = new Date();
+  this.children = [];
+  this.childCount = 0;
+    // from my-things-server model
+    // id =            db.Column(db.Integer,     primary_key=True, nullable=False)
+    // name =          db.Column(db.String(128), unique=False, nullable=False)
+    // type =          db.Column(db.String(16),  unique=False, nullable=True)
+    // description =   db.Column(db.Text,        unique=False, nullable=True)
+    // nodeInfo =      db.Column(JSON,           unique=False, nullable=True)
+    // haveTried =     db.Column(db.Boolean,     unique=False, nullable=True, default=False)
+    // dateTried =     db.Column(db.Date,        unique=False, nullable=True)
+    // review =        db.Column(db.Text,        unique=False, nullable=True)
+    // rating =        db.Column(db.Integer,     unique=False, nullable=True)
+    // dateReviewed =  db.Column(db.Date,        unique=False, nullable=True)
+    // ownerId =       db.Column(db.Integer, db.ForeignKey('user.id'), unique=False, nullable=False)
+    // parentId =      db.Column(db.Integer, db.ForeignKey('node.id'), unique=False, nullable=True)
+    // owner =         db.relationship('User', lazy=True)
+    // children =      db.relationship('Node', backref=backref('parent', remote_side=[id]),
+    //                                 single_parent=True, lazy=True, cascade="all, delete, delete-orphan")
+}
+
+Node.prototype.fillChildNodesFromQuery = function(){
+  return this.prepareMyThingsGetChildNodesQuery(type = currentType)
+  .then(function(response) {
+    this.children = [];
+     for(var indx = 0; indx < response.nodeCount; indx++) {
+       thisNodeResponse = response.nodes[indx];
+       // loop through each subNode returned
+       var thisSubNode = new Node();
+       thisSubNode.id = thisNodeResponse.id;
+       thisSubNode.name = thisNodeResponse.name;
+       thisSubNode.type = thisNodeResponse.type;
+       thisSubNode.ownerId = thisNodeResponse.ownerId;
+       thisSubNode.parentId = thisNodeResponse.parentId;
+       if(thisNodeResponse.nodeInfo.description) {
+         thisSubNode.description = thisNodeResponse.nodeInfo.description;
+       }
+       if(thisNodeResponse.nodeInfo) {
+         thisSubNode.nodeInfo = JSON.parse(thisNodeResponse.nodeInfo);
+       }
+       thisSubNode.haveTried = thisNodeResponse.haveTried;
+       thisSubNode.dateTried = thisNodeResponse.dateTried;
+       if(thisNodeResponse.review) {
+         thisSubNode.review = thisNodeResponse.review;
+       }
+       thisSubNode.rating = thisNodeResponse.rating;
+       if(thisNodeResponse.dateReviewed) {
+         thisSubNode.dateReviewed = thisNodeResponse.dateReviewed;
+       }
+       thisSubNode.childCount = thisNodeResponse.childCount;
+       this.children.push(thisSubNode);
+     }
+   }.bind(this))
+  .catch(function(err) {
+    if(typeof err.responseJSON === 'undefined') {
+      return Promise.resolve(err)
+    } else {
+      return Promise.resolve(err.responseJSON['error'])
+    }
+  });
+}
+
+Node.prototype.prepareMyThingsGetChildNodesQuery = function() {
+  if(this.id === null) {
+    var url = secrets['MY_THINGS_SERVER'] + '/get/main/nodes?';
+  } else {
+    var url = secrets['MY_THINGS_SERVER'] + '/get/nodes?';
+  }
+  url += 'ownerId=' + encodeURIComponent(currentUserId);
+  url += '&type=' + encodeURIComponent(this.type);
+  if(this.id !== null) {
+    url += '&searchField=parentId';
+    url += '&searchValue=' + encodeURIComponent(this.id);
+  }
+  return Promise.resolve($.ajax({
+    type: "GET",
+    url: url,
+    contentType: 'application/json',
+    dataType: 'json',
+    crossDomain: true,
+    cache: false,
+    headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+  }));
+}
+
+Node.prototype.prepareMyThingsUpdateNodeQuery = function(props) {
+  var url = secrets['MY_THINGS_SERVER'] + '/update/node/' + encodeURIComponent(this.id);
+  data = {};
+  properties = Object.keys(props);
+  for(var indx=0; indx < properties.length; indx++) {
+    data[properties[indx]] = props[properties[indx]];
+  }
+  return Promise.resolve($.ajax({
+    type: "PUT",
+    url: url,
+    data: JSON.stringify(data),
+    contentType: 'application/json',
+    dataType: 'json',
+    crossDomain: true,
+    cache: false,
+    headers: {'Authorization':'Basic ' + btoa(currentUser + ':' + currentUserPassword)}
+  }));
+}
+
+Node.prototype.findChildById  = function(id) {
+  var foundChild = null;
+  for(var indx=0; indx < this.children.length; indx++) {
+    if(this.children[indx]['id'] == id) {
+      foundChild = this.children[indx];
+      break;
+    }
+  }
+  return foundChild
+}
+
+Node.prototype.findDescendantById  = function(id) {
+  if(this.children.length === 0 && this.id == id) {
+    return this
+  }
+  var foundChild = null;
+  for(var indx=0; indx < this.children.length; indx++) {
+    if(this.children[indx]['id'] == id) {
+      foundChild = this.children[indx];
+      break;
+    }
+    foundChild = this.children[indx].findDescendantById(id);
+    if(foundChild) {
+      break;
+    }
+  }
+  return foundChild
 }
 
 // object to hold users bookshelves
@@ -186,16 +475,6 @@ MainCat.prototype.subCatHasReviewedByKey = function(mainCatKey, subCatKey) {
   return result;
 }
 
-MainCat.prototype.sendItemsToMyThings = function(){
-  var categoryPromises = [];
-  itemKeys = Object.keys(this.items);
-  //for(var indx = 0; indx < itemKeys.length; indx++) {
-  for(var indx = 0; indx < 1; indx++) {
-    categoryPromises.push(prepareMyThingsAddNodeQuery(itemKeys[indx]));
-  }
-  return categoryPromises;
-}
-
 MainCat.prototype.fillSubCatsFromQuery = function(){
   return gapi.client.books.mylibrary.bookshelves.list()
   .then(function(response) {
@@ -222,6 +501,38 @@ MainCat.prototype.fillSubCatsFromQuery = function(){
   .catch(function(err) {
    console.log('error in gapi call'+ err + '\n' + err.stack);
   });
+}
+
+MainCat.prototype.sendToMyThings = function(){
+  prepareMyThingsAddNodeQuery(this)
+  .then(function() {
+    $('#send-main-to-my-things-button').text('Already added to My Things');
+    $('#send-main-to-my-things-button').off();
+    $('#send-main-to-my-things-button').prop('disabled', true);
+    setAlert('successfully added main node "' + cat.subCat + '"', 'c-alert--success')
+  })
+  .catch(function(err) {
+    setAlert(err.responseJSON['error'], 'c-alert--error')
+  })
+}
+
+MainCat.prototype.checkIfInMyThings = function (name) {
+  cat = new SubCat();
+  cat.subCat = name;
+  prepareMyThingsGetNodeQuery(cat)
+  .then(function() {
+    // disable add to my things button
+    $('#send-main-to-my-things-button').text('Already added to My Things');
+    $('#send-main-to-my-things-button').off();
+    $('#send-main-to-my-things-button').prop('disabled', true);
+  })
+  .catch(function(err) {
+    $('#send-main-to-my-things-button').off();
+    // enable to my things button
+    $('#send-main-to-my-things-button').text('Send Author to MyThings');
+    $('#send-main-to-my-things-button').on('click', myRootNode.sendToMyThings.bind(cat));
+    $('#send-main-to-my-things-button').prop('disabled', false);
+  })
 }
 
 // object to hold a single subCat
@@ -300,6 +611,7 @@ SubCat.prototype.fillSubCatFromQuery = function(update = true){
        for(var indx = 0; indx < data['items'].length; indx++) {
          // for each volume retrieved
          var thisItem = new Item();
+         thisItem.subCat = this;
          thisItem.fillItemFromData(data['items'][indx]);
          thisSubCat.items[thisItem.id] = thisItem;
        }
@@ -317,8 +629,118 @@ SubCat.prototype.contains = function(volumeId){
   return volumeId in this.items;
 }
 
+SubCat.prototype.sendToMyThings = function(){
+  // add the subCat to myThings
+  prepareMyThingsAddNodeQuery(this)
+  .then(function() {
+    // subCat and items have been added. Disable the send to My Things button
+    setAlert('successfully added subCat node "' + this.mainCat + '":"' + this.subCat + '" and all items', 'c-alert--success');
+    $('#send-sub-to-my-things-button').text('Already added to My Things');
+    $('#send-sub-to-my-things-button').off();
+    $('#send-sub-to-my-things-button').prop('disabled', true);
+  }.bind(this))
+  .catch(function(err) {
+    // something happened along the way that wasn't handled
+    setAlert(err.responseJSON['error'], 'c-alert--error')
+  });
+}
+
+SubCat.prototype.sendItemsToMyThings = function() {
+  var itemPromises = []
+  Object.keys(this.items).forEach(function(item) {
+    itemPromises.push(this.items[item].checkIfInMyThings())
+  }.bind(this))
+  Promise.all(itemPromises)
+  .then(function(results) {
+    // go through this subCat's item query results and see if any haven't yet been added to My Things
+    var itemPromises = [];
+    for(var indx = 0; indx < Object.values(results).length; indx++) {
+      if(Object.keys(Object.values(results)[indx]).includes('error')) {
+        // the item doesn't exist prepare an add query
+        itemPromises.push(Object.values(results)[indx]['item'].sendToMyThings());
+      }
+    }
+    Promise.all(itemPromises)
+    .then(function(itemResults) {
+      var alert = '';
+      // after trying to add the missing items check to make sure there were no errors
+      for(var indx = 0; indx < Object.values(itemResults).length; indx++) {
+        if(Object.keys(Object.values(itemResults)[indx]).includes('error')) {
+          // if there was an error prepare an alert
+          alert += 'error: ' +Object.values(itemResults)[indx]['error'] + "\n";
+        }
+      }
+      if(alert.length > 0) {
+        setAlert(alert, 'c-alert--error');
+      } else {
+        setAlert('successfully added all books to "' + this.mainCat + '":"' + this.subCat + '"', 'c-alert--success');
+        $('#send-subs-items-to-my-things-button').text('Already added to My Things');
+        $('#send-subs-items-to-my-things-button').off();
+        $('#send-subs-items-to-my-things-button').prop('disabled', true);
+      }
+    }.bind(this))
+    .catch(function(err) {
+      // something happened along the way that wasn't handled
+      setAlert(err.responseJSON['error'], 'c-alert--error')
+    })
+  }.bind(this));
+}
+
+SubCat.prototype.checkIfInMyThings = function () {
+  prepareMyThingsGetNodeQuery(this)
+  .then(function() {
+    // subCat found in My Things, disable send to My Things button
+    $('#send-sub-to-my-things-button').text('Already added to My Things');
+    $('#send-sub-to-my-things-button').off();
+    $('#send-sub-to-my-things-button').prop('disabled', true);
+    }.bind(this))
+  .catch(function(err) {
+    // the subCat doesn't exist in myThings so enable the send to My Things button
+    $('#send-sub-to-my-things-button').off();
+    // enable to my things button
+    $('#send-sub-to-my-things-button').text('Send Series to My Things');
+    $('#send-sub-to-my-things-button').on('click', this.sendToMyThings.bind(this));
+    $('#send-sub-to-my-things-button').prop('disabled', false);
+  })
+  this.checkIfItemsInMyThings()
+}
+
+SubCat.prototype.checkIfItemsInMyThings = function() {
+  var itemPromises = []
+  Object.keys(this.items).forEach(function(item) {
+    itemPromises.push(this.items[item].checkIfInMyThings())
+  }.bind(this))
+  return Promise.all(itemPromises)
+  .then(function(results) {
+    // now check the individual items to see if they all are in My Things as well.
+    // If any are not, enable the send to My Things button
+    var allAdded = true;
+    for(var indx = 0; indx < Object.values(results).length; indx++) {
+      if(Object.keys(Object.values(results)[indx]).includes('error')) {
+        // the item doesn't exist yet enable the send to My Things button
+        allAdded = false;
+        break;
+      }
+    }
+    if(allAdded) {
+      // all subCat's items found in My Things, disable send to My Things button
+      $('#send-subs-items-to-my-things-button').text('Already added all items to My Things');
+      $('#send-subs-items-to-my-things-button').off();
+      $('#send-subs-items-to-my-things-button').prop('disabled', true);
+    } else {
+      // one or more of the subCat's items don't exist in myThings so enable the send to My Things button
+      $('#send-subs-items-to-my-things-button').off();
+      // enable to my things button
+      $('#send-subs-items-to-my-things-button').text('Send Series items to My Things');
+      $('#send-subs-items-to-my-things-button').on('click', this.sendItemsToMyThings.bind(this));
+      $('#send-subs-items-to-my-things-button').prop('disabled', false);
+    }
+  }.bind(this))
+}
+
 // object to hold a single item
 function Item() {
+ this.subCat = null;
  this.kind = null;
  this.id = null;
  this.etag = null
@@ -354,292 +776,309 @@ Item.prototype.fillItemFromData = function(data) {
  this.userInfo = data['userInfo'];
 }
 
+Item.prototype.sendToMyThings = function(){
+  return prepareMyThingsAddItemQuery(this)
+  .catch(function(err) {
+    Promise.resolve(err.responseJSON['error']);
+  });
+}
+
+Item.prototype.checkIfInMyThings = function () {
+  return prepareMyThingsGetItemQuery(this)
+  .then(function(response) {
+    response['item'] = this;
+    return Promise.resolve(response);
+  }.bind(this))
+  .catch(function(err) {
+    err.responseJSON['item'] = this;
+    return Promise.resolve(err.responseJSON);
+  }.bind(this))
+}
+
 var toggleCategoryTreeItem = function() {
+  thisNodeId = $(this).attr('nodeId');
+  thisNode = myRootNode.findDescendantById(thisNodeId);
+  $('#main_haveTried').attr('nodeId', thisNodeId);
  if($(this).hasClass('c-tree__item--expandable')) {
-   // expand mainCat's categories & collapse any others already expanded
-   $('#haveReadDiv').hide();
-   $('.mt-sub-cat, .mt-item').hide(); // hide all author's categories first
+   // expand mainCat's nodes & collapse any others already expanded
+   $('#haveTriedItemDiv').hide();
+   $('#haveTriedSubNodeDiv').hide();
+   $('#haveTriedMainNodeDiv').hide();
+   $('#subNodeInfoHeader').hide();
+   $('#itemInfoHeader').hide();
+   $('.mt-sub-cat, .mt-item').hide(); // hide all author's nodes first
    $('.c-tree__item--expanded').addClass('c-tree__item--expandable');
    $('.c-tree__item--expanded').removeClass('mt-tree-selected');
    $('.c-tree__item--expanded').removeClass('c-tree__item--expanded');
-   $('#' + $('#' + this.id +' span')[0].id.replace('_span','')).show(); // show this author's categories
+   $('#' + $('#' + this.id +' span')[0].id.replace('_span','')).show(); // show this author's nodes
+   $('#send-main-to-my-things-button').off();
    $(this).addClass('c-tree__item--expanded');
    $(this).addClass('mt-tree-selected');
    $(this).removeClass('c-tree__item--expandable');
-   $('#mainCatInfoHeader').show();
-   $('#mainCatInfo, #subCatInfo, #itemInfo').empty();
-   $('#mainCatInfo').append($(this).attr('mainCat'));
+   $('#mainNodeInfoHeader').show();
+   $('#haveTriedMainNodeDiv').show();
+   if(thisNode.haveTried) {
+     $('#main_haveTried').prop('checked', true);
+   } else {
+     $('#main_haveTried').prop('checked', false);
+   }
+   $('#mainNodeInfo, #subNodeInfo, #itemInfo').empty();
+   $('#mainNodeInfo').append($(this).attr('mainCat'));
  } else {
-   // collapse mainCat's categories
+   // collapse mainCat's nodes
+   $('#send-main-to-my-things-button').off();
    $('.mt-sub-cat, .mt-item').hide();
-   $('#haveReadDiv').hide();
+   $('#haveTriedItemDiv').hide();
+   $('#haveTriedSubNodeDiv').hide();
+   $('#haveTriedMainNodeDiv').hide();
+   $('#item_haveTried').prop('checked', false);
+   $('#sub_haveTried').prop('checked', false);
+   $('#main_haveTried').prop('checked', false);
    $(this).addClass('c-tree__item--expandable');
    $(this).removeClass('c-tree__item--expanded');
    $(this).removeClass('mt-tree-selected');
-   $('#mainCatInfo, #subCatInfo, #itemInfo').empty();
-   $('#mainCatInfoHeader').hide();
+   $('#mainNodeInfo, #subNodeInfo, #itemInfo').empty();
+   $('#mainNodeInfoHeader').hide();
+   $('#subNodeInfoHeader').hide();
+   $('#itemInfoHeader').hide();
  }
 }
 
-var toggleItemTreeItem = function(itemId) {
- if($('#' + itemId).hasClass('c-tree__item--expandable')) {
+var toggleItemTreeItem = function(subNode) {
+  $('#sub_haveTried').attr('nodeId', subNode.id);
+ if($('#cat_' + subNode.id).hasClass('c-tree__item--expandable')) {
+   thisNodeId = $(this).attr('nodeId');
+   $('#sub_haveTried').attr('nodeId', thisNodeId);
    // expand items & collapse any others already expanded
    $('[id^="cat_"]').filter('.c-tree__item--expanded').addClass('c-tree__item--expandable');
    $('[id^="cat_"]').filter('.c-tree__item--expanded').removeClass('c-tree__item--expanded');
    $('.mb-book').hide(); // hide all categorie's items first
-   $('#haveReadDiv').hide();
-   $('#haveReadBook').prop('checked', false);
-   $('#' + itemId.replace('cat_','') + '_list').show(); // show this author's categories
-   $('#subCatInfoHeader').show();
-   $('#' + itemId).addClass('c-tree__item--expanded');
-   $('#' + itemId).addClass('mt-tree-selected');
-   $('#' + itemId).removeClass('c-tree__item--expandable');
+   $('#haveTriedItemDiv').show();
+   $('#haveTriedSubNodeDiv').show();
+   $('#haveTriedMainNodeDiv').show();
+   if(subNode.haveTried) {
+     $('#sub_haveTried').prop('checked', true);
+   } else {
+     $('#sub_haveTried').prop('checked', false);
+   }
+   $('#item_haveTried').prop('checked', false);
+   $('#' + subNode.id + '_list').show(); // show this author's nodes
+   $('#send-sub-to-my-things-button').off();
+   $('#subNodeInfoHeader').show();
+   $('#cat_' + subNode.id).addClass('c-tree__item--expanded');
+   $('#cat_' + subNode.id).addClass('mt-tree-selected');
+   $('#cat_' + subNode.id).removeClass('c-tree__item--expandable');
  } else {
    // collapse categorie's items
+   $('#send-sub-to-my-things-button').off();
    $('.mt-item').hide();
-   $('#haveReadDiv').hide();
-   $('#haveReadBook').prop('checked', false);
-   $('#subCatInfo, #itemInfo').empty();
-   $('#subCatInfoHeader').hide();
-   $('#' + itemId).addClass('c-tree__item--expandable');
-   $('#' + itemId).removeClass('c-tree__item--expanded');
-   $('#' + itemId).removeClass('mt-tree-selected');
+   $('#haveTriedItemDiv').hide();
+   $('#haveTriedSubNodeDiv').hide();
+   $('#item_haveTried').prop('checked', false);
+   $('#sub_haveTried').prop('checked', false);
+   $('#subNodeInfo, #itemInfo').empty();
+   $('#subNodeInfoHeader').hide();
+   $('#itemInfoHeader').hide();
+   $('#cat_' + subNode.id).addClass('c-tree__item--expandable');
+   $('#cat_' + subNode.id).removeClass('c-tree__item--expanded');
+   $('#cat_' + subNode.id).removeClass('mt-tree-selected');
  }
 }
 
-var updateHaveRead = function() {
-  var item = myCategories.findItemByKey($(this).attr('itemId'));
-  if($('#haveReadBook').prop('checked')) {
-    // add this book to the Have read category
-    return gapi.client.books.mylibrary.bookshelves.addVolume({
-     'volumeId': $(this).attr('itemId'),
-     'shelf':4
-    })
-   .then(// update myCategories and haveRead list
-     function() {
-       return myCategories.findSubCatByKey(4).fillSubCatFromQuery(true)
-     })
-   .then(function () {
-     var subCat = myCategories.findSubCatByKey(4);
-     if(subCat.itemCount > 0) {
-       if($('#cat_4').hasClass('c-tree__item--expanded')) {
-
-       } else {
-         $('#cat_4').addClass('c-tree__item--expandable');
-       }
-       //$('#cat_4').on('click', toggleItemTreeItem);
-     } else {
-       //$('#cat_4').unbind('click', toggleItemTreeItem);
-       $('#cat_4').removeClass('c-tree__item--expandable');
-       $('#cat_4').removeClass('c-tree__item--expanded');
-     }
-     $('#cat_4_list').append('<li id="item_' + item.id + '" class="c-tree__item"><i id="item_' + item.id + '_read" class="fa fa-check"/><i id="item_' + item.id + '_reviewed" class="fa fa-pencil-alt"><span id="item_' + item.id + '_span">' + item.itemInfo['title'] + '</span></li>');
-     $('#cat_4').empty();
-     $('#cat_4').append('<span id="cat_' + subCat.id + '_span">' + subCat.subCat + ' (' + subCat.itemCount + ')</span>');
-     if(myCategories.findSubCatByKey(4).contains(item.id)) {
-       $('#item_' + item.id + '_read').css({'visibility':'visible'});
-       //$('#item_' + item.id + '_read').removeClass('icon-blank')
-       //$('#item_' + item.id + '_read').addClass('fa fa-check');
-     } else {
-       $('#item_' + item.id + '_read').css({'visibility':'hidden'});
-       //$('#item_' + item.id + '_read').removeClassClass('fa fa-check');
-       //$('#item_' + item.id + '_read').addClass('icon-blank');
-     }
-     if(myCategories.findSubCatByKey(5).contains(item.id)) {
-       $('#item_' + item.id + '_reviewed').css({'visibility':'visible'});
-       //$('#item_' + item.id + '_reviewed').removeClass('icon-blank');
-       //$('#item_' + item.id + '_reviewed').addClass('fa fa-pencil-alt');
-     } else {
-       $('#item_' + item.id + '_reviewed').css({'visibility':'hidden'});
-       //$('#item_' + item.id + '_reviewed').removeClass('fa fa-pencil-alt');
-       //$('#item_' + item.id + '_reviewed').addClass('icon-blank');
-     }
-   }.bind(this))
-   .catch(function(err) {
-     console.log('error in gapi call' + err + '\n' + err.stack);
-   });
-  } else {
-    // remove this book from the Have read category
-    return gapi.client.books.mylibrary.bookshelves.removeVolume({
-     'volumeId': $(this).attr('itemId'),
-     'shelf':4
-    })
-   .then(// update myCategories and haveRead list
-       function() {
-         return myCategories.findSubCatByKey(4).fillSubCatFromQuery(true)
-       })
-    .then(function() {
-      var subCat = myCategories.findSubCatByKey(4);
-      if(subCat.itemCount > 0) {
-        if($('#cat_4').hasClass('c-tree__item--expanded')) {
-
-        } else {
-          $('#cat_4').addClass('c-tree__item--expandable');
-        }
-        //$('#cat_4').on('click', toggleItemTreeItem);
-      } else {
-        //$('#cat_4').unbind('click', toggleItemTreeItem);
-        $('#cat_4').removeClass('c-tree__item--expandable');
-        $('#cat_4').removeClass('c-tree__item--expanded');
-      }
-      $('#item_' + item.id).remove();
-      $('#cat_4').empty();
-      $('#cat_4').append('<span id="cat_' + subCat.id + '_span">' + subCat.subCat + ' (' + subCat.itemCount + ')</span>');
-      //$('#item_' + item.id + '_read').addClass('icon-blank');
-      $('#item_' + item.id + '_read').css({'visibility':'visible'});
-    })
-   .catch(function(err) {
-     console.log('error in gapi call' + err + '\n' + err.stack);
-   });
+var updateHaveTried = function() {
+  var nodeId = $(this).attr('nodeId');
+  thisNode = myRootNode.findDescendantById(nodeId);
+  var state = false;
+  $("html").addClass("waiting");
+  if($(this).prop('checked')) {
+    // set haveTried to true for this node
+    state = true;
   }
+  thisNode.prepareMyThingsUpdateNodeQuery({'haveTried':state})
+  .then(function() {
+    var elementId = $(this).prop('id');
+    var nodeId = $(this).attr('nodeId');
+    var prefix = elementId.split('_')[0] + '_';
+    $("html").removeClass("waiting");
+    if(state) {
+      $('#' + prefix + nodeId + '_tried').css({'visibility':'visible'});
+    } else {
+      $('#' + prefix + nodeId + '_tried').css({'visibility':'hidden'});
+    }
+    $("html").removeClass("waiting");
+    var thisNode = myRootNode.findDescendantById(nodeId);
+    setAlert('Successfully updated "' + thisNode.name + '"', 'c-alert--success')
+    thisNode.haveTried = state;
+  }.bind(this))
+  .catch(function(err) {
+    if(typeof err.responseJSON !== 'undefined') {
+      setAlert(err.responseJSON, 'c-alert--error')
+    } else {
+      setAlert(err, 'c-alert--error')
+    }
+    $("html").removeClass("waiting");
+  })
 }
 
 var mainFunction = function() {
-  if(myCategories === null) {
-    // starting out fresh
-    myCategories = new MainCat(secrets['users'],secrets['myBooksClientId']);
-  } else {
-    $('#categories').empty();
-    $('#mainCatInfo').empty();
-    $('#subCatInfo').empty();
-    $('#itemInfo').empty();
-  }
-  var arrayOfPromises;
-  myCategories.fillSubCatsFromQuery()
+  myRootNode = new Node(name='Root');
+  myRootNode.type = currentType;
+  $('#nodes').empty();
+  $('#mainNodeInfo').empty();
+  $('#mainNodeInfoHeader').hide();
+  $('#subNodeInfo').empty();
+  $('#subNodeInfoHeader').hide();
+  $('#itemInfo').empty();
+  $('#itemInfoHeader').hide();
+  $("html").addClass("waiting");
+  myRootNode.fillChildNodesFromQuery()
   .then(function() {
-    return myCategories.findSubCatByKey(4).fillSubCatFromQuery(false)})
-  .then(function() {
-    myCategories.findSubCatByKey(5).fillSubCatFromQuery(false)})
-  .catch(function(err) {
-      console.log(err);
+    var subNodePromises = [];
+    for(var indx=0; indx < myRootNode.children.length; indx++) {
+      subNode = myRootNode.children[indx];
+      subNodePromises.push(subNode.fillChildNodesFromQuery());
+    }
+    Promise.all(subNodePromises)
+    .then(function(results) {
+      $("html").removeClass("waiting");
+      loadPage();
     })
-  .then(function() {
-    arrayOfPromises = myCategories.sendItemsToMyThings();
-    Promise.all(arrayOfPromises)})
-  .then(loadPage); // .then after getting myCategories
+  })
 }
 
-var loadPage = function(resolve) {
-  Object.keys(myCategories.items).forEach(function(mainCat) {
-    var subCats = myCategories.items[mainCat];
-    var mainCatNameId = mainCat.replace(/ /g,'_');
-    var subCatsId = mainCatNameId + '_list';
-    $('#categories').append('<li id="' + mainCatNameId + '" mainCat="' + mainCat + '" class="c-tree__item"><span id="' + subCatsId + '_span">' + mainCat + '</span></li>');
-    $('#categories').append('<li><ul id="' + subCatsId + '" class="c-tree mt-sub-cat">');
-    $('#' + subCatsId).hide();
-    if(Object.keys(subCats).length > 0) {
-      $('#' + mainCatNameId).addClass('c-tree__item--expandable');
-      $('#' + mainCatNameId).click(toggleCategoryTreeItem);
+var loadPage = function() {
+  myRootNode.children.forEach(function(mainNode) {
+    var subNodes = mainNode.children;
+    var subNodesId = mainNode.id + '_list';
+    $('#nodes').append('<li id="' + mainNode.id + '" mainCat="' + mainNode.name + '" class="c-tree__item"><i id="main_' + mainNode.id + '_tried" class="fa fa-check"/><i id="main_' + mainNode.id + '_reviewed" class="fa fa-pencil-alt"/><span id="' + subNodesId + '_span">' + mainNode.name + '(' + mainNode.childCount + ')</span></li>');
+    $('#nodes').append('<li><ul id="' + subNodesId + '" class="c-tree mt-sub-cat">');
+    if(mainNode.haveTried) {
+      $('#main_' + mainNode.id + '_tried').css({'visibility':'visible'});
+    } else {
+      $('#main_' + mainNode.id + '_tried').css({'visibility':'hidden'});
     }
-    Object.keys(subCats).forEach(function(catKey) {;
-      var subCat = subCats[catKey];
-      $('#' + subCatsId).append('<li id="cat_' + subCat.id + '" class="c-tree__item"><span id="cat_' + subCat.id + '_span">' + subCat.subCat + ' (' + subCat.itemCount + ')</span></li>');
-      $('#' + subCatsId).append('<li><ul id="' + subCat.id + '_list" class="c-tree mt-item">');
-      /* this doesn't work because we haven't retrieved all volumes from all bookshelves
-         this would entail too many google api calls
-      if(myCategories.subCatHasReadByKey(mainCat, subCat.id)) {
-        $('#cat_' + subCat.id + '_read').addClass('fa fa-check');
+    if(mainNode.haveReviewed) {
+      $('#main_' + mainNode.id + '_reviewed').css({'visibility':'visible'});
+    } else {
+      $('#main_' + mainNode.id + '_reviewed').css({'visibility':'hidden'});
+    }
+    $('#' + subNodesId).hide();
+    $('#' + mainNode.id).attr('nodeId', mainNode.id);
+    if(subNodes.length > 0) {
+      $('#' + mainNode.id).addClass('c-tree__item--expandable');
+      $('#' + mainNode.id).click(toggleCategoryTreeItem);
+    }
+    subNodes.forEach(function(subNode) {;
+      $('#' + subNodesId).append('<li id="cat_' + subNode.id + '" class="c-tree__item"><i id="sub_' + subNode.id + '_tried" class="fa fa-check"/><i id="sub_' + subNode.id + '_reviewed" class="fa fa-pencil-alt"/><span id="cat_' + subNode.id + '_span">' + subNode.name + ' (' + subNode.childCount + ')</span></li>');
+      $('#' + subNodesId).append('<li><ul id="' + subNode.id + '_list" class="c-tree mt-item">');
+      $('#sub_haveTried').attr('nodeId', subNode.id);
+      if(subNode.haveTried) {
+        $('#sub_' + subNode.id + '_tried').css({'visibility':'visible'});
+      } else {
+        $('#sub_' + subNode.id + '_tried').css({'visibility':'hidden'});
       }
-      if(myCategories.subCatHasReviewedByKey(mainCat, subCat.id)) {
-        $('#cat_' + subCat.id + '_reviewed').addClass('fa fa-pencil-alt');
+      if(subNode.haveReviewed) {
+        $('#sub_' + subNode.id + '_reviewed').css({'visibility':'visible'});
+      } else {
+        $('#sub_' + subNode.id + '_reviewed').css({'visibility':'hidden'});
       }
-      */
-      if(subCat.itemCount > 0) {
-        $('#cat_' + subCat.id).addClass('c-tree__item--expandable');
-        $('#cat_' + subCat.id).click(function() {
-          var subCatId = this.id.replace('cat_', '');
-          var subCat = myCategories.findSubCatByKey(subCatId);
-          $('#subCatInfo').empty();
+      if(subNode.childCount > 0) {
+        $('#cat_' + subNode.id).addClass('c-tree__item--expandable');
+        $('#cat_' + subNode.id).click(function() {
+          var subNodeId = this.id.replace('cat_', '');
+          $('#subNodeInfo').empty();
           $('#itemInfo').empty();
-          $('#subCatInfo').append('<p>' + subCat.subCat + '</p>');
-          $('#subCatInfo').append('<p>' + subCat.description + '</p>');
-          $('[id^="item_"]').remove();
+          $('#subNodeInfo').append('<p>' + subNode.name + '</p>');
+          $('#subNodeInfo').append('<p>' + subNode.description + '</p>');
+          $('.c-tree__item[id^="item_"]').remove();
           if($(this).hasClass('c-tree__item--expandable')) {
-            subCat.fillSubCatFromQuery(false)
+            $("html").addClass("waiting");
+            subNode.fillChildNodesFromQuery()
             .then( function () {
-              Object.keys(subCat.items).forEach(function(itemKey) {
+              $("html").removeClass("waiting");
+              $('#' + subNodeId + '_list').empty();
+              subNode.children.forEach(function(item) {
                 var subTitle = ''
-                item = subCat.items[itemKey];
-                if('subtitle' in item.itemInfo) {
-                  subTitle = ' - ' + item.itemInfo['subtitle'];
+                if('subtitle' in item.nodeInfo) {
+                  subTitle = ' - ' + item.nodeInfo['subtitle'];
                 }
-                $('#' + subCatId + '_list').append('<li id="item_' + item.id + '" class="c-tree__item"><i id="item_' + item.id + '_read" class="fa fa-check"/><i id="item_' + item.id + '_reviewed" class="fa fa-pencil-alt"/><span id="item_' + item.id + '_span">' + item.itemInfo['title'] + subTitle + '</span></li>');
-                if(myCategories.findSubCatByKey(4).contains(itemKey)) {
-                  $('#item_' + item.id + '_read').css({'visibility':'visible'});
-                  //$('#item_' + item.id + '_read').removeClass('icon-blank');
-                  //$('#item_' + item.id + '_read').addClass('fa fa-check');
-                  $('#haveReadBook').prop('checked', true);
+                $('#' + subNodeId + '_list').append('<li id="item_' + item.id + '" class="c-tree__item"><i id="item_' + item.id + '_tried" class="fa fa-check"/><i id="item_' + item.id + '_reviewed" class="fa fa-pencil-alt"/><span id="item_' + item.id + '_span">' + item.name + subTitle + '</span></li>');
+                if(item.haveTried) {
+                  $('#item_' + item.id + '_tried').css({'visibility':'visible'});
+                  $('#item_haveTried').prop('checked', true);
                 } else {
-                  $('#item_' + item.id + '_read').css({'visibility':'hidden'});
-                  //$('#item_' + item.id + '_read').removeClass('fa fa-check');
-                  //$('#item_' + item.id + '_read').addClass('icon-blank');
+                  $('#item_' + item.id + '_tried').css({'visibility':'hidden'});
                 }
-                if(myCategories.findSubCatByKey(5).contains(itemKey)) {
+                if(item.haveReviewed) {
                   $('#item_' + item.id + '_reviewed').css({'visibility':'visible'});
-                  //$('#item_' + item.id + '_reviewed').removeClass('icon-blank')
-                  //$('#item_' + item.id + '_reviewed').addClass('fa fa-pencil-alt');
                 } else {
                   $('#item_' + item.id + '_reviewed').css({'visibility':'hidden'});
-                  //$('#item_' + item.id + '_reviewed').removeClass('fa fa-pencil-alt')
-                  //$('#item_' + item.id + '_reviewed').addClass('icon-blank');
                 }
                 $('#item_' + item.id).click(function() {
                   var itemId = this.id.replace('item_','');
-                  if(myCategories.findSubCatByKey(4).contains(itemId)) {
-                    $('#item_' + itemId + '_read').removeClass('icon-invisible');
-                    //$('#item_' + itemId + '_read').addClass('fa fa-check');
-                    $('#haveReadBook').prop('checked', true);
+                  var thisItem = subNode.findChildById(itemId);
+                  if(thisItem.haveTried) {
+                    $('#item_' + itemId + '_tried').removeClass('icon-invisible');
+                    $('#item_haveTried').prop('checked', true);
                   } else {
-                    //$('#item_' + itemId + '_read').removeClass('fa fa-check');
-                    $('#item_' + itemId + '_read').addClass('icon-invisible');
-                    $('#haveReadBook').prop('checked', false);
+                    $('#item_' + itemId + '_tried').addClass('icon-invisible');
+                    $('#item_haveTried').prop('checked', false);
                   }
-                  $('#haveReadBook').attr('itemId', itemId);
+                  $('#item_haveTried').attr('nodeId', itemId);
                   $('#itemInfo').empty();
                   $('.mt-item-selected').removeClass('mt-item-selected');
                   $('#item_' + itemId).addClass('mt-item-selected');
                   $('#itemInfoHeader').show();
-                  $('#itemInfo').append(subCat.items[itemId].itemInfo['title'] + ': ' + subCat.items[itemId].itemInfo['authors'][0]);
-                  if(typeof subCat.items[itemId].itemInfo['description'] !== 'undefined') {
-                    $('#itemInfo').append('<p>Description: ' + subCat.items[itemId].itemInfo['description'] + '</p>');
+                  $('#itemInfo').append(item.name + ': ' + thisItem.nodeInfo['authors'][0]);
+                  if(typeof thisItem.nodeInfo['description'] !== 'undefined') {
+                    $('#itemInfo').append('<p>Description: ' + thisItem.nodeInfo['description'] + '</p>');
                   }
-                  if(typeof subCat.items[itemId].userInfo.review !== 'undefined') {
-                    $('#itemInfo').append('<p>My Review: (' + subCat.items[itemId].userInfo.review.rating + ') '  + subCat.items[itemId].userInfo.review.content + '</p>');
+                  if(typeof thisItem.nodeInfo['googleLink'] !== 'undefined') {
+                    $('#itemInfo').append('<p>Google Link: <a href="' + thisItem.nodeInfo['googleLink'] + '" target="_blank">Google Link</a></p>');
                   }
-                  $('#haveReadDiv').show();
+                  if(typeof thisItem.userInfo !== 'undefined' && typeof thisItem.userInfo.review !== 'undefined') {
+                    $('#itemInfo').append('<p>My Review: (' + thisItem.userInfo.review.rating + ') '  + thisItem.userInfo.review.content + '</p>');
+                  }
+                  $('#haveTriedItemDiv').show();
                 }); // click function for each item
               }); // .forEach item
+              toggleItemTreeItem(subNode);
             }); // .then after getting items
+          } else {
+            toggleItemTreeItem(subNode);
           }
-          toggleItemTreeItem(this.id);
+          // toggleItemTreeItem(subCat);
         }); // subcategory click function
       } // if the subcategory has items in it
-      $('#' + subCatsId).append('</ul></li>'); // end of book c-tree ul
+      $('#' + subNodesId).append('</ul></li>'); // end of book c-tree ul
     }); // .forEach mainCat's subCat
-  }); // .forEach myCategories.items
+  }); // .forEach myRootNode.items
 }
 
 $(window).on('load', function(){
     authorizeButton = document.getElementById('authorize-button');
     signoutButton = document.getElementById('signout-button');
     processButton = document.getElementById('process-button');
-    processButton.onclick = mainFunction;
-    $('#haveReadBook').on('change', updateHaveRead);
+
+    $('#item_haveTried').on('change', updateHaveTried);
+    $('#sub_haveTried').on('change', updateHaveTried);
+    $('#main_haveTried').on('change', updateHaveTried);
     $('#alertBox').append(defaultAlert);
     var canvasWidth = Math.floor(document.getElementsByTagName('html')[0].clientWidth);
     var canvasHeight = Math.floor(document.getElementsByTagName('html')[0].clientHeight);
     var alertHeight = $('#alertBox').outerHeight();
-    $('#categoriesDiv').css({'height':canvasHeight - alertHeight, 'overflow':'auto'});
+    $('#nodesDiv').css({'height':canvasHeight - alertHeight, 'overflow':'auto'});
     Promise.resolve($.ajax({
       cache: false,
-      url: "static/my_books/constants.js",
+      url: "static/my_books/.secrets.js",
       dataType: "json"
     }))
     .then(function(jsonSecrets) {
       secrets = jsonSecrets;
-      handleClientLoad();
+      //handleClientLoad();
+      enableProcessButton();
     })
     .catch(function(err) {
-      console.log('error getting secrets ' + err + '\n' + err.stack);
+      setAlert('error getting secrets file: ' + err.statusText, 'c-alert--error');
     }); // .then after getting secrets
 });
