@@ -32,6 +32,8 @@
     div.mt-item-a {margin-left: 30px; /* to indent items */}
     .badge {float: right; /* to move the category totals to the right of the lists */}
     .mt-edit-field-button {float: right; /* move edit pencils  button to the right of field*/}
+    .mt-trash {float: right;}
+    .mt-dialog-input {width: 100%;}
     a.list-group-item { /* make category lists look like the alert */
       color: black !important;
     }
@@ -42,9 +44,11 @@
     span.fa-pencil-alt {
       margin-right: 5px;
     }
+    .fa-star {color: green;}
     html.waiting * {
       cursor: wait;
     }
+
     #itemDescription, #itemReview {
       height: 10vh;
     }
@@ -55,37 +59,25 @@
   </head>
   <body>
     <div class="container-fluid" id="mainBody">
-      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-        <a class="navbar-brand" href="#">Fixed navbar</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <nav class="navbar navbar-expand-md navbar-light fixed-top bg-light nav-center">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="#">Action</a>
-                <a class="dropdown-item" href="#">Another action</a>
-                <a class="dropdown-item" href="#">Something else here</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">Separated link</a>
-              </div>
+        <div class="collapse navbar-collapse justify-content-center" id="navbarCollapse">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <span class="nav-link btn btn-sm">My</span>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled" href="#">Disabled</a>
+              <select class="custom-select"
+                      id="typesSelect">
+                <!-- ko foreach: types -->
+                  <option data-bind="text: type,
+                                     value: type"></option>
+                <!-- /ko -->
+              </select>
             </li>
           </ul>
-          <form class="form-inline mt-2 mt-md-0">
-            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form>
         </div>
       </nav>
       <div id="alertBox" class="alert alert-dark" role="alert">
@@ -95,7 +87,7 @@
         <div class="col-3">
           <div class="btn-group btn-group-sm mt-add-buttons mb-1">
             <button
-              data-bind="attr: {title: 'Add ' + mainLabel()},
+              data-bind="attr: {title: addMainLabel},
                         enable: enableAddMain(),
                         click: beginAddMain"
               data-toggle="tooltip"
@@ -104,7 +96,7 @@
               </span>
             </button>
             <button
-              data-bind="attr: {title: 'Add ' + subLabel()},
+              data-bind="attr: {title: addSubLabel},
                         enable: enableAddSub(),
                         click: beginAddSub"
               data-toggle="tooltip"
@@ -113,7 +105,7 @@
               </span>
             </button>
             <button
-              data-bind="attr: {title: 'Add ' + itemLabel()},
+              data-bind="attr: {title: addItemLabel},
                         enable: enableAddItem(),
                         click: beginAddItem"
               data-toggle="tooltip"
@@ -147,7 +139,7 @@
             </div>
             <div class="col text-center">
               <button
-                data-bind="click: beginSaveItem"
+                data-bind="click: saveItem"
                 title="Save"
                 class="btn btn-secondary btn-sm mt-item-edit-control"
                 disabled>
@@ -165,54 +157,101 @@
         <!-- begin col-3 for hierarchical category lists-->
         <div class="col-3">
           <!-- begin accordian main -->
-          <div class="accordion" id="accordionMain" style="height: 75vh;overflow-y: scroll;">
+          <div class="accordion" id="accordianMain" style="height: 75vh;overflow-y: scroll;">
             <!-- ko foreach: mainNodes -->
               <!-- begin card main -->
               <div class="card border-0">
-                <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id },
-                              click: $root.handleMainClick"
-                  class="list-group-item mt-main-a text-truncate border-0 mb-1" data-toggle="collapse">
-                  <span>
-                    <span class="badge badge-secondary" data-bind="text: children().length"></span>
-                    <span data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
-                                      title: (collapsed() ? 'expand' : 'collapse')}"
-                          data-toggle="tooltip"></span>
-                    <span data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
-                          data-toggle="tooltip" title="tried"
-                          class="fa fa-check fa-xs"></span>
-                    <span data-bind="style: {opacity: (leavesHaveReviewed() ? '1.0': '0.2')}"
-                          data-toggle="tooltip" title="reviewed"
-                          class="fa fa-pencil-alt fa-xs"></span>
-                    <span data-toggle="tooltip" data-bind="text: name, attr: {title: name}"></span>
+                <span>
+                  <i
+                    data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
+                               attr:{title: 'Delete ' + $root.mainLabel()},
+                               click: $root.beginDeleteMainNode"
+                    class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
+                    data-toggle="tooltip"></i>
+                    <i
+                      data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
+                                 attr:{title: 'Edit ' + $root.mainLabel()},
+                                 click: $root.beginEditMainNode"
+                      class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
+                      data-toggle="tooltip"></i>
+                  <a data-bind="attr: { href: '#accordianCollapse_' + id(),
+                                        'mt-data-id': id},
+                                click: $root.handleMainClick"
+                    class="list-group-item mt-main-a text-truncate border-0 mb-1" data-toggle="collapse">
+                    <span>
+                      <span class="badge badge-secondary" data-bind="text: children().length"></span>
+                      <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
+                                        title: (collapsed() ? 'expand' : 'collapse')}"
+                            data-toggle="tooltip"></i>
+                      <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
+                            data-toggle="tooltip" title="tried"
+                            class="fa fa-check fa-xs"></i>
+                      <span class="fa-stack fa-fw"
+                            data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
+                            data-toggle="tooltip" title="rating">
+                        <i class="far fa-star fa-stack-2x pb-1"></i>
+                        <i class="fa fa-text fa-xs pl-1"
+                           data-bind="text: averageRating()"></i>
+                      </span>
+                      <span data-toggle="tooltip"
+                            data-html="true"
+                            data-bind="text: name,
+                                       attr: {title: nodeTooltip}"
+                            class="mt-tooltip">
+                      </span>
+                  </span>
+                  </a>
                 </span>
-                </a>
               </div>
               <!-- end card main -->
               <!-- begin sub node collapsed div -->
               <div data-bind="attr: { id: 'accordianCollapse_' + id() }"
-                  class="collapse mt-main-collapse" data-parent="#accordionMain">
+                  class="collapse mt-main-collapse" data-parent="#accordianMain">
                 <!-- begin sub accordian -->
                 <div data-bind="attr: { id: 'accordian_' + id() }" class="accordion">
                   <!-- ko foreach: children -->
                     <!-- begin sub card -->
                     <div class="card border-0">
-                      <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id},
-                                    click: $root.handleSubClick"
-                        class="list-group-item mt-sub-a text-truncate border-0 mb-1"  data-toggle="collapse">
-                        <span>
-                          <span class="badge badge-secondary" data-bind="text: children().length"></span>
-                          <span data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
-                                            title: (collapsed() ? 'expand' : 'collapse')}"
-                                data-toggle="tooltip"></span>
-                          <span data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
-                                data-toggle="tooltip" title="tried"
-                                class="fa fa-check fa-xs"></span>
-                          <span data-bind="style: {opacity: (leavesHaveReviewed() ? '1.0': '0.2')}"
-                                data-toggle="tooltip" title="reviewed"
-                                class="fa fa-pencil-alt fa-xs"></span>
-                          <span data-toggle="tooltip" data-bind="text: name, attr:{title: name}"></span>
-                        </span>
-                      </a>
+                      <span>
+                        <i
+                          data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
+                                     attr:{title: 'Delete ' + $root.subLabel()},
+                                     click: $root.beginDeleteSubNode"
+                          class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
+                          data-toggle="tooltip"></i>
+                          <i
+                            data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
+                                       attr:{title: 'Edit ' + $root.subLabel()},
+                                       click: $root.beginEditSubNode"
+                            class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
+                            data-toggle="tooltip"></i>
+                        <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id},
+                                      click: $root.handleSubClick"
+                          class="list-group-item mt-sub-a text-truncate border-0 mb-1"  data-toggle="collapse">
+                          <span>
+                            <span class="badge badge-secondary" data-bind="text: children().length"></span>
+                            <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
+                                              title: (collapsed() ? 'expand' : 'collapse')}"
+                                  data-toggle="tooltip"></i>
+                            <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
+                                  data-toggle="tooltip" title="tried"
+                                  class="fa fa-check fa-xs"></i>
+                            <span class="fa-stack fa-fw"
+                                  data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
+                                  data-toggle="tooltip" title="rating">
+                              <i class="far fa-star fa-stack-2x pb-1"></i>
+                              <i class="fa fa-text fa-xs pl-1"
+                                 data-bind="text: averageRating()"></i>
+                            </span>
+                            <span data-toggle="tooltip"
+                                  data-html="true"
+                                  data-bind="text: name,
+                                             attr: {title: nodeTooltip}"
+                                  class="mt-tooltip">
+                            </span>
+                          </span>
+                        </a>
+                      </span>
                       <!-- begin item card -->
                       <div class="card border-0">
                         <!-- begin item collapse -->
@@ -223,12 +262,20 @@
                                          click: $root.handleItemClick"
                               class="list-group-item mt-item-a text-truncate border-0 mb-1" >
                               <span class="mt-item">
-                                <span data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
+                                <i data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
                                       data-toggle="tooltip" title="tried"
-                                      class="fa fa-check fa-xs"></span>
-                                <span data-bind="style: {opacity: (review() ? '1.0': '0.2')}"
-                                      data-toggle="tooltip" title="reviewed"
-                                      class="fa fa-pencil-alt fa-xs"></span>
+                                      class="fa fa-check fa-xs"></i>
+                                <span class="fa-stack fa-fw"
+                                      data-bind="style: {opacity: (rating() !== null && rating() !== '' ? '1.0': '0.5')}"
+                                      data-toggle="tooltip" title="rating">
+                                  <i class="far fa-star fa-stack-2x pb-1"></i>
+                                  <i class="fa fa-text fa-xs pl-1"
+                                     data-bind="text: (rating() ? rating() : '')"></i>
+                                </span>
+                                <span data-bind="visible: rating() !== null" class="mr-1 ml-1">
+                                  (<span data-bind="text: sortIndex"
+                                         class="mt-tooltip"></span>)
+                                </span>
                                 <span data-toggle="tooltip" data-bind="text: name,
                                                                       attr:{title: name, 'mt-data-id': id }">
                                 </span>
@@ -351,6 +398,14 @@
                          class="col form-control mt-item-edit-control"
                          type="text"
                          disabled></input>
+                  <button class="btn btn-secondary btn-sm col-1 mt-item-edit-control"
+                     data-toggle="tooltip"
+                     data-bind="click: fillItemFromGoogle,
+                                visible: type() === 'books',
+                                attr: {title: 'Attempt to fill information from books.google.com'}"
+                     disabled>
+                     <span data-bind="html: fillItemFromGoogleIcon"></span>
+                  </button>
                 </div>
                 <div class="row">
                   <label for="nodeInfo5" class="col-2 label"
@@ -366,9 +421,9 @@
                   <div class="col">
                     <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
                             title="Edit link"
-                            data-bind="click: editItemLink"
+                            data-bind="click: $root.beginEditItemLink"
                             disabled>
-                            <span class="fa fa-pencil-alt fa-xs"></span>
+                            <span class="fa fa-edit fa-xs"></span>
                     </button>
                     <label for="nodeInfo6" class="col-2 label" data-bind="text: nodeInfo6Label() + ':'"></label>
                     <a id="nodeInfo6"
@@ -395,7 +450,7 @@
                         title="Edit image"
                         data-bind="click: editItemImage"
                         disabled>
-                        <span class="fa fa-pencil-alt fa-xs"></span>
+                        <span class="fa fa-edit fa-xs"></span>
                 </button>
               </div>
             </div>
@@ -404,7 +459,8 @@
                 <label for="itemDescription" class="label">Description:</label>
                 <textarea
                   id="itemDescription"
-                  data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo().description : '')"
+                  data-bind="textInput: (selectedItem() ? selectedItem().description : ''),
+                             attr: {title: (selectedItem() ? selectedItem().nodeDescriptionTooltip : '')}"
                   type="textarea"
                   data-toggle="tooltip"
                   class="form-control text-wrap mt-item-edit-control"
@@ -426,6 +482,21 @@
                   title="Reviewd Date"
                   class="form-control text-center mt-item-edit-control"
                   placeholder="Review Date"
+                  disabled>
+                </input>
+              </div>
+              <div class="col-1 text-right">
+                <label for="rating" class="label">Rating(0-5):</label>
+              </div>
+              <div class="col-2">
+                <input
+                  id="rating"
+                  data-bind="textInput: (selectedItem() ? selectedItem().rating : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  title="Rating"
+                  class="form-control text-center mt-item-edit-control"
+                  placeholder="Rating"
                   disabled>
                 </input>
               </div>
@@ -458,7 +529,7 @@
               </button>
             </div>
             <div class="modal-body">
-              <p>Warning! You will lose current changes to this item. Proceed and revert to previous data?</p>
+              <p>Warning! You will lose current changes to <span data-bind="text: itemLabel"></span> item. Proceed and revert to previous data?</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bind="click: continueItemEdit">Continue Editing</button>
@@ -477,7 +548,7 @@
               </button>
             </div>
             <div class="modal-body">
-              <p>Warning! This will permanently remove the item from the database. Proceed?</p>
+              <p>Warning! This will permanently remove the <span data-bind="text: itemLabel"></span> from the database. Proceed?</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel Delete</button>
@@ -486,13 +557,146 @@
           </div>
         </div>
       </div>
+      <div id="confirmDeleteMainNode" class="modal hide fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirm</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Warning! This will permanently remove the <span data-bind="text: mainLabel"></span> and all <span data-bind="text: subLabel"></span> and <span data-bind="text: itemLabel"></span>s from the database. Proceed?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel Delete</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: proceedWithMainNodeDelete">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="confirmDeleteSubNode" class="modal hide fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirm</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Warning! This will permanently remove the <span data-bind="text: subLabel"></span> and all <span data-bind="text: itemLabel"></span>s from the database. Proceed?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel Delete</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: proceedWithSubNodeDelete">Proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- end container-fluid -->
+    <div id="editMainNode" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit <span data-bind="text: (nodesViewModel.selectedMainNode() ? nodesViewModel.selectedMainNode().name() : '')"></span></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="editMainNodeName">Name</label>
+                <div class="controls">
+                  <input class="mt-dialog-input" data-bind="textInput: name" type="inputText" id="editMainNodeName" placeholder="Name">
+                  </input>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="editMainNodeDescription">Description</label>
+                <div class="controls">
+                  <textarea class="mt-dialog-input" data-bind="textInput: description" id="editMainNodeDescription" placeholder="Description">
+                  </textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editMainNode">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="editSubNode" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit <span data-bind="text: (nodesViewModel.selectedSubNode() ? nodesViewModel.selectedSubNode().name() : '')"></span></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="editSubNodeName">Name</label>
+                <div class="controls">
+                  <input class="mt-dialog-input" data-bind="textInput: name" type="inputText" id="editSubNodeName" placeholder="Name">
+                  </input>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="editSubNodeDescription">Description</label>
+                <div class="controls">
+                  <textarea class="mt-dialog-input" data-bind="textInput: description" id="editSubNodeDescription" placeholder="Description">
+                  </textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editSubNode">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="editItemLink" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit <span data-bind="text: nodesViewModel.itemLabel()"></span> URL</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal">
+              <div class="control-group">
+                <label class="control-label" for="editLink">Name</label>
+                <div class="controls">
+                  <input class="mt-dialog-input" data-bind="textInput: itemLink" type="url" id="editLink" placeholder="URL">
+                  </input>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editItemLink">Proceed</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="addMainNode" class="modal hide fade" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Add Main Node</h5>
+            <h5 class="modal-title">Add <span data-bind="text: nodesViewModel.mainLabel"></span></h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -502,14 +706,14 @@
               <div class="control-group">
                 <label class="control-label" for="inputMainNodeName">Name</label>
                 <div class="controls">
-                  <input data-bind="textInput: name" type="inputText" id="inputMainNodeName" placeholder="Name">
+                  <input class="mt-dialog-input" data-bind="textInput: name" type="inputText" id="inputMainNodeName" placeholder="Name">
                   </input>
                 </div>
               </div>
               <div class="control-group">
                 <label class="control-label" for="inputMainNodeDescription">Description</label>
                 <div class="controls">
-                  <textarea data-bind="textInput: description" id="inputMainNodeDescription" placeholder="Description">
+                  <textarea class="mt-dialog-input" data-bind="textInput: description" id="inputMainNodeDescription" placeholder="Description">
                   </textarea>
                 </div>
               </div>
@@ -526,7 +730,7 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Add Sub Node</h5>
+            <h5 class="modal-title">Add  <span data-bind="text: nodesViewModel.subLabel"></span></h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -536,14 +740,14 @@
               <div class="control-group">
                 <label class="control-label" for="inputSubNodeName">Name</label>
                 <div class="controls">
-                  <input data-bind="textInput: name" type="inputText" id="inputSubNodeName" placeholder="Name">
+                  <input class="mt-dialog-input" data-bind="textInput: name" type="inputText" id="inputSubNodeName" placeholder="Name">
                   </input>
                 </div>
               </div>
               <div class="control-group">
                 <label class="control-label" for="inputSubNodeDescription">Description</label>
                 <div class="controls">
-                  <textarea data-bind="textInput: description" id="inputSubNodeDescription" placeholder="Description">
+                  <textarea class="mt-dialog-input" data-bind="textInput: description" id="inputSubNodeDescription" placeholder="Description">
                   </textarea>
                 </div>
               </div>
@@ -563,13 +767,16 @@
     var nodesViewModel = null;
     var addMainNodeModel = null;
     var addSubNodeModel = null;
+    var editMainNodeModel = null;
+    var editSubNodeModel = null;
+    var editItemLinkModel = null;
+    var addTypeModel = null;
     var secrets = null;
-    var nodesType = 'books';
 
-    $('.fa-check, .fa-pencil-alt').css({'visibility':'hidden'});
-    $('.mt-add-buttons, .mt-edit-buttons, .mt-item-edit-form').css({'visibility':'hidden'});
+    $('.fa, .far').css({'visibility':'hidden'});
+    $('.mt-add-buttons, .mt-edit-buttons, .mt-item-edit-form, .nav-item').css({'visibility':'hidden'});
 
-    function setAlert(alertText, alertClass = "") {
+    function setAlert(alertText='&nbsp;', alertClass = "") {
        $('#alertBox').empty();
        $('#alertBox').removeClass (function (index, className) {
          return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
@@ -580,7 +787,7 @@
          $('#alertBox').addClass('alert-dark');
        };
        $('#alertBox').append('<span id="alertText"></span>');
-       $('#alertText').text(alertText);
+       $('#alertText').html(alertText);
        if(alertClass !== "") {
          $('#alertBox').append(
            '<button type="button" class="close" aria-label="Close">' +
@@ -609,11 +816,20 @@
       }
       self.forgettableAspects = ['children', 'collapsed',
                                  'uneditedData', 'forgettableAspects',
-                                 'changed'];
+                                 'changed', 'nodeTooltip'];
       if(data) {
         self.loadData(data);
       }
 
+      if(initialize) {
+        self.nodeTooltip = ko.pureComputed(function() {
+          var tooltipText = '<b>' + self.name() + ':</b><br>' + (self.description() ? self.description() : '');
+          return tooltipText;
+        });
+        self.nodeDescriptionTooltip = ko.pureComputed(function() {
+          return (self.description() ? self.description() : '');
+        });
+      }
     }
 
     Node.prototype.setDateTried = function() {
@@ -671,10 +887,33 @@
       return false;
     }
 
-    Node.prototype.beginReview = function() {
+    Node.prototype.leavesHaveRating = function() {
       var self = this;
-      // set self.review, self.rating, self.dateReviewed
-      console.log('Node ' + self.name() + ' is being reviewed');
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    Node.prototype.averageRating = function() {
+      var self = this;
+      var numRated = 0;
+      var sumRating = 0;
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
+          numRated++;
+          sumRating += Math.floor(leaves[indx].rating());
+        }
+      }
+      if(numRated === 0) {
+        return null;
+      } else {
+        return Math.round(sumRating / numRated);
+      }
     }
 
     Node.prototype.loadData = function(data) {
@@ -687,7 +926,13 @@
             if(typeof nodeInfoAspect === 'array') {
               self[aspect]()[nodeInfoAspect] = ko.observableArray(data[aspect][nodeInfoAspect]);
             }else {
-              self[aspect]()[nodeInfoAspect] = ko.observable(data[aspect][nodeInfoAspect]);
+              if(nodeInfoAspect === 'ISBN_13' && data[aspect]) {
+                self[aspect]()['ISBN'] = ko.observable(data[aspect][nodeInfoAspect]);
+              } else if(nodeInfoAspect === 'ISBN_10' && data[aspect]) {
+                self[aspect]()['ISBN'] = ko.observable(data[aspect][nodeInfoAspect]);
+              } else {
+                self[aspect]()[nodeInfoAspect] = ko.observable(data[aspect][nodeInfoAspect]);;
+              }
             }
           })
         }
@@ -695,12 +940,31 @@
       return self;
     }
 
+    Node.prototype.updateNodeInfoData = function(data) {
+      var self = this;
+      Object.keys(data).forEach(function(aspect) {
+        // dynamically set the Node's aspects based on the JSON data
+        if(aspect === 'description') {
+          self[aspect](data[aspect]);
+        } else {
+          self.nodeInfo()[aspect](data[aspect]);
+        }
+      })
+    }
+
     Node.prototype.rememberUneditedData = function() {
       var self = this;
       self.uneditedData = {};
       Object.keys(self).forEach(function(aspect) {
         if(self.forgettableAspects.indexOf(aspect) === -1) {
-          self.uneditedData[aspect] = self[aspect]();
+          if( self[aspect]() && typeof self[aspect]() === 'object') {
+            self.uneditedData[aspect] = {};
+            Object.keys(self[aspect]()).forEach( function(nodeInfoAspect) {
+              self.uneditedData[aspect][nodeInfoAspect] = self[aspect]()[nodeInfoAspect]();
+            })
+          } else {
+            self.uneditedData[aspect] = self[aspect]();
+          }
         }
       });
       self.changed = false;
@@ -722,7 +986,13 @@
       var self = this;
       Object.keys(self.uneditedData).forEach(function(aspect) {
         // dynamically set the Node's aspects based on the JSON data
-        self[aspect](self.uneditedData[aspect]);
+        if( self.uneditedData[aspect] && typeof self.uneditedData[aspect] === 'object') {
+          Object.keys(self.uneditedData[aspect]).forEach( function(nodeInfoAspect) {
+            self[aspect]()[nodeInfoAspect](self.uneditedData[aspect][nodeInfoAspect]);
+          })
+        } else {
+          self[aspect](self[aspect]());
+        }
       });
       self.uneditedData = {};
       self.changed = false;
@@ -762,11 +1032,11 @@
                             'wine':'ABV',
                             'beer':'ABV',
                             'other':'nodeinfo3'}
-      self.nodeInfo4Keys = {'books':'ISBN_10',
+      self.nodeInfo4Keys = {'books':'ISBN',
                             'wine':'taste',
                             'beer':'IBU',
                             'other':'nodeinfo4'}
-      self.nodeInfo5Keys = {'books':'ISBN_13',
+      self.nodeInfo5Keys = {'books':'ASIN',
                             'wine':'color',
                             'beer':'SRM',
                             'other':'nodeinfo5'}
@@ -786,11 +1056,11 @@
                             'wine':'ABV',
                             'beer':'ABV',
                             'other':'Node Info 3'}
-      self.nodeInfo4Labels = {'books':'ISBN(10)',
+      self.nodeInfo4Labels = {'books':'ISBN',
                             'wine':'Taste',
                             'beer':'IBU',
                             'other':'Node Info 4'}
-      self.nodeInfo5Labels = {'books':'ISBN(13)',
+      self.nodeInfo5Labels = {'books':'ASIN',
                             'wine':'Color',
                             'beer':'SRM',
                             'other':'Node Info 5'}
@@ -798,11 +1068,19 @@
                             'wine':'Link',
                             'beer':'Link',
                             'other':'Node Info 6'}
+      self.defaultGoogleIcon = 'G';
+      self.fillItemFromGoogleIcon = ko.observable(self.defaultGoogleIcon);
       self.defaultAlert = ko.observable();
       self.currentUser = 'grovesr';
       self.currentUserId = 9;
       self.currentUserPassword = 'zse45rdx';
-      self.type = ko.observable();
+      self.type = ko.observable('books');
+      self.types = ko.observableArray([
+        {type: ko.observable('books')},
+        {type: ko.observable('beer')},
+        {type: ko.observable('wine')},
+        {type: ko.observable('other')}
+      ]);
       self.mainLabel = ko.observable();
       self.subLabel = ko.observable();
       self.itemLabel = ko.observable();
@@ -831,11 +1109,36 @@
       self.previousSelectedItem = null;
       self.rootNode = null;
       self.adjacencyList = {};
+      self.addMainLabel = ko.pureComputed(function() {
+        return 'Add ' + self.mainLabel();
+      });
+
+      self.addSubLabel = ko.pureComputed(function() {
+        return 'Add ' + self.subLabel();
+      });
+
+      self.addItemLabel = ko.pureComputed(function() {
+        return 'Add ' + self.itemLabel();
+      });
     }
 
-    NodesViewModel.prototype.setType = function(type) {
+    NodesViewModel.prototype.sortBySortIndexOrName = function (left, right) {
+      return (left.sortIndex() !== null && right.sortIndex() !== null ?
+              (left.sortIndex() == right.sortIndex() ? 0 : (left.sortIndex() < right.sortIndex() ? -1 : 1))
+              :
+              (left.name() == right.name() ? 0 : (left.name() < right.name() ? -1 : 1))
+            )
+    };
+
+    NodesViewModel.prototype.initType = function() {
       var self = this;
-      self.type(type);
+      nodesViewModel.unloadItem();
+      nodesViewModel.type($('#typesSelect').val());
+      nodesViewModel.setType()
+    }
+
+    NodesViewModel.prototype.setLabels = function() {
+      var self = this;
       self.mainLabel(self.mainLabels[self.type()]);
       self.subLabel(self.subLabels[self.type()]);
       self.itemLabel(self.itemLabels[self.type()]);
@@ -854,6 +1157,93 @@
       self.nodeInfo4Label(self.nodeInfo4Labels[self.type()]);
       self.nodeInfo5Label(self.nodeInfo5Labels[self.type()]);
       self.nodeInfo6Label(self.nodeInfo6Labels[self.type()]);
+      $('.mt-add-buttons button').tooltip('dispose');
+      $('.mt-add-buttons button').tooltip('enable');
+    }
+
+    NodesViewModel.prototype.setType = function() {
+      var self = this;
+      self.setLabels();
+      $("html").addClass("waiting");
+      return nodesViewModel.getNodes()
+      .then(function() {
+        $('.fa, .far').css({'visibility':'visible'});
+        $('.mt-add-buttons, .nav-item').css({'visibility':'visible'});
+      })
+    }
+
+    NodesViewModel.prototype.fillItemFromGoogle = function() {
+      var self = this;
+      if(!nodesViewModel.selectedItem()) {
+        setAlert('No ' + nodesViewModel.itemLabel() + ' selected.', 'alert-danger');
+        return;
+      }
+      if(!('ISBN' in nodesViewModel.selectedItem().nodeInfo()) || nodesViewModel.selectedItem().nodeInfo()['ISBN']().length ===0) {
+        setAlert('No ISBN information in selected ' + nodesViewModel.itemLabel(), 'alert-danger');
+        return;
+      }
+      var url = 'https://www.googleapis.com/books/v1/volumes?q=';
+      url += encodeURIComponent('ISBN=' + nodesViewModel.selectedItem().nodeInfo()['ISBN']());
+      url += '&' + encodeURIComponent('key=' + secrets['MY_BOOKS_KEY']);
+      self.fillItemFromGoogleIcon('<i class="fa fa-spinner fa-spin"></i>');
+      self.ajaxNoAuth('GET', url)
+      .then(function(data) {
+        $("html").removeClass("waiting");
+        self.fillItemFromGoogleIcon(self.defaultGoogleIcon);
+        self.selectedItem().changed  = true;
+        var parsedData = {};
+        if(data.totalItems === 0) {
+          setAlert('No books found with ISBN = ' + nodesViewModel.selectedItem().nodeInfo()['ISBN'](), 'alert-danger');
+        } else {
+          if('description' in data.items[0].volumeInfo) {
+            parsedData['description'] = data.items[0].volumeInfo.description;
+          }
+          if('publisher' in data.items[0].volumeInfo) {
+            parsedData['publisher'] = data.items[0].volumeInfo.publisher;
+          }
+          if('publishedDate' in data.items[0].volumeInfo) {
+            parsedData['publishedDate'] = data.items[0].volumeInfo.publishedDate;
+          }
+          if('pageCount' in data.items[0].volumeInfo) {
+            parsedData['pageCount'] = data.items[0].volumeInfo.pageCount;
+          }
+          if('industryIdentifiers' in data.items[0].volumeInfo) {
+            parsedIsbn = null
+            if(data.items[0].volumeInfo.industryIdentifiers.length >= 1) {
+              if(data.items[0].volumeInfo.industryIdentifiers.length >= 2) {
+                data.items[0].volumeInfo.industryIdentifiers.forEach(function(ident) {
+                  if(ident.type === 'ISBN_13') {
+                    parsedIsbn = ident.identifier;
+                  } else if(!parsedIsbn && ident.type === 'ISBN_10') {
+                    parsedIsbn = ident.identifier;
+                  }
+                })
+              } else {
+                parsedIsbn = data.items[0].volumeInfo.industryIdentifiers[0].identifier;
+              }
+            }
+            if(parsedIsbn) {
+              parsedData['ISBN'] = parsedIsbn;
+            }
+          }
+          if('infoLink' in data.items[0].volumeInfo) {
+            parsedData['googleLink'] = data.items[0].volumeInfo.infoLink;
+          }
+          self.selectedItem().updateNodeInfoData(parsedData)
+        }
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.fillItemFromGoogle ajax call: ' + errorMessage, 'alert-danger')
+        }
+      })
     }
 
     NodesViewModel.prototype.setDateTriedItem = function() {
@@ -978,10 +1368,89 @@
       return foundNode;
     }
 
+    NodesViewModel.prototype.proceedWithMainNodeDelete = function() {
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/';
+      url += encodeURIComponent(self.selectedMainNode().id());
+      self.ajax('DELETE', url)
+      .then(function(response) {
+        $("html").removeClass("waiting");
+        $('a.mt-main-a').removeClass('active');
+        var nodeName = self.selectedMainNode().name();
+        var indexToRemove = self.adjacencyList[self.selectedMainNode().parentId()].indexOf(self.selectedMainNode());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.rootNode.id()].splice(indexToRemove, 1);
+        }
+        self.rootNode.children.remove(self.selectedMainNode());
+        self.mainNodes(self.rootNode.children());
+        self.selectedMainNode(null);
+        self.enableAddSub(false);
+        self.enableAddItem(false);
+        self.unloadItem();
+        $('mt-main-collapse').collapse('hide');
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithMainNodeDelete ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginDeleteMainNode = function() {
+      var self = this;
+      $('#confirmDeleteMainNode').modal('show');
+    }
+
+    NodesViewModel.prototype.beginDeleteSubNode = function() {
+      var self = this;
+      $('#confirmDeleteSubNode').modal('show');
+    }
 
     NodesViewModel.prototype.beginDeleteItem = function() {
       var self = this;
       $('#confirmDeleteItem').modal('show');
+    }
+
+    NodesViewModel.prototype.proceedWithSubNodeDelete = function() {
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/';
+      url += encodeURIComponent(self.selectedSubNode().id());
+      self.ajax('DELETE', url)
+      .then(function(response) {
+        $("html").removeClass("waiting");
+        $('a.mt-sub-a').removeClass('active');
+        var nodeName = self.selectedSubNode().name();
+        var indexToRemove = self.adjacencyList[self.selectedSubNode().parentId()].indexOf(self.selectedSubNode());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.selectedMainNode().id()].splice(indexToRemove, 1);
+        }
+        self.selectedMainNode().children.remove(self.selectedSubNode());
+        self.selectedSubNode(null);
+        self.enableAddItem(false);
+        self.unloadItem();
+        $('mt-sub-collapse').collapse('hide');
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithSubNodeDelete ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
     }
 
     NodesViewModel.prototype.proceedWithItemDelete = function() {
@@ -993,29 +1462,38 @@
         $("html").removeClass("waiting");
         $('a.mt-item-a').removeClass('active');
         $('#enItemEd').prop('checked', false);
-        var itemName = self.selectedItem().name();
-        self.adjacencyList[self.selectedItem().parentId()] =
-          self.adjacencyList[self.selectedItem().parentId()]
-          .slice(0,self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem()))
-          .concat(self.adjacencyList[self.selectedItem().parentId()].slice(self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem())+1));
+        var nodeName = self.selectedItem().name();
+        var indexToRemove = self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.self.selectedSubNode().id()].splice(indexToRemove, 1);
+        }
         self.selectedSubNode().children.remove(self.selectedItem());
         self.selectedItem(null);
         self.unloadItem();
-        setAlert('Successfully deleted item "' + itemName + '"', 'alert-success');
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
         if(typeof err.responseJSON !== 'undefined') {
           setAlert(err.responseJSON['error'], 'alert-danger')
         } else {
-          setAlert('error in NodesViewModel ajax call: ' + err.statusText, 'alert-danger')
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithItemDelete ajax call: ' + errorMessage, 'alert-danger')
         }
       });
     }
 
-    NodesViewModel.prototype.editItemLink = function() {
+    NodesViewModel.prototype.beginEditItemLink = function() {
+      editItemLinkModel.itemLink(nodesViewModel.selectedItem().nodeInfo()[nodesViewModel.nodeInfo6Key()]());
+      $('#editItemLink').modal('show');
+    }
+
+    NodesViewModel.prototype.proceedWithEditItemLink = function(itemLink) {
       var self = this;
-      console.log('Display edit item link dialog');
+      self.selectedItem().nodeInfo()[self.nodeInfo6Key()](itemLink);
     }
 
     NodesViewModel.prototype.editItemImage = function() {
@@ -1023,7 +1501,7 @@
       console.log('Display edit item image dialog');
     }
 
-    NodesViewModel.prototype.beginSaveItem = function() {
+    NodesViewModel.prototype.saveItem = function() {
       var self = this;
       self.setDateReviewedItem();
       self.setDateTriedItem();
@@ -1031,16 +1509,92 @@
       var saveData = self.selectedItem().sanitize();
       self.ajax('PUT', url, saveData)
       .then(function(response) {
+        $("html").removeClass("waiting");
         self.selectedItem().changed = false;
         self.selectedItem().rememberUneditedData();
-        setAlert('Successfully updated "' + response.name +'"', 'alert-success')
+        setAlert('Successfully updated "' + response.name +'"', 'alert-success');
+        self.selectedSubNode().children.sort(self.sortBySortIndexOrName);
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
         if(typeof err.responseJSON !== 'undefined') {
           setAlert(err.responseJSON['error'], 'alert-danger')
         } else {
-          setAlert('error in NodesViewModel ajax call: ' + err.statusText, 'alert-danger')
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginEditMainNode = function() {
+      var self = this;
+      editMainNodeModel.name(nodesViewModel.selectedMainNode().name());
+      editMainNodeModel.description(nodesViewModel.selectedMainNode().description());
+      $('#editMainNode').modal('show');
+    }
+
+    NodesViewModel.prototype.proceedWithMainNodeEdit = function(nodeData = {}) {
+      // add a main or sub node
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedMainNode().id();
+      self.ajax('PUT', url, nodeData)
+      .then(function(node) {
+        $("html").removeClass("waiting");
+        self.selectedMainNode().name(node.name);
+        self.selectedMainNode().description(node.description);
+        $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+        $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
+        setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+        self.mainNodes.sort(self.sortBySortIndexOrName);
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithMainNodeEdit ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.beginEditSubNode = function() {
+      var self = this;
+      editSubNodeModel.name(nodesViewModel.selectedSubNode().name());
+      editSubNodeModel.description(nodesViewModel.selectedSubNode().description());
+      $('#editSubNode').modal('show');
+    }
+
+    NodesViewModel.prototype.proceedWithSubNodeEdit = function(nodeData = {}) {
+      // add a main or sub node
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedSubNode().id();
+      self.ajax('PUT', url, nodeData)
+      .then(function(node) {
+        $("html").removeClass("waiting");
+        self.selectedSubNode().name(node.name);
+        self.selectedSubNode().description(node.description);
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
+        setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+        self.selectedMainNode().children.sort(self.sortBySortIndexOrName);
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithSubNodeEdit ajax call: ' + errorMessage, 'alert-danger')
         }
       });
     }
@@ -1065,8 +1619,11 @@
         var mainParent = self.findNode(node.parentId);
         if(mainParent) {
           mainParent.children.push(addedNode);
+          mainParent.children.sort(self.sortBySortIndexOrName);
         } else {
           self.rootNode.children.push(addedNode);
+          self.rootNode.children.sort(self.sortBySortIndexOrName);
+          self.mainNodes(self.rootNode.children());
         }
 
         if(addedNode.parentId() === self.rootNode.id()) {
@@ -1094,7 +1651,11 @@
         if(typeof err.responseJSON !== 'undefined') {
           setAlert(err.responseJSON['error'], 'alert-danger')
         } else {
-          setAlert('error in NodesViewModel.addNode ajax call: ' + err.statusText, 'alert-danger')
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.addNode ajax call: ' + errorMessage, 'alert-danger')
         }
       });
     }
@@ -1137,14 +1698,19 @@
         self.enableItemEdit();
         self.selectedItem().rememberUneditedData();
         self.selectedItem().changed = true;
-        setAlert('Successfully Added "' + node.name +'"', 'alert-success');
+        setAlert('Successfully Added ' + self.itemLabel() +'. Now give it a name, edit the properties and save.', 'alert-success');
+        self.selectedSubNode().children.sort(self.sortBySortIndexOrName);
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
         if(typeof err.responseJSON !== 'undefined') {
           setAlert(err.responseJSON['error'], 'alert-danger')
         } else {
-          setAlert('error in NodesViewModel.beginAddItem ajax call: ' + err.statusText, 'alert-danger')
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.beginAddItem ajax call: ' + errorMessage, 'alert-danger')
         }
       });
     }
@@ -1156,7 +1722,9 @@
       url += '&type=' + encodeURIComponent(self.type());
       return self.ajax('GET', url)
       .then(function(response) {
+        $("html").removeClass("waiting");
         // build adjacencyList structure
+        self.adjacencyList = {};
         response.nodes.forEach(function(node) {
           if(!(node.parentId in self.adjacencyList)) {
             self.adjacencyList[node.parentId] = [];
@@ -1164,15 +1732,7 @@
           self.adjacencyList[node.parentId].push(new Node(true, node));
         });
         self.rootNode = self.buildNodeHierarchy();
-        self.mainNodes = self.rootNode.children;
-      })
-      .catch(function(err) {
-        $("html").removeClass("waiting");
-        if(typeof err.responseJSON !== 'undefined') {
-          setAlert(err.responseJSON['error'], 'alert-danger')
-        } else {
-          setAlert('error in NodesViewModel ajax call: ' + err.statusText, 'alert-danger')
-        }
+        self.mainNodes(self.rootNode.children());
       });
     }
 
@@ -1201,6 +1761,7 @@
 
     NodesViewModel.prototype.ajax = function(method, uri, data) {
       var self = this;
+      setAlert();
       $("html").addClass("waiting");
       var request = {
         url: uri,
@@ -1214,10 +1775,28 @@
       };
       return Promise.resolve($.ajax(request))
     }
+
+    NodesViewModel.prototype.ajaxNoAuth = function(method, uri, data) {
+      var self = this;
+      setAlert();
+      $("html").addClass("waiting");
+      var request = {
+        url: uri,
+        type: method,
+        contentType: "application/json",
+        accepts: "application/json",
+        cache: false,
+        dataType: 'json',
+        data: ko.toJSON(data)
+      };
+      return Promise.resolve($.ajax(request))
+    }
+
     NodesViewModel.prototype.handleMainClick =  function(node, e) {
       $('a.mt-main-a').removeClass('active');
       $(e.currentTarget).addClass('active');
       nodesViewModel.selectedMainNode(node);
+      nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortBySortIndexOrName);
       nodesViewModel.enableAddSub(true);
     }
 
@@ -1225,6 +1804,7 @@
       $('a.mt-sub-a').removeClass('active');
       $(e.currentTarget).addClass('active');
       nodesViewModel.selectedSubNode(node);
+      nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortBySortIndexOrName);
       nodesViewModel.enableAddItem(true);
     }
 
@@ -1245,7 +1825,6 @@
 
     AddMainNodeModel.prototype.addMainNode = function() {
       var self = this;
-      $('#addMainNode').modal('hide');
       var nodeData = {
         name: self.name(),
         owner: nodesViewModel.currentUser,
@@ -1266,7 +1845,6 @@
 
     AddSubNodeModel.prototype.addSubNode = function() {
       var self = this;
-      $('#addSubNode').modal('hide');
       var nodeData = {
         name: self.name(),
         owner: nodesViewModel.currentUser,
@@ -1277,6 +1855,52 @@
       self.name('');
       self.description('');
       nodesViewModel.addNode(nodeData);
+    }
+
+    var EditMainNodeModel = function() {
+      var self = this;
+      self.name = ko.observable();
+      self.description = ko.observable();
+    }
+
+    EditMainNodeModel.prototype.editMainNode = function() {
+      var self = this;
+      var nodeData = {
+        name: self.name(),
+        description: self.description(),
+      }
+      self.name('');
+      self.description('');
+      nodesViewModel.proceedWithMainNodeEdit(nodeData);
+    }
+
+    var EditSubNodeModel = function() {
+      var self = this;
+      self.name = ko.observable();
+      self.description = ko.observable();
+    }
+
+    EditSubNodeModel.prototype.editSubNode = function() {
+      var self = this;
+      var nodeData = {
+        name: self.name(),
+        description: self.description(),
+      }
+      self.name('');
+      self.description('');
+      nodesViewModel.proceedWithSubNodeEdit(nodeData);
+    }
+
+    var EditItemLinkModel = function() {
+      var self = this;
+      self.itemLink = ko.observable();
+    }
+
+    EditItemLinkModel.prototype.editItemLink = function() {
+      var self = this;
+      var itemLink = self.itemLink();
+      self.itemLink('');
+      nodesViewModel.proceedWithEditItemLink(itemLink);
     }
 
     var handleHideMainCollapse = function (e) {
@@ -1316,33 +1940,78 @@
       }
     }
 
+    var scrollToSelectedMainNode = function() {
+      $('#accordianMain').animate({
+         scrollTop: $('#accordianMain').scrollTop() +
+                      $('a[mt-data-id="' + nodesViewModel.selectedMainNode().id() + '"]').offset().top -
+                      $('#accordianMain').offset().top
+      });
+    }
+
+    var scrollToSelectedSubNode = function() {
+      $('#accordianMain').animate({
+         scrollTop: $('#accordianMain').scrollTop() +
+                      $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]').offset().top -
+                      $('#accordianMain').offset().top
+      });
+    }
+
+    var scrollToSelectedItem = function() {
+      $('#accordianMain').animate({
+         scrollTop: $('#accordianMain').scrollTop() +
+                      $('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]').offset().top -
+                      $('#accordianMain').offset().top
+      });
+    }
+
     var loadKnockout = function() {
       nodesViewModel = new NodesViewModel();
       addMainNodeModel = new AddMainNodeModel();
       addSubNodeModel = new AddSubNodeModel();
-      nodesViewModel.setType(nodesType);
-      $("html").addClass("waiting");
-      nodesViewModel.getNodes()
+      editMainNodeModel = new EditMainNodeModel();
+      editSubNodeModel = new EditSubNodeModel();
+      editItemLinkModel = new EditItemLinkModel();
+      nodesViewModel.setType()
       .then(function() {
         $("html").removeClass("waiting");
-        setAlert(nodesViewModel.defaultAlert());
-        $('.fa-check, .fa-pencil-alt').css({'visibility':'visible'});
-        $('.mt-add-buttons').css({'visibility':'visible'});
         ko.applyBindings(nodesViewModel, $('#mainBody, #confirmCancelItemEdit')[0]);
         ko.applyBindings(addMainNodeModel, $('#addMainNode')[0]);
         ko.applyBindings(addSubNodeModel, $('#addSubNode')[0]);
-        // ensure that only one main, sub, and item remain active at one time
+        ko.applyBindings(editMainNodeModel, $('#editMainNode')[0]);
+        ko.applyBindings(editSubNodeModel, $('#editSubNode')[0]);
+        ko.applyBindings(editItemLinkModel, $('#editItemLink')[0]);
+        setAlert(nodesViewModel.defaultAlert());
         $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
-        $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse)
+        //$('.mt-main-collapse').on('hidden.bs.collapse', scrollToSelectedMainNode);
+        $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
+        //$('.mt-sub-collapse').on('hidden.bs.collapse', scrollToSelectedSubNode);
         $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
-        $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse)
-      });
-      $('#enItemEd').prop('checked', false);
-      $('#enItemEd').on('change', nodesViewModel.handleItemEditClick.bind(nodesViewModel));
-      $('input.mt-item-edit-control').on('change', nodesViewModel.setItemChanged.bind(nodesViewModel));
-      $('#tried').on('change', nodesViewModel.setDateTriedItem.bind(nodesViewModel));
+        $('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
+        $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
+        //$('.mt-sub-collapse').on('shown.bs.collapse', scrollToSelectedSubNode);
+        $(function () {
+          $('[data-toggle="tooltip"]').tooltip()
+        })
+        $('#enItemEd').prop('checked', false);
+        $('#enItemEd').on('change', nodesViewModel.handleItemEditClick.bind(nodesViewModel));
+        $('#typesSelect').on('change', nodesViewModel.initType);
+        $('input.mt-item-edit-control').on('change', nodesViewModel.setItemChanged.bind(nodesViewModel));
+        $('#tried').on('change', nodesViewModel.setDateTriedItem.bind(nodesViewModel));
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.setType ajax call: ' + errorMessage, 'alert-danger')
+        }
+      })
     }
-
+    setAlert('');
     $("html").addClass("waiting");
     Promise.resolve($.ajax({
       cache: false,
@@ -1351,7 +2020,11 @@
     }))
     .catch(function(err) {
       $("html").removeClass("waiting");
-      setAlert('error getting secrets file: ' + err.statusText, 'alert-danger');
+      var errorMessage = err.state();
+      if(err.state() === 'rejected') {
+        errorMessage = 'Possible network issue. Please try again later.';
+      }
+      setAlert('error getting secrets file: ' + errorMessage, 'alert-danger');
     })
     .then(function(jsonSecrets) {
       $("html").removeClass("waiting");
