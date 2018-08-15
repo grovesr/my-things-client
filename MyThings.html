@@ -920,21 +920,22 @@
       var self = this;
       Object.keys(data).forEach(function(aspect) {
         // dynamically set the Node's aspects based on the JSON data
-        self[aspect] = ko.observable(data[aspect]);
         if(data[aspect] && typeof data[aspect] === 'object') {
+          self[aspect] = ko.observable({});
           Object.keys(data[aspect]).forEach( function(nodeInfoAspect) {
             if(typeof nodeInfoAspect === 'array') {
               self[aspect]()[nodeInfoAspect] = ko.observableArray(data[aspect][nodeInfoAspect]);
             }else {
+              self[aspect]()[nodeInfoAspect] = ko.observable(data[aspect][nodeInfoAspect]);
               if(nodeInfoAspect === 'ISBN_13' && data[aspect]) {
                 self[aspect]()['ISBN'] = ko.observable(data[aspect][nodeInfoAspect]);
               } else if(nodeInfoAspect === 'ISBN_10' && data[aspect]) {
                 self[aspect]()['ISBN'] = ko.observable(data[aspect][nodeInfoAspect]);
-              } else {
-                self[aspect]()[nodeInfoAspect] = ko.observable(data[aspect][nodeInfoAspect]);;
               }
             }
           })
+        } else {
+          self[aspect] = ko.observable(data[aspect]);
         }
        });
       return self;
