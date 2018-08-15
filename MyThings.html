@@ -266,13 +266,13 @@
                                       data-toggle="tooltip" title="tried"
                                       class="fa fa-check fa-xs"></i>
                                 <span class="fa-stack fa-fw"
-                                      data-bind="style: {opacity: (rating() !== null && rating() !== '' ? '1.0': '0.5')}"
+                                      data-bind="style: {opacity: (rating() !== null && rating()!== '' ? '1.0': '0.5')}"
                                       data-toggle="tooltip" title="rating">
                                   <i class="far fa-star fa-stack-2x pb-1"></i>
                                   <i class="fa fa-text fa-xs pl-1"
                                      data-bind="text: (rating() ? rating() : '')"></i>
                                 </span>
-                                <span data-bind="visible: rating() !== null" class="mr-1 ml-1">
+                                <span data-bind="visible: rating() !== null && rating() !== ''" class="mr-1 ml-1">
                                   (<span data-bind="text: sortIndex"
                                          class="mt-tooltip"></span>)
                                 </span>
