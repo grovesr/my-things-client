@@ -834,9 +834,6 @@
 
     Node.prototype.setDateTried = function() {
       var self = this;
-      if(self.dateTried() === '') {
-        self.dateTried(null);
-      }
       if(self.haveTried() && !self.dateTried()) {
         var date = new Date();
         self.dateTried((date.getMonth()+1)+'/'+date.getDate()+'/'+date.getFullYear());
@@ -845,9 +842,6 @@
 
     Node.prototype.setDateReviewed = function() {
       var self = this;
-      if(self.dateReviewed() === '') {
-        self.dateReviewed(null);
-      }
       if(self.review() && !self.dateReviewed()) {
         var date = new Date();
         self.dateReviewed((date.getMonth()+1)+'/'+date.getDate()+'/'+date.getFullYear());
