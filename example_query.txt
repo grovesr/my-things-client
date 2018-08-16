@@ -1,1 +1,0 @@
-https://www.googleapis.com/books/v1/users/109947274760445291360/bookshelves?access_token=995778341696-73fljp4u4lra989pagn28mr92qop3k7f.apps.googleusercontent.com
