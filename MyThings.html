@@ -1173,7 +1173,7 @@
         setAlert('No ' + nodesViewModel.itemLabel() + ' selected.', 'alert-danger');
         return;
       }
-      if(!('ISBN' in nodesViewModel.selectedItem().nodeInfo()) || nodesViewModel.selectedItem().nodeInfo()['ISBN']().length ===0) {
+      if(!('ISBN' in nodesViewModel.selectedItem().nodeInfo()) || nodesViewModel.selectedItem().nodeInfo()['ISBN']() === null || nodesViewModel.selectedItem().nodeInfo()['ISBN']().length ===0) {
         setAlert('No ISBN information in selected ' + nodesViewModel.itemLabel(), 'alert-danger');
         return;
       }
