@@ -1725,11 +1725,37 @@
           if(!(node.parentId in self.adjacencyList)) {
             self.adjacencyList[node.parentId] = [];
           }
-          self.adjacencyList[node.parentId].push(new Node(true, node));
+          var newNode = new Node(true, node);
+          self.initNode(newNode);
+          self.adjacencyList[node.parentId].push(newNode);
         });
         self.rootNode = self.buildNodeHierarchy();
         self.mainNodes(self.rootNode.children());
       });
+    }
+
+    NodesViewModel.prototype.initNode = function(node) {
+      var self = this;
+      if(node.nodeInfo() !== null) {
+        if(!(self.nodeInfo1Key() in node.nodeInfo())) {
+          node.nodeInfo()[self.nodeInfo1Key()] = ko.observable(null);
+        }
+        if(!(self.nodeInfo2Key() in node.nodeInfo())) {
+          node.nodeInfo()[self.nodeInfo2Key()] = ko.observable(null);
+        }
+        if(!(self.nodeInfo3Key() in node.nodeInfo())) {
+          node.nodeInfo()[self.nodeInfo3Key()] = ko.observable(null);
+        }
+        if(!(self.nodeInfo4Key() in node.nodeInfo())) {
+          node.nodeInfo()[self.nodeInfo4Key()] = ko.observable(null);
+        }
+        if(!(self.nodeInfo5Key() in node.nodeInfo())) {
+          node.nodeInfo()[self.nodeInfo5Key()] = ko.observable(null);
+        }
+        if(!(self.nodeInfo6Key() in node.nodeInfo())) {
+          node.nodeInfo()[self.nodeInfo6Key()] = ko.observable(null);
+        }
+      }
     }
 
     NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null) {
