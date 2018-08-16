@@ -1224,7 +1224,8 @@
           if('infoLink' in data.items[0].volumeInfo) {
             parsedData['googleLink'] = data.items[0].volumeInfo.infoLink;
           }
-          self.selectedItem().updateNodeInfoData(parsedData)
+          self.selectedItem().updateNodeInfoData(parsedData);
+          setAlert('Filled information from books.google.com', 'alert-success');
         }
       })
       .catch(function(err) {
