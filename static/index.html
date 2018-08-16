@@ -29,7 +29,7 @@
     }
     */
     .mt-sub-a { margin-left: 15px; /* to indent sub categories */}
-    div.mt-item-a {margin-left: 30px; /* to indent items */}
+  div.mt-item-a {margin-left: 45px; /* to indent items */}
     .badge {float: right; /* to move the category totals to the right of the lists */}
     .mt-edit-field-button {float: right; /* move edit pencils  button to the right of field*/}
     .mt-trash {float: right;}
@@ -66,7 +66,7 @@
         <div class="collapse navbar-collapse justify-content-center" id="navbarCollapse">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <span class="nav-link btn btn-sm">My</span>
+              <span class="nav-link">My</span>
             </li>
             <li class="nav-item">
               <select class="custom-select"
@@ -818,7 +818,7 @@
     var secrets = null;
 
     $('.fa, .far').css({'visibility':'hidden'});
-    $('.mt-add-buttons, .mt-edit-buttons, .mt-item-edit-form, .nav-item').css({'visibility':'hidden'});
+    $('.mt-add-buttons, .mt-edit-buttons, .mt-item-edit-form, .nav-item, .nav-link').css({'visibility':'hidden'});
 
     function setAlert(alertText='&nbsp;', alertClass = "") {
        $('#alertBox').empty();
@@ -1174,8 +1174,13 @@
 
     NodesViewModel.prototype.cancelLogin = function() {
       var self = this;
-      self.currentUser(self.previousUser);
-      self.currentUserPassword = self.previousUserPassword;
+      if(self.previousUser) {
+        self.currentUser(self.previousUser);
+      }
+      if(self.previousUserPassword) {
+        self.currentUserPassword = self.previousUserPassword;
+      }
+      $('.nav-link.btn').css({'visibility':'visible'});
     }
 
     NodesViewModel.prototype.login = function(username, password) {
@@ -1202,7 +1207,6 @@
       .then(function(data) {
         $('html').removeClass('waiting');
         if(self.loggedIn()) {
-          //loadKnockout();
           self.initType();
         }
       })
@@ -1271,7 +1275,7 @@
       return nodesViewModel.getNodes()
       .then(function() {
         $('.fa, .far').css({'visibility':'visible'});
-        $('.mt-add-buttons, .nav-item').css({'visibility':'visible'});
+        $('.mt-add-buttons, .nav-item, .nav-link').css({'visibility':'visible'});
       })
     }
 
@@ -1839,6 +1843,11 @@
         });
         self.rootNode = self.buildNodeHierarchy();
         self.mainNodes(self.rootNode.children());
+        $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
+        $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
+        $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
+        $('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
+        $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
       });
     }
 
@@ -2093,25 +2102,6 @@
       });
     }
 
-    var loadKnockout = function() {
-      nodesViewModel.setType()
-      .then(function() {
-        $("html").removeClass("waiting");
-        setAlert(nodesViewModel.defaultAlert());
-      })
-      .catch(function(err) {
-        $("html").removeClass("waiting");
-        if(typeof err.responseJSON !== 'undefined') {
-          setAlert(err.responseJSON['error'], 'alert-danger')
-        } else {
-          var errorMessage = err.state();
-          if(err.state() === 'rejected') {
-            errorMessage = 'Possible network issue. Please try again later.';
-          }
-          setAlert('error in NodesViewModel.setType ajax call: ' + errorMessage, 'alert-danger')
-        }
-      })
-    }
     setAlert('');
     nodesViewModel = new NodesViewModel();
     addMainNodeModel = new AddMainNodeModel();
@@ -2127,14 +2117,6 @@
     ko.applyBindings(editSubNodeModel, $('#editSubNode')[0]);
     ko.applyBindings(editItemLinkModel, $('#editItemLink')[0]);
     ko.applyBindings(loginModel, $('#login')[0]);
-    $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
-    //$('.mt-main-collapse').on('hidden.bs.collapse', scrollToSelectedMainNode);
-    $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
-    //$('.mt-sub-collapse').on('hidden.bs.collapse', scrollToSelectedSubNode);
-    $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
-    $('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
-    $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
-    //$('.mt-sub-collapse').on('shown.bs.collapse', scrollToSelectedSubNode);
     $(function () {
       $('[data-toggle="tooltip"]').tooltip()
     })
