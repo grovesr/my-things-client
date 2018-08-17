@@ -192,9 +192,10 @@
                       <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
                                         title: (collapsed() ? 'expand' : 'collapse')}"
                             data-toggle="tooltip"></i>
-                      <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
-                            data-toggle="tooltip" title="tried"
-                            class="fa fa-check fa-xs"></i>
+                      <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2'),
+                                            color: (allLeavesHaveTried() ? 'green' : 'black')},
+                                            attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-xs' : 'fa fa-check fa-xs')}"
+                            data-toggle="tooltip" title="tried"></i>
                       <span class="fa-stack fa-fw"
                             data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
                             data-toggle="tooltip" title="rating">
@@ -242,9 +243,10 @@
                             <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
                                               title: (collapsed() ? 'expand' : 'collapse')}"
                                   data-toggle="tooltip"></i>
-                            <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2')}"
-                                  data-toggle="tooltip" title="tried"
-                                  class="fa fa-check fa-xs"></i>
+                            <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2'),
+                                                  color: (allLeavesHaveTried() ? 'green' : 'black')},
+                                                  attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-xs' : 'fa fa-check fa-xs')}"
+                                  data-toggle="tooltip" title="tried"></i>
                             <span class="fa-stack fa-fw"
                                   data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
                                   data-toggle="tooltip" title="rating">
@@ -923,6 +925,17 @@
         }
       }
       return false;
+    }
+
+    Node.prototype.allLeavesHaveTried = function() {
+      var self = this;
+      var leaves = self.findLeaves();
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(!leaves[indx].haveTried()) {
+          return false;
+        }
+      }
+      return true;
     }
 
     Node.prototype.leavesHaveReviewed = function() {
