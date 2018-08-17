@@ -820,7 +820,18 @@
     $('.fa, .far').css({'visibility':'hidden'});
     $('.mt-add-buttons, .mt-edit-buttons, .mt-item-edit-form, .nav-item, .nav-link').css({'visibility':'hidden'});
 
-    function setAlert(alertText='&nbsp;', alertClass = "") {
+    function setDefaultAlert() {
+      setAlert(nodesViewModel.defaultAlert());
+    }
+
+    function setAlert(alertText='', alertClass = "") {
+      $('html').off('click', setDefaultAlert);
+      if(alertClass !== '') {
+        $('html').on('click', setDefaultAlert);
+      }
+      if(alertText === '') {
+        alertText = '&nbsp;';
+      }
        $('#alertBox').empty();
        $('#alertBox').removeClass (function (index, className) {
          return (className.match (/(^|\s)alert-\S+/g) || []).join(' ');
@@ -1274,6 +1285,7 @@
       $("html").addClass("waiting");
       return nodesViewModel.getNodes()
       .then(function() {
+        setDefaultAlert();
         $('.fa, .far').css({'visibility':'visible'});
         $('.mt-add-buttons, .nav-item, .nav-link').css({'visibility':'visible'});
       })
@@ -1753,6 +1765,7 @@
         }
         $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
         setAlert('Successfully Added "' + node.name +'"', 'alert-success');
+        $('.fa, .far').css({'visibility':'visible'});
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1808,6 +1821,7 @@
         self.selectedItem().changed = true;
         setAlert('Successfully Added ' + self.itemLabel() +'. Now give it a name, edit the properties and save.', 'alert-success');
         self.selectedSubNode().children.sort(self.sortBySortIndexOrName);
+        $('.fa, .far').css({'visibility':'visible'});
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1900,7 +1914,7 @@
 
     NodesViewModel.prototype.ajax = function(method, uri, data, authHeader = {}) {
       var self = this;
-      setAlert();
+      setAlert('');
       $("html").addClass("waiting");
       var request = {
         url: uri,
