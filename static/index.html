@@ -871,7 +871,7 @@
       }
       self.forgettableAspects = ['children', 'collapsed',
                                  'uneditedData', 'forgettableAspects',
-                                 'changed', 'nodeTooltip'];
+                                 'changed', 'nodeTooltip', 'nodeDescriptionTooltip'];
       if(data) {
         self.loadData(data);
       }
@@ -1034,17 +1034,19 @@
 
     Node.prototype.restoreUneditedData = function() {
       var self = this;
-      Object.keys(self.uneditedData).forEach(function(aspect) {
-        // dynamically set the Node's aspects based on the JSON data
-        if( self.uneditedData[aspect] && typeof self.uneditedData[aspect] === 'object') {
-          Object.keys(self.uneditedData[aspect]).forEach( function(nodeInfoAspect) {
-            self[aspect]()[nodeInfoAspect](self.uneditedData[aspect][nodeInfoAspect]);
-          })
-        } else {
-          self[aspect](self[aspect]());
-        }
-      });
-      self.uneditedData = {};
+      if(self.uneditedData !== {}) {
+        Object.keys(self.uneditedData).forEach(function(aspect) {
+          // dynamically set the Node's aspects based on the JSON data
+          if( self.uneditedData[aspect] && typeof self.uneditedData[aspect] === 'object') {
+            Object.keys(self.uneditedData[aspect]).forEach( function(nodeInfoAspect) {
+              self[aspect]()[nodeInfoAspect](self.uneditedData[aspect][nodeInfoAspect]);
+            })
+          } else {
+            self[aspect](self[aspect]());
+          }
+        });
+        self.uneditedData = {};
+      }
       self.changed = false;
     }
 
@@ -1233,6 +1235,7 @@
       self.currentUserPassword = '';
       self.authHeader = {};
       if(self.selectedItem()) {
+        self.selectedItem().restoreUneditedData();
         self.unloadItem();
         $('.mt-item-a').removeClass('active');
         self.selectedItem(null);
@@ -1400,7 +1403,7 @@
       var self = this;
       $('#enItemEd').prop('checked', false)
       $('.mt-item-edit-control').prop('disabled', true);
-      if(self.selectedItem().changed) {
+      if(self.selectedItem()) {
         self.selectedItem().restoreUneditedData();
       }
       if(self.previousSelectedItem && self.selectedItem() !== self.previousSelectedItem) {
