@@ -32,7 +32,7 @@
   div.mt-item-a {margin-left: 45px; /* to indent items */}
     .badge {float: right; /* to move the category totals to the right of the lists */}
     .mt-edit-field-button {float: right; /* move edit pencils  button to the right of field*/}
-    .mt-trash {float: right;}
+    .mt-trash, .mt-need {float: right;}
     .mt-dialog-input {width: 100%;}
     a.list-group-item { /* make category lists look like the alert */
       color: black !important;
@@ -82,7 +82,8 @@
                 <span data-bind="text: currentUser"></span>
               </span>
             </li>
-            <a class="nav-link btn btn-sm"
+            <a id="loginBtn"
+               class="nav-link btn btn-sm"
                data-bind="text: (loggedIn() ? 'logout' : 'login'),
                           click: (loggedIn() ? logout : beginLogin)">
             </a>
@@ -188,7 +189,11 @@
                                 click: $root.handleMainClick"
                     class="list-group-item mt-main-a text-truncate border-0 mb-1" data-toggle="collapse">
                     <span>
-                      <span class="badge badge-secondary" data-bind="text: children().length"></span>
+                      <span class="badge badge-secondary"
+                            data-bind="text: leavesNeeded,
+                                       style:{'background-color': leavesNeeded() ? 'red' : 'green'}"
+                            title="need"
+                            data-toggle="tooltip"></span>
                       <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
                                         title: (collapsed() ? 'expand' : 'collapse')}"
                             data-toggle="tooltip"></i>
@@ -239,7 +244,11 @@
                                       click: $root.handleSubClick"
                           class="list-group-item mt-sub-a text-truncate border-0 mb-1"  data-toggle="collapse">
                           <span>
-                            <span class="badge badge-secondary" data-bind="text: children().length"></span>
+                            <span class="badge badge-secondary"
+                                  data-bind="text: leavesNeeded,
+                                             style:{'background-color': leavesNeeded() ? 'red' : 'green'}"
+                                  title="need"
+                                  data-toggle="tooltip"></span>
                             <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
                                               title: (collapsed() ? 'expand' : 'collapse')}"
                                   data-toggle="tooltip"></i>
@@ -273,6 +282,12 @@
                                          click: $root.handleItemClick"
                               class="list-group-item mt-item-a text-truncate border-0 mb-1" >
                               <span class="mt-item">
+                                <i data-bind="style: {opacity: ($root.selectedItem() && $root.selectedItem().id() === $data.id() ? '1.0': '0.2'),
+                                                      color: (need() ? 'red': 'black')},
+                                              click: ($root.selectedItem() && $root.selectedItem().id() === $data.id() ? toggleNeed : function(){})"
+                                      data-toggle="tooltip" title="need"
+                                      class="mt-need fa fa-cart-plus fa-s"
+                                      disabled></i>
                                 <i data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
                                       data-toggle="tooltip" title="tried"
                                       class="fa fa-check fa-xs"></i>
@@ -873,7 +888,8 @@
       }
       self.forgettableAspects = ['children', 'collapsed',
                                  'uneditedData', 'forgettableAspects',
-                                 'changed', 'nodeTooltip', 'nodeDescriptionTooltip'];
+                                 'changed', 'nodeTooltip', 'nodeDescriptionTooltip',
+                                 'leavesNeeded'];
       if(data) {
         self.loadData(data);
       }
@@ -886,7 +902,23 @@
         self.nodeDescriptionTooltip = ko.pureComputed(function() {
           return (self.description() ? self.description() : '');
         });
+        self.leavesNeeded = ko.pureComputed(function() {
+          var needed = 0;
+          var leaves = self.findLeaves();
+          for(var indx=0; indx<leaves.length; indx++) {
+            if(leaves[indx].need()) {
+              needed++;
+            }
+          }
+          return needed;
+        });
       }
+    }
+
+    Node.prototype.toggleNeed = function() {
+      var self = this;
+      self.need(!self.need());
+      nodesViewModel.saveItem();
     }
 
     Node.prototype.setDateTried = function() {
@@ -1226,7 +1258,7 @@
       .catch(function(err) {
         $('html').removeClass('waiting');
         if (err.status == 403){
-          $('.nav-link.btn').css({'visibility':'visible'});
+          $('#loginBtn').css({'visibility':'visible'});
           setAlert('Incorrect username or password. Try again', 'alert-danger');
         }
         self.loggedIn(false);
@@ -1609,11 +1641,11 @@
         var nodeName = self.selectedItem().name();
         var indexToRemove = self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem());
         if(indexToRemove !== -1) {
-          self.adjacencyList[self.self.selectedSubNode().id()].splice(indexToRemove, 1);
+          self.adjacencyList[self.selectedSubNode().id()].splice(indexToRemove, 1);
         }
         self.selectedSubNode().children.remove(self.selectedItem());
-        self.selectedItem(null);
         self.unloadItem();
+        self.selectedItem(null);
         setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
       })
       .catch(function(err) {
@@ -1657,7 +1689,7 @@
         self.selectedItem().changed = false;
         self.selectedItem().rememberUneditedData();
         setAlert('Successfully updated "' + response.name +'"', 'alert-success');
-        self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
+        //self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1756,6 +1788,7 @@
         $("html").removeClass("waiting");
         // build adjacencyList structure
         var addedNode = new Node(true, node);
+        self.initNode(addedNode);
         if(!(node.parentId in self.adjacencyList)) {
           self.adjacencyList[node.parentId] = [];
         }
@@ -1775,7 +1808,6 @@
           $('.mt-main-collapse').collapse('hide');
           $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideMainCollapse);
           $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowMainCollapse);
-          $($('#accordianCollapse_' + addedNode.id())).collapse('show');
           self.selectedMainNode(addedNode);
           self.enableAddSub(true);
         } else {
@@ -1783,7 +1815,7 @@
           $('.mt-sub-collapse').collapse('hide');
           $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideSubCollapse);
           $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowSubCollapse);
-          $('#accordianCollapse_' + addedNode.id()).collapse('show');
+          $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
           self.selectedSubNode(addedNode);
           self.enableAddItem(true);
         }
@@ -1831,10 +1863,11 @@
         $("html").removeClass("waiting");
         // build adjacencyList structure
         var addedNode = new Node(true, node);
+        self.initNode(addedNode);
         if(!(node.parentId in self.adjacencyList)) {
           self.adjacencyList[node.parentId] = [];
         }
-        self.adjacencyList[node.parentId].push(addedNode.id());
+        self.adjacencyList[node.parentId].push(addedNode);
         self.selectedSubNode().children.push(addedNode);
         $('a.mt-item-a').removeClass('active');
         $($('a[mt-data-id="' + addedNode.id() + '"]')).addClass('active');
@@ -1845,6 +1878,7 @@
         self.selectedItem().changed = true;
         setAlert('Successfully Added ' + self.itemLabel() +'. Now give it a name, edit the properties and save.', 'alert-success');
         self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
+        $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
         $('.fa, .far').css({'visibility':'visible'});
       })
       .catch(function(err) {
@@ -1891,25 +1925,26 @@
 
     NodesViewModel.prototype.initNode = function(node) {
       var self = this;
-      if(node.nodeInfo() !== null) {
-        if(!(self.nodeInfo1Key() in node.nodeInfo())) {
-          node.nodeInfo()[self.nodeInfo1Key()] = ko.observable(null);
-        }
-        if(!(self.nodeInfo2Key() in node.nodeInfo())) {
-          node.nodeInfo()[self.nodeInfo2Key()] = ko.observable(null);
-        }
-        if(!(self.nodeInfo3Key() in node.nodeInfo())) {
-          node.nodeInfo()[self.nodeInfo3Key()] = ko.observable(null);
-        }
-        if(!(self.nodeInfo4Key() in node.nodeInfo())) {
-          node.nodeInfo()[self.nodeInfo4Key()] = ko.observable(null);
-        }
-        if(!(self.nodeInfo5Key() in node.nodeInfo())) {
-          node.nodeInfo()[self.nodeInfo5Key()] = ko.observable(null);
-        }
-        if(!(self.nodeInfo6Key() in node.nodeInfo())) {
-          node.nodeInfo()[self.nodeInfo6Key()] = ko.observable(null);
-        }
+      if(node.nodeInfo() === null) {
+        node.nodeInfo({});
+      }
+      if(!(self.nodeInfo1Key() in node.nodeInfo())) {
+        node.nodeInfo()[self.nodeInfo1Key()] = ko.observable(null);
+      }
+      if(!(self.nodeInfo2Key() in node.nodeInfo())) {
+        node.nodeInfo()[self.nodeInfo2Key()] = ko.observable(null);
+      }
+      if(!(self.nodeInfo3Key() in node.nodeInfo())) {
+        node.nodeInfo()[self.nodeInfo3Key()] = ko.observable(null);
+      }
+      if(!(self.nodeInfo4Key() in node.nodeInfo())) {
+        node.nodeInfo()[self.nodeInfo4Key()] = ko.observable(null);
+      }
+      if(!(self.nodeInfo5Key() in node.nodeInfo())) {
+        node.nodeInfo()[self.nodeInfo5Key()] = ko.observable(null);
+      }
+      if(!(self.nodeInfo6Key() in node.nodeInfo())) {
+        node.nodeInfo()[self.nodeInfo6Key()] = ko.observable(null);
       }
     }
 
@@ -2086,6 +2121,8 @@
         $('.mt-sub-collapse').collapse('hide');
         $('a.mt-sub-a, a.mt-item-a').removeClass('active');
         nodesViewModel.unloadItem();
+        nodesViewModel.selectedSubNode(null);
+        nodesViewModel.selectedItem(null);
         nodesViewModel.enableAddItem(false);
         // switch collapse icon to '+'
         nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
@@ -2097,6 +2134,7 @@
         // if a sub collapse occurs, make sure the items go inactive
         $('a.mt-item-a').removeClass('active');
         nodesViewModel.unloadItem();
+        nodesViewModel.selectedItem(null);
         // switch collapse icon to '+'
         nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
       }
