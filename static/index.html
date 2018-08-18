@@ -1226,6 +1226,7 @@
       .catch(function(err) {
         $('html').removeClass('waiting');
         if (err.status == 403){
+          $('.nav-link.btn').css({'visibility':'visible'});
           setAlert('Incorrect username or password. Try again', 'alert-danger');
         }
         self.loggedIn(false);
