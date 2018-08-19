@@ -927,6 +927,9 @@
         var date = new Date();
         self.dateTried((date.getMonth()+1)+'/'+date.getDate()+'/'+date.getFullYear());
       }
+      if(!self.haveTried()) {
+        self.dateTried(null);
+      }
     }
 
     Node.prototype.setDateReviewed = function() {
@@ -1491,7 +1494,10 @@
     NodesViewModel.prototype.continueItemEdit = function() {
       var self = this;
       $('a.mt-item-a').removeClass('active');
-      $($('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]')).addClass('active');
+      if(nodesViewModel.previousSelectedItem && nodesViewModel.selectedItem() !== nodesViewModel.previousSelectedItem) {
+        nodesViewModel.selectedItem(nodesViewModel.previousSelectedItem);
+      }
+      $('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]').addClass('active');
       nodesViewModel.previousSelectedItem = null;
       $('#enItemEd').prop('checked', true);
       $('.mt-item-edit-control').prop('disabled', false);
