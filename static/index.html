@@ -139,21 +139,21 @@
             </div>
             <div class="col text-center">
               <button
-                data-bind="click: beginDeleteItem"
+                data-bind="click: beginDeleteItem,
+                           html: itemDeleteIcon"
                 title="Delete"
                 data-toggle="tooltip"
                 class="btn btn-secondary btn-sm mt-item-edit-control"
                 disabled>
-                Delete
               </button>
             </div>
             <div class="col text-center">
               <button
-                data-bind="click: saveItem"
+                data-bind="click: saveItem,
+                           html: itemSaveIcon"
                 title="Save"
                 class="btn btn-secondary btn-sm mt-item-edit-control"
                 disabled>
-                Save
               </button>
             </div>
             <div class="col-1 form-inline text-center">
@@ -800,7 +800,7 @@
               <div class="control-group">
                 <label class="control-label" for="inputUsename">Username</label>
                 <div class="controls">
-                  <input class="mt-dialog-input" data-bind="textInput: username" type="inputText" id="inputUsername" placeholder="Username">
+                  <input class="mt-dialog-input" data-bind="textInput: username" type="inputText" id="inputUsername" placeholder="Username" autofocus>
                   </input>
                 </div>
               </div>
@@ -1079,7 +1079,7 @@
 
     Node.prototype.restoreUneditedData = function() {
       var self = this;
-      if(self.uneditedData !== {}) {
+      if(Object.keys(self.uneditedData).length > 0) {
         Object.keys(self.uneditedData).forEach(function(aspect) {
           // dynamically set the Node's aspects based on the JSON data
           if( self.uneditedData[aspect] && typeof self.uneditedData[aspect] === 'object') {
@@ -1087,7 +1087,7 @@
               self[aspect]()[nodeInfoAspect](self.uneditedData[aspect][nodeInfoAspect]);
             })
           } else {
-            self[aspect](self[aspect]());
+            self[aspect](self.uneditedData[aspect]);
           }
         });
         self.uneditedData = {};
@@ -1100,18 +1100,22 @@
       self.mainLabels = {'books':'Author',
                         'wine':'Winery',
                         'beer':'Brewery',
+                        'spirits':'Distillery',
                         'other':'Main'}
       self.subLabels = {'books':'Series',
                         'wine':'Type',
                         'beer':'Type',
+                        'spirits':'Type',
                         'other':'Sub'}
       self.itemLabels = {'books':'Book',
                         'wine':'Name',
                         'beer':'Name',
+                        'spirits':'Name',
                         'other':'Item'}
       self.triedLabels = {'books':'Read',
                         'wine':'Tried',
                         'beer':'Tried',
+                        'spirits':'Tried',
                         'other':'Tried'}
       self.sortIndexLabels = {'books':'Series Order',
                              'wine':'n/a',
@@ -1120,53 +1124,69 @@
       self.nodeInfo1Keys = {'books':'publisher',
                             'wine':'vintage',
                             'beer':'vintage',
+                            'spirits':'vintage',
                             'other':'nodeinfo1'}
       self.nodeInfo2Keys = {'books':'publishedDate',
                             'wine':'region',
                             'beer':'region',
+                            'spirits':'region',
                             'other':'nodeinfo2'}
       self.nodeInfo3Keys = {'books':'pageCount',
                             'wine':'ABV',
                             'beer':'ABV',
+                            'spirits':'ABV',
                             'other':'nodeinfo3'}
       self.nodeInfo4Keys = {'books':'ISBN',
                             'wine':'taste',
                             'beer':'IBU',
+                            'spirits':'taste',
                             'other':'nodeinfo4'}
       self.nodeInfo5Keys = {'books':'ASIN',
                             'wine':'color',
                             'beer':'SRM',
+                            'spirits':'color',
                             'other':'nodeinfo5'}
       self.nodeInfo6Keys = {'books':'googleLink',
                             'wine':'link',
                             'beer':'link',
+                            'spirits':'link',
                             'other':'nodeinfo6'}
       self.nodeInfo1Labels = {'books':'Publisher',
                             'wine':'Vintage',
                             'beer':'Vintage',
+                            'spirits':'Vintage',
                             'other':'Node Info 1'}
       self.nodeInfo2Labels = {'books':'Published',
                             'wine':'Region',
                             'beer':'Region',
+                            'spirits':'Region',
                             'other':'Node Info 2'}
       self.nodeInfo3Labels = {'books':'Pages',
                             'wine':'ABV',
                             'beer':'ABV',
+                            'spirits':'ABV',
                             'other':'Node Info 3'}
       self.nodeInfo4Labels = {'books':'ISBN',
                             'wine':'Taste',
                             'beer':'IBU',
+                            'spirits':'Taste',
                             'other':'Node Info 4'}
       self.nodeInfo5Labels = {'books':'ASIN',
                             'wine':'Color',
                             'beer':'SRM',
+                            'spirits':'Color',
                             'other':'Node Info 5'}
       self.nodeInfo6Labels = {'books':'Link',
                             'wine':'Link',
                             'beer':'Link',
+                            'spirits':'Link',
                             'other':'Node Info 6'}
       self.defaultGoogleIcon = 'G';
+      self.defaultItemSaveIcon = 'Save';
+      self.defaultItemDeleteIcon = 'Delete';
       self.fillItemFromGoogleIcon = ko.observable(self.defaultGoogleIcon);
+      self.itemSaveIcon = ko.observable(self.defaultItemSaveIcon);
+      self.itemDeleteIcon = ko.observable(self.defaultItemDeleteIcon);
       self.defaultAlert = ko.observable();
       self.currentUser = ko.observable();
       self.currentUserId = null;
@@ -1227,7 +1247,8 @@
       var self = this;
       self.previousUser = self.currentUser();
       self.previousUserPassword = self.currentUserPassword;
-      $('#login').modal('show');
+      $('#login').modal({show: true,
+                         backdrop: 'static'});
     }
 
     NodesViewModel.prototype.cancelLogin = function() {
@@ -1285,6 +1306,9 @@
         self.unloadItem();
         $('.mt-item-a').removeClass('active');
         self.selectedItem(null);
+        self.selectedSubNode(null);
+        self.selectedMainNode(null);
+        self.mainNodes.removeAll();
       }
       self.loggedIn(false);
     }
@@ -1446,7 +1470,7 @@
       var self = this;
       if(self.selectedItem() && self.selectedItem().changed) {
         self.previousSelectedItem = self.selectedItem();
-        $('#confirmCancelItemEdit').modal('show');
+        $('#confirmCancelItemEdit').modal({show: true, backdrop: 'static'});
       } else {
         self.disableItemEdit();
       }
@@ -1456,7 +1480,7 @@
       var self = this;
       $('#enItemEd').prop('checked', false)
       $('.mt-item-edit-control').prop('disabled', true);
-      if(self.selectedItem()) {
+      if(self.selectedItem() && self.selectedItem().changed) {
         self.selectedItem().restoreUneditedData();
       }
       if(self.previousSelectedItem && self.selectedItem() !== self.previousSelectedItem) {
@@ -1466,10 +1490,9 @@
 
     NodesViewModel.prototype.continueItemEdit = function() {
       var self = this;
-      self.selectedItem(self.previousSelectedItem);
       $('a.mt-item-a').removeClass('active');
-      $($('a[mt-data-id="' + self.previousSelectedItem.id() + '"]')).addClass('active');
-      self.previousSelectedItem = null;
+      $($('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]')).addClass('active');
+      nodesViewModel.previousSelectedItem = null;
       $('#enItemEd').prop('checked', true);
       $('.mt-item-edit-control').prop('disabled', false);
     }
@@ -1479,6 +1502,7 @@
       $('#enItemEd').prop('checked', true);
       self.selectedItem().rememberUneditedData();
       $('.mt-item-edit-control').prop('disabled', false);
+      $('#itemName').trigger('focus');
     }
 
     NodesViewModel.prototype.setItemChanged = function() {
@@ -1582,17 +1606,17 @@
 
     NodesViewModel.prototype.beginDeleteMainNode = function() {
       var self = this;
-      $('#confirmDeleteMainNode').modal('show');
+      $('#confirmDeleteMainNode').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.beginDeleteSubNode = function() {
       var self = this;
-      $('#confirmDeleteSubNode').modal('show');
+      $('#confirmDeleteSubNode').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.beginDeleteItem = function() {
       var self = this;
-      $('#confirmDeleteItem').modal('show');
+      $('#confirmDeleteItem').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.proceedWithSubNodeDelete = function() {
@@ -1633,8 +1657,10 @@
       var self = this;
       var url = secrets['MY_THINGS_SERVER'] + '/node/';
       url += encodeURIComponent(self.selectedItem().id());
+      self.itemDeleteIcon('<i class="fa fa-spinner fa-spin"></i>');
       self.ajax('DELETE', url, {}, self.authHeader)
       .then(function(response) {
+        self.itemDeleteIcon(self.defaultItemDeleteIcon);
         $("html").removeClass("waiting");
         $('a.mt-item-a').removeClass('active');
         $('#enItemEd').prop('checked', false);
@@ -1650,6 +1676,7 @@
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
+        self.itemDeleteIcon(self.defaultItemDeleteIcon);
         if(typeof err.responseJSON !== 'undefined') {
           setAlert(err.responseJSON['error'], 'alert-danger')
         } else {
@@ -1664,7 +1691,7 @@
 
     NodesViewModel.prototype.beginEditItemLink = function() {
       editItemLinkModel.itemLink(nodesViewModel.selectedItem().nodeInfo()[nodesViewModel.nodeInfo6Key()]());
-      $('#editItemLink').modal('show');
+      $('#editItemLink').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.proceedWithEditItemLink = function(itemLink) {
@@ -1683,8 +1710,10 @@
       self.setDateTriedItem();
       var url = self.selectedItem().uri().replace('http://', 'https://');
       var saveData = self.selectedItem().sanitize();
+      self.itemSaveIcon('<i class="fa fa-spinner fa-spin"></i>');
       self.ajax('PUT', url, saveData, self.authHeader)
       .then(function(response) {
+        self.itemSaveIcon(self.defaultItemSaveIcon);
         $("html").removeClass("waiting");
         self.selectedItem().changed = false;
         self.selectedItem().rememberUneditedData();
@@ -1693,6 +1722,7 @@
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
+        self.itemSaveIcon(self.defaultItemSaveIcon);
         if(typeof err.responseJSON !== 'undefined') {
           setAlert(err.responseJSON['error'], 'alert-danger')
         } else {
@@ -1709,7 +1739,7 @@
       var self = this;
       editMainNodeModel.name(nodesViewModel.selectedMainNode().name());
       editMainNodeModel.description(nodesViewModel.selectedMainNode().description());
-      $('#editMainNode').modal('show');
+      $('#editMainNode').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.proceedWithMainNodeEdit = function(nodeData = {}) {
@@ -1744,7 +1774,7 @@
       var self = this;
       editSubNodeModel.name(nodesViewModel.selectedSubNode().name());
       editSubNodeModel.description(nodesViewModel.selectedSubNode().description());
-      $('#editSubNode').modal('show');
+      $('#editSubNode').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.proceedWithSubNodeEdit = function(nodeData = {}) {
@@ -1776,7 +1806,7 @@
     }
 
     NodesViewModel.prototype.beginAddMain = function() {
-      $('#addMainNode').modal('show');
+      $('#addMainNode').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.addNode = function(nodeData={}) {
@@ -1838,7 +1868,7 @@
     }
 
     NodesViewModel.prototype.beginAddSub = function() {
-      $('#addSubNode').modal('show');
+      $('#addSubNode').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.beginAddItem = function() {
@@ -2201,6 +2231,29 @@
     $('#typesSelect').on('change', nodesViewModel.initType);
     $('input.mt-item-edit-control').on('change', nodesViewModel.setItemChanged.bind(nodesViewModel));
     $('#tried').on('change', nodesViewModel.setDateTriedItem.bind(nodesViewModel));
+    $(document).keypress(function(e) {
+      if(e.which == 13 && $('.modal-open').length) {
+        $('.modal.show').find('button.btn-primary').click();
+      }
+    });
+    $('#login').on('shown.bs.modal', function () {
+      $('#inputUsername').trigger('focus');
+    });
+    $('#editMainNode').on('shown.bs.modal', function () {
+      $('#editMainNodeName').trigger('focus');
+    });
+    $('#editSubNode').on('shown.bs.modal', function () {
+      $('#editSubNodeName').trigger('focus');
+    });
+    $('#editItemLink').on('shown.bs.modal', function () {
+      $('#editLink').trigger('focus');
+    });
+    $('#addMainNode').on('shown.bs.modal', function () {
+      $('#inputMainNodeName').trigger('focus');
+    });
+    $('#addSubNode').on('shown.bs.modal', function () {
+      $('#inputSubNodeName').trigger('focus');
+    });
     $("html").addClass("waiting");
     Promise.resolve($.ajax({
       cache: false,
