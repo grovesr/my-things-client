@@ -1292,7 +1292,7 @@
     NodesViewModel.prototype.sortByIndexOrPubDateOrName = function (left, right) {
 
       if(left.sortIndex() !== null && right.sortIndex() !== null) {
-        return (left.sortIndex() == right.sortIndex() ? 0 : (left.sortIndex() < right.sortIndex() ? -1 : 1));
+        return (left.sortIndex() == right.sortIndex() ? 0 : (parseInt(left.sortIndex()) < parseInt(right.sortIndex()) ? -1 : 1));
       } else if('publishedDate' in left.nodeInfo() && 'publishedDate' in right.nodeInfo() &&
                 left.nodeInfo()['publishedDate']() !== null && right.nodeInfo()['publishedDate']() !== null) {
         var dleft = new Date(left.nodeInfo()['publishedDate']());
