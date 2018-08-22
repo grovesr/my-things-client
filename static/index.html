@@ -199,7 +199,7 @@
                             data-toggle="tooltip"></i>
                       <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2'),
                                             color: (allLeavesHaveTried() ? 'green' : 'black')},
-                                            attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-xs' : 'fa fa-check fa-xs')}"
+                                            attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')}"
                             data-toggle="tooltip" title="tried"></i>
                       <span class="fa-stack fa-fw"
                             data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
@@ -254,7 +254,7 @@
                                   data-toggle="tooltip"></i>
                             <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2'),
                                                   color: (allLeavesHaveTried() ? 'green' : 'black')},
-                                                  attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-xs' : 'fa fa-check fa-xs')}"
+                                                  attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')}"
                                   data-toggle="tooltip" title="tried"></i>
                             <span class="fa-stack fa-fw"
                                   data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
@@ -896,7 +896,21 @@
 
       if(initialize) {
         self.nodeTooltip = ko.pureComputed(function() {
-          var tooltipText = '<b>' + self.name() + ':</b><br>' + (self.description() ? self.description() : '');
+          var subLabel = (self.isMain() ? nodesViewModel.subLabel() : nodesViewModel.itemLabel());
+          if(self.isMain()) {
+            var tooltipText = '<h5>' + self.name() + ':</h5>' +
+                              (self.description() ? '<p>' + self.description() + '</p><br>' : '') +
+                              '<b>' + nodesViewModel.subLabel() + ':</b><span> ' + self.children().length + '</span><br>' +
+                              '<b>' + nodesViewModel.itemLabel() + 's:</b><span> ' + self.findLeaves().length + '</span><br>' +
+                              '<b>Have ' + nodesViewModel.triedLabel() + ':</b><span> ' + self.numLeavesHaveTried() + '</span><br>' +
+                              '<b>Need:</b><span> ' + self.leavesNeeded() + '</span><br>';
+          } else {
+            var tooltipText = '<h5>' + self.name() + ':</h5>' +
+                              (self.description() ? '<p>' + self.description() + '</p><br>' : '') +
+                              '<b>' + nodesViewModel.itemLabel() + 's:</b><span> ' + self.children().length + '</span><br>' +
+                              '<b>Have ' + nodesViewModel.triedLabel() + ':</b><span> ' + self.numLeavesHaveTried() + '</span><br>' +
+                              '<b>Need:</b><span> ' + self.leavesNeeded() + '</span><br>';
+          }
           return tooltipText;
         });
         self.nodeDescriptionTooltip = ko.pureComputed(function() {
@@ -913,6 +927,11 @@
           return needed;
         });
       }
+    }
+
+    Node.prototype.isMain = function() {
+      var self = this;
+      return self.parentId() == nodesViewModel.rootNode.id();
     }
 
     Node.prototype.toggleNeed = function() {
@@ -949,6 +968,18 @@
         leaves.concat(child.findLeaves(leaves));
       })
       return leaves;
+    }
+
+    Node.prototype.numLeavesHaveTried = function() {
+      var self = this;
+      var leaves = self.findLeaves();
+      var count = 0;
+      for(var indx=0; indx<leaves.length; indx++) {
+        if(leaves[indx].haveTried()) {
+          count++;
+        }
+      }
+      return count;
     }
 
     Node.prototype.leavesHaveTried = function() {
@@ -1363,6 +1394,10 @@
       $('.mt-add-buttons button').tooltip('enable');
     }
 
+    NodesViewModel.prototype.updateTooltips = function() {
+      $ ('span[data-toggle="tooltip"]').tooltip();
+    }
+
     NodesViewModel.prototype.setType = function() {
       var self = this;
       self.setLabels();
@@ -1372,6 +1407,7 @@
         setDefaultAlert();
         $('.fa, .far').css({'visibility':'visible'});
         $('.mt-add-buttons, .nav-item, .nav-link').css({'visibility':'visible'});
+        self.updateTooltips();
       })
     }
 
@@ -1730,6 +1766,7 @@
         $("html").removeClass("waiting");
         self.selectedItem().changed = false;
         self.selectedItem().rememberUneditedData();
+        self.updateTooltips();
         setAlert('Successfully updated "' + response.name +'"', 'alert-success');
         //self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
       })
@@ -1768,6 +1805,7 @@
         $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
         setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
         self.mainNodes.sort(self.sortByIndexOrPubDateOrName);
+        self.updateTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1803,6 +1841,7 @@
         $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
         setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
         self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
+        self.updateTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1865,6 +1904,7 @@
         $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
         setAlert('Successfully Added "' + node.name +'"', 'alert-success');
         $('.fa, .far').css({'visibility':'visible'});
+        self.updateTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1924,6 +1964,7 @@
         self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
         $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
         $('.fa, .far').css({'visibility':'visible'});
+        self.updateTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -2237,9 +2278,6 @@
     ko.applyBindings(editSubNodeModel, $('#editSubNode')[0]);
     ko.applyBindings(editItemLinkModel, $('#editItemLink')[0]);
     ko.applyBindings(loginModel, $('#login')[0]);
-    $(function () {
-      $('[data-toggle="tooltip"]').tooltip()
-    })
     $('#enItemEd').prop('checked', false);
     $('#enItemEd').on('change', nodesViewModel.handleItemEditClick.bind(nodesViewModel));
     $('#typesSelect').on('change', nodesViewModel.initType);
