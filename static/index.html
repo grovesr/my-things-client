@@ -1042,7 +1042,7 @@
       var self = this;
       Object.keys(data).forEach(function(aspect) {
         // dynamically set the Node's aspects based on the JSON data
-        if(aspect === 'description') {
+        if(aspect === 'description' || aspect === 'name') {
           self[aspect](data[aspect]);
         } else {
           self.nodeInfo()[aspect](data[aspect]);
@@ -1187,6 +1187,7 @@
       self.defaultGoogleIcon = 'G';
       self.defaultItemSaveIcon = 'Save';
       self.defaultItemDeleteIcon = 'Delete';
+      self.defaultSpinnerIcon = '<i class="fa fa-spinner fa-spin"></i>';
       self.fillItemFromGoogleIcon = ko.observable(self.defaultGoogleIcon);
       self.itemSaveIcon = ko.observable(self.defaultItemSaveIcon);
       self.itemDeleteIcon = ko.observable(self.defaultItemDeleteIcon);
@@ -1384,10 +1385,12 @@
         setAlert('No ISBN information in selected ' + nodesViewModel.itemLabel(), 'alert-danger');
         return;
       }
+      // remove any dashes
+      nodesViewModel.selectedItem().nodeInfo()['ISBN'](nodesViewModel.selectedItem().nodeInfo()['ISBN']().replace('-','').trim());
       var url = 'https://www.googleapis.com/books/v1/volumes?q=';
       url += encodeURIComponent('ISBN=' + nodesViewModel.selectedItem().nodeInfo()['ISBN']());
       url += '&' + encodeURIComponent('key=' + secrets['MY_BOOKS_KEY']);
-      self.fillItemFromGoogleIcon('<i class="fa fa-spinner fa-spin"></i>');
+      self.fillItemFromGoogleIcon(self.defaultSpinnerIcon);
       self.ajax('GET', url)
       .then(function(data) {
         $("html").removeClass("waiting");
@@ -1397,6 +1400,9 @@
         if(data.totalItems === 0) {
           setAlert('No books found with ISBN = ' + nodesViewModel.selectedItem().nodeInfo()['ISBN'](), 'alert-danger');
         } else {
+          if('title' in data.items[0].volumeInfo) {
+            parsedData['name'] = data.items[0].volumeInfo.title;
+          }
           if('description' in data.items[0].volumeInfo) {
             parsedData['description'] = data.items[0].volumeInfo.description;
           }
@@ -1664,7 +1670,7 @@
       var self = this;
       var url = secrets['MY_THINGS_SERVER'] + '/node/';
       url += encodeURIComponent(self.selectedItem().id());
-      self.itemDeleteIcon('<i class="fa fa-spinner fa-spin"></i>');
+      self.itemDeleteIcon(self.defaultSpinnerIcon);
       self.ajax('DELETE', url, {}, self.authHeader)
       .then(function(response) {
         self.itemDeleteIcon(self.defaultItemDeleteIcon);
@@ -1717,7 +1723,7 @@
       self.setDateTriedItem();
       var url = self.selectedItem().uri().replace('http://', 'https://');
       var saveData = self.selectedItem().sanitize();
-      self.itemSaveIcon('<i class="fa fa-spinner fa-spin"></i>');
+      self.itemSaveIcon(self.defaultSpinnerIcon);
       self.ajax('PUT', url, saveData, self.authHeader)
       .then(function(response) {
         self.itemSaveIcon(self.defaultItemSaveIcon);
@@ -2239,8 +2245,16 @@
     $('input.mt-item-edit-control').on('change', nodesViewModel.setItemChanged.bind(nodesViewModel));
     $('#tried').on('change', nodesViewModel.setDateTriedItem.bind(nodesViewModel));
     $(document).keypress(function(e) {
-      if(e.which == 13 && $('.modal-open').length) {
-        $('.modal.show').find('button.btn-primary').click();
+      if(e.which == 13) {
+        if($('.modal-open').length) {
+          e.preventDefault();
+          $('.modal.show').find('button.btn-primary').click();
+        }
+        if(document.activeElement.id === 'nodeInfo4' && nodesViewModel['nodeInfo4Key']() === 'ISBN') {
+          // ISBN
+          e.preventDefault();
+          nodesViewModel.fillItemFromGoogle();
+        }
       }
     });
     $('#login').on('shown.bs.modal', function () {
