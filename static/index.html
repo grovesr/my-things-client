@@ -1683,8 +1683,8 @@
           self.adjacencyList[self.selectedSubNode().id()].splice(indexToRemove, 1);
         }
         self.selectedSubNode().children.remove(self.selectedItem());
-        self.unloadItem();
         self.selectedItem(null);
+        self.unloadItem();
         setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
       })
       .catch(function(err) {
@@ -1918,6 +1918,7 @@
         $('#enItemEd').prop('checked', true);
         self.enableItemEdit();
         self.selectedItem().rememberUneditedData();
+        self.selectedItem().name('');
         self.selectedItem().changed = true;
         setAlert('Successfully Added ' + self.itemLabel() +'. Now give it a name, edit the properties and save.', 'alert-success');
         self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
