@@ -1395,7 +1395,8 @@
     }
 
     NodesViewModel.prototype.updateTooltips = function() {
-      $ ('span[data-toggle="tooltip"]').tooltip();
+      $ ('span[data-toggle="tooltip"]').tooltip('dispose');
+      $ ('span[data-toggle="tooltip"]').tooltip('enable');
     }
 
     NodesViewModel.prototype.setType = function() {
