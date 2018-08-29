@@ -23,13 +23,8 @@
           height: 100vh;
           padding-top: 4.5rem;
     }
-    /*
-    span {
-      font-size: 85%
-    }
-    */
     .mt-sub-a { margin-left: 15px; /* to indent sub categories */}
-  div.mt-item-a {margin-left: 45px; /* to indent items */}
+     div.mt-item-a {margin-left: 45px; /* to indent items */}
     .badge {float: right; /* to move the category totals to the right of the lists */}
     .mt-edit-field-button {float: right; /* move edit pencils  button to the right of field*/}
     .mt-trash, .mt-need {float: right;}
@@ -54,6 +49,9 @@
     }
     #itemImage {
       width: 100%;
+    }
+    div.tooltip-inner {
+      max-width: 350px;
     }
     </style>
   </head>
@@ -93,79 +91,81 @@
       <div id="alertBox" class="alert alert-dark" role="alert">
         &nbsp;
       </div>
-      <div class="row">
-        <div class="col-12 col-lg-3">
-          <div class="btn-group btn-group-sm mt-add-buttons mb-1">
-            <button
-              data-bind="attr: {title: addMainLabel},
-                        enable: enableAddMain(),
-                        click: beginAddMain"
-              data-toggle="tooltip"
-              class="btn btn-secondary mr-1">
-              <span class="fa fa-plus fa-xs">
-              </span>
-            </button>
-            <button
-              data-bind="attr: {title: addSubLabel},
-                        enable: enableAddSub(),
-                        click: beginAddSub"
-              data-toggle="tooltip"
-              class="btn btn-secondary mr-1">
-              <span class="fa fa-plus fa-xs">
-              </span>
-            </button>
-            <button
-              data-bind="attr: {title: addItemLabel},
-                        enable: enableAddItem(),
-                        click: beginAddItem"
-              data-toggle="tooltip"
-              class="btn btn-secondary text-capitalize">
-              <span class="fa fa-plus fa-xs">
-              </span>
-            </button>
+      <div class="d-none d-sm-block">
+        <div id="controls" class="row">
+          <div class="col-4">
+            <div class="btn-group btn-group-sm mt-add-buttons mb-1">
+              <button
+                data-bind="attr: {title: addMainLabel},
+                          enable: enableAddMain(),
+                          click: beginAddMain"
+                data-toggle="tooltip"
+                class="btn btn-secondary mr-1">
+                <span class="fa fa-plus fa-xs">
+                </span>
+              </button>
+              <button
+                data-bind="attr: {title: addSubLabel},
+                          enable: enableAddSub(),
+                          click: beginAddSub"
+                data-toggle="tooltip"
+                class="btn btn-secondary mr-1">
+                <span class="fa fa-plus fa-xs">
+                </span>
+              </button>
+              <button
+                data-bind="attr: {title: addItemLabel},
+                          enable: enableAddItem(),
+                          click: beginAddItem"
+                data-toggle="tooltip"
+                class="btn btn-secondary text-capitalize">
+                <span class="fa fa-plus fa-xs">
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="col col-lg-9">
-          <div class="row mt-edit-buttons">
-            <div class="col text-center">
-              <button
-                data-bind="click: beginCancelItemEdit"
-                title="Cancel"
-                data-toggle="tooltip"
-                class="btn btn-secondary btn-sm mt-item-edit-control"
-                disabled>
-                Cancel
-              </button>
-            </div>
-            <div class="col text-center">
-              <button
-                data-bind="click: beginDeleteItem,
-                           html: itemDeleteIcon"
-                title="Delete"
-                data-toggle="tooltip"
-                class="btn btn-secondary btn-sm mt-item-edit-control"
-                disabled>
-              </button>
-            </div>
-            <div class="col text-center">
-              <button
-                data-bind="click: saveItem,
-                           html: itemSaveIcon"
-                title="Save"
-                class="btn btn-secondary btn-sm mt-item-edit-control"
-                disabled>
-              </button>
-            </div>
-            <div class="col-1 form-inline text-center">
-              <input id="enItemEd" class="form-horizontal checkbox" type="checkbox"></input>
-              <label for="enItemEd" class="label">Edit</label>
+          <div class="col-8">
+            <div class="row mt-edit-buttons">
+              <div class="col text-center">
+                <button
+                  data-bind="click: beginCancelItemEdit"
+                  title="Cancel"
+                  data-toggle="tooltip"
+                  class="btn btn-secondary btn-sm mt-item-edit-control"
+                  disabled>
+                  Cancel
+                </button>
+              </div>
+              <div class="col text-center">
+                <button
+                  data-bind="click: beginDeleteItem,
+                             html: itemDeleteIcon"
+                  title="Delete"
+                  data-toggle="tooltip"
+                  class="btn btn-secondary btn-sm mt-item-edit-control"
+                  disabled>
+                </button>
+              </div>
+              <div class="col text-center">
+                <button
+                  data-bind="click: saveItem,
+                             html: itemSaveIcon"
+                  title="Save"
+                  class="btn btn-secondary btn-sm mt-item-edit-control"
+                  disabled>
+                </button>
+              </div>
+              <div class="col-1 form-inline text-center">
+                <input id="enItemEd" class="form-horizontal checkbox" type="checkbox"></input>
+                <label for="enItemEd" class="label">Edit</label>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div class="row">
         <!-- begin col-3 for hierarchical category lists-->
-        <div class="col-12 col-lg-3">
+        <div id="itemList" class="col col-sm-4">
           <!-- begin accordian main -->
           <div class="accordion" id="accordianMain" style="height: 75vh;overflow-y: scroll;">
             <!-- ko foreach: mainNodes -->
@@ -212,6 +212,7 @@
                             data-html="true"
                             data-bind="text: name,
                                        attr: {title: nodeTooltip}"
+                            data-boundary="viewport"
                             class="mt-tooltip">
                       </span>
                   </span>
@@ -267,6 +268,7 @@
                                   data-html="true"
                                   data-bind="text: name,
                                              attr: {title: nodeTooltip}"
+                                  data-boundary="viewport"
                                   class="mt-tooltip">
                             </span>
                           </span>
@@ -302,8 +304,10 @@
                                   (<span data-bind="text: sortIndex"
                                          class="mt-tooltip"></span>)
                                 </span>
-                                <span data-toggle="tooltip" data-bind="text: name,
-                                                                      attr:{title: name, 'mt-data-id': id }">
+                                <span data-toggle="tooltip"
+                                      data-bind="text: name,
+                                                 attr:{title: name, 'mt-data-id': id }"
+                                      data-boundary="viewport">
                                 </span>
                               </span>
                             </a>
@@ -325,219 +329,237 @@
         </div>
         <!-- end col-3 -->
         <!-- begin col-9 for item details -->
-        <div  id="itemDtails" class="col col-lg-9 card"  style="height: 75vh;overflow-y: scroll;">
-          <div class = "mt-item-edit-form">
-            <div class="row">
-              <div class="col">
-                <input
-                  id="mainName"
-                  data-bind="attr: {title: mainLabel,
-                                    placeholder: mainLabel},
-                            textInput: (selectedMainNode() ? selectedMainNode().name : '')"
-                  type="text"
-                  data-toggle="tooltip"
-                  class="form-control text-center"
-                  disabled>
-                </input>
-              </div>
-              <div class="col">
-                <input
-                  id="subName"
-                  data-bind="attr: {title: subLabel,
-                                    placeholder: subLabel},
-                            textInput: (selectedSubNode() ? selectedSubNode().name : '')"
-                  type="text"
-                  data-toggle="tooltip"
-                  class="form-control text-center"
-                  disabled>
-                </input>
-              </div>
-              <div class="col-1">
-                <input
-                  id="itemSortIndex"
-                  data-bind="attr: {title: sortIndexLabel,
-                                    placeholder: '#'},
-                            textInput: (selectedItem() ? selectedItem().sortIndex : '')"
-                  type="text"
-                  data-toggle="tooltip"
-                  class="form-control text-center mt-item-edit-control"
-                  title="sort index"
-                  disabled>
-                </input>
-              </div>
-              <div class="col">
-                <input
-                  id="itemName"
-                  data-bind="attr: {title: itemLabel,
-                                    placeholder: itemLabel},
-                            textInput: (selectedItem() ? selectedItem().name : '')"
-                  type="text"
-                  data-toggle="tooltip"
-                  class="form-control text-center text mt-item-edit-control"
-                  disabled>
-                </input>
-              </div>
-              <div class="col-2 text-center">
+        <div  id="itemDetails" class="col-8 card"  style="height: 75vh;overflow-y: scroll;">
+          <div class="d-none d-sm-block">
+            <div class = "mt-item-edit-form">
+              <div class="row">
+                <div class="col">
+                  <input
+                    id="mainName"
+                    data-bind="attr: {title: (selectedMainNode() ? selectedMainNode().name : ''),
+                                      placeholder: mainLabel},
+                              textInput: (selectedMainNode() ? selectedMainNode().name : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col">
+                  <input
+                    id="subName"
+                    data-bind="attr: {title: (selectedSubNode() ? selectedSubNode().name : ''),
+                                      placeholder: subLabel},
+                              textInput: (selectedSubNode() ? selectedSubNode().name : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col-1">
+                  <input
+                    id="itemSortIndex"
+                    data-bind="attr: {title: sortIndexLabel,
+                                      placeholder: '#'},
+                              textInput: (selectedItem() ? selectedItem().sortIndex : ''),
+                              visible: $root.type() === 'books'"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center mt-item-edit-control"
+                    title="sort index"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col">
+                  <input
+                    id="itemName"
+                    data-bind="attr: {title: (selectedItem() ? selectedItem().name : ''),
+                                      placeholder: itemLabel},
+                              textInput: (selectedItem() ? selectedItem().name : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center text mt-item-edit-control"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col-2 text-center">
 
-                <input id="tried"
-                       data-bind="checked: (selectedItem() ? selectedItem().haveTried : false)"
-                       class="checkbox mt-item-edit-control"
-                       type="checkbox"
-                       disabled></input>
-                <label for="tried" class="label" data-bind="text: triedLabel"></label>
+                  <input id="tried"
+                         data-bind="checked: (selectedItem() ? selectedItem().haveTried : false)"
+                         class="checkbox mt-item-edit-control"
+                         type="checkbox"
+                         disabled></input>
+                  <label for="tried" class="label" data-bind="text: triedLabel"></label>
+                </div>
               </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                <div class="row">
-                <label for="nodeInfo1" class="col-2 label" data-bind="text: nodeInfo1Label() + ':'"></label>
-                <input id="nodeInfo1"
-                       data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo1Key()] : ''),
-                                  attr:{placeholder: nodeInfo1Label()}"
-                         class="col form-control mt-item-edit-control"
-                         type="text"
-                         disabled></input>
-                </div>
-                <div class="row">
-                  <label for="nodeInfo2" class="col-2 label" data-bind="text: nodeInfo2Label() + ':'"></label>
-                  <input id="nodeInfo2"
-                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo2Key()] : ''),
-                                    attr:{placeholder: nodeInfo2Label()}"
-                         class="col form-control mt-item-edit-control"
-                         type="text"
-                         disabled></input>
-                </div>
-                <div class="row">
-                  <label for="nodeInfo3" class="col-2 label" data-bind="text: nodeInfo3Label() + ':'"></label>
-                  <input id="nodeInfo3"
-                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo3Key()] : ''),
-                                    attr:{placeholder: nodeInfo3Label()}"
-                         class="col form-control mt-item-edit-control"
-                         type="text"
-                         disabled></input>
-                </div>
-                <div class="row">
-                  <label for="nodeInfo4" class="col-2 label" data-bind="text: nodeInfo4Label() + ':'"></label>
-                  <input id="nodeInfo4"
-                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo4Key()] : ''),
-                                    attr:{placeholder: nodeInfo4Label()}"
-                         class="col form-control mt-item-edit-control"
-                         type="text"
-                         disabled></input>
-                  <button class="btn btn-secondary btn-sm col-1 mt-item-edit-control"
-                     data-toggle="tooltip"
-                     data-bind="click: fillItemFromGoogle,
-                                visible: type() === 'books',
-                                attr: {title: 'Attempt to fill information from books.google.com'}"
-                     disabled>
-                     <span data-bind="html: fillItemFromGoogleIcon"></span>
-                  </button>
-                </div>
-                <div class="row">
-                  <label for="nodeInfo5" class="col-2 label"
-                         data-bind="text: nodeInfo5Label() + ':'"></label>
-                  <input id="nodeInfo5"
-                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo5Key()] : ''),
-                                    attr:{placeholder: nodeInfo5Label()}"
-                         class="col form-control mt-item-edit-control"
-                         type="text"
-                         disabled></input>
-                </div>
-                <div class="row">
-                  <div class="col">
-                    <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
-                            title="Edit link"
-                            data-bind="click: $root.beginEditItemLink"
-                            disabled>
-                            <span class="fa fa-edit fa-xs"></span>
+              <div class="row">
+                <div class="col">
+                  <div class="row">
+                  <label for="nodeInfo1" class="col-2 label" data-bind="text: nodeInfo1Label() + ':'"></label>
+                  <input id="nodeInfo1"
+                         data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo1Key()] : ''),
+                                    attr:{placeholder: nodeInfo1Label()}"
+                           class="col form-control mt-item-edit-control"
+                           type="text"
+                           disabled></input>
+                  </div>
+                  <div class="row">
+                    <label for="nodeInfo2" class="col-2 label" data-bind="text: nodeInfo2Label() + ':'"></label>
+                    <input id="nodeInfo2"
+                           data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo2Key()] : ''),
+                                      attr:{placeholder: nodeInfo2Label()}"
+                           class="col form-control mt-item-edit-control"
+                           type="text"
+                           disabled></input>
+                  </div>
+                  <div class="row">
+                    <label for="nodeInfo3" class="col-2 label" data-bind="text: nodeInfo3Label() + ':'"></label>
+                    <input id="nodeInfo3"
+                           data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo3Key()] : ''),
+                                      attr:{placeholder: nodeInfo3Label()}"
+                           class="col form-control mt-item-edit-control"
+                           type="text"
+                           disabled></input>
+                  </div>
+                  <div class="row">
+                    <label for="nodeInfo4" class="col-2 label" data-bind="text: nodeInfo4Label() + ':'"></label>
+                    <input id="nodeInfo4"
+                           data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo4Key()] : ''),
+                                      attr:{placeholder: nodeInfo4Label()}"
+                           class="col form-control mt-item-edit-control"
+                           type="text"
+                           disabled></input>
+                    <button class="btn btn-secondary btn-sm col-1 mt-item-edit-control"
+                       data-toggle="tooltip"
+                       data-bind="click: fillItemFromGoogle,
+                                  visible: type() === 'books',
+                                  attr: {title: 'Attempt to fill information from books.google.com'}"
+                       disabled>
+                       <span data-bind="html: fillItemFromGoogleIcon"></span>
                     </button>
-                    <label for="nodeInfo6" class="col-2 label" data-bind="text: nodeInfo6Label() + ':'"></label>
-                    <a id="nodeInfo6"
-                       data-bind="text: (selectedItem() ? selectedItem().name(): ''),
-                                  attr: {href: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo6Key()] : '')}"
-                       class="col">
-                    </a>
+                  </div>
+                  <div class="row">
+                    <label for="nodeInfo5" class="col-2 label"
+                           data-bind="text: nodeInfo5Label() + ':'"></label>
+                    <input id="nodeInfo5"
+                           data-bind="textInput: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo5Key()] : ''),
+                                      attr:{placeholder: nodeInfo5Label()}"
+                           class="col form-control mt-item-edit-control"
+                           type="text"
+                           disabled></input>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
+                              title="Edit link"
+                              data-toggle="tooltip"
+                              data-bind="click: $root.beginEditItemLink"
+                              disabled>
+                              <span class="fa fa-edit fa-xs"></span>
+                      </button>
+                      <label for="nodeInfo6" class="col-2 label" data-bind="text: nodeInfo6Label() + ':'"></label>
+                      <a id="nodeInfo6"
+                         data-bind="text: (selectedItem() ? selectedItem().name(): ''),
+                                    attr: {href: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo6Key()] : '')}"
+                         class="col">
+                      </a>
+                    </div>
                   </div>
                 </div>
+                <div class="col-2">
+                  <input
+                    id="triedDate"
+                    data-bind="attr: {title: 'Date ' + triedLabel(),
+                                      placeholder: 'Date ' + triedLabel()},
+                              textInput: (selectedItem() ? selectedItem().dateTried : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center mt-item-edit-control"
+                    disabled>
+                  </input>
+                  <img id="itemImage" class="img-responsive"
+                       data-bind="attr:{src: (selectedItem() ? selectedItem().image : '')}"></img>
+                  <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
+                          title="Edit image"
+                          data-toggle="tooltip"
+                          data-boundary="viewport"
+                          data-bind="click: editItemImage,
+                                     visible: false"
+                          disabled>
+                          <span class="fa fa-edit fa-xs"></span>
+                  </button>
+                </div>
               </div>
-              <div class="col-2">
-                <input
-                  id="triedDate"
-                  data-bind="attr: {title: 'Date ' + triedLabel(),
-                                    placeholder: 'Date ' + triedLabel()},
-                            textInput: (selectedItem() ? selectedItem().dateTried : '')"
-                  type="text"
-                  data-toggle="tooltip"
-                  class="form-control text-center mt-item-edit-control"
-                  disabled>
-                </input>
-                <img id="itemImage" class="img-responsive" src="images/book-generic.jpeg"></img>
-                <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
-                        title="Edit image"
-                        data-bind="click: editItemImage"
-                        disabled>
-                        <span class="fa fa-edit fa-xs"></span>
-                </button>
+              <div class="row">
+                <div class="col">
+                  <label for="itemDescription" class="label">Description:</label>
+                  <textarea
+                    id="itemDescription"
+                    data-bind="textInput: (selectedItem() ? selectedItem().description : ''),
+                               attr: {title: (selectedItem() ? selectedItem().nodeDescriptionTooltip : '')}"
+                    type="textarea"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-wrap mt-item-edit-control"
+                    placeholder="Description"
+                    disabled>
+                  </textarea>
+                </div>
               </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                <label for="itemDescription" class="label">Description:</label>
-                <textarea
-                  id="itemDescription"
-                  data-bind="textInput: (selectedItem() ? selectedItem().description : ''),
-                             attr: {title: (selectedItem() ? selectedItem().nodeDescriptionTooltip : '')}"
-                  type="textarea"
-                  data-toggle="tooltip"
-                  class="form-control text-wrap mt-item-edit-control"
-                  placeholder="Description"
-                  disabled>
-                </textarea>
+              <div class="row">
+                <div class="col-1">
+                  <label for="reviewedDate" class="label">Reviewed:</label>
+                </div>
+                <div class="col-2">
+                  <input
+                    id="reviewedDate"
+                    data-bind="textInput: (selectedItem() ? selectedItem().dateReviewed : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    title="Review Date"
+                    class="form-control text-center mt-item-edit-control"
+                    placeholder="Review Date"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col-1 text-right">
+                  <label for="rating" class="label">Rating(0-5):</label>
+                </div>
+                <div class="col-2">
+                  <input
+                    id="rating"
+                    data-bind="textInput: (selectedItem() ? selectedItem().rating : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    title="Rating"
+                    class="form-control text-center mt-item-edit-control"
+                    placeholder="Rating"
+                    disabled>
+                  </input>
+                </div>
               </div>
-            </div>
-            <div class="row">
-              <div class="col-1">
-                <label for="reviewedDate" class="label">Reviewed:</label>
-              </div>
-              <div class="col-2">
-                <input
-                  id="reviewedDate"
-                  data-bind="textInput: (selectedItem() ? selectedItem().dateReviewed : '')"
-                  type="text"
-                  data-toggle="tooltip"
-                  title="Reviewd Date"
-                  class="form-control text-center mt-item-edit-control"
-                  placeholder="Review Date"
-                  disabled>
-                </input>
-              </div>
-              <div class="col-1 text-right">
-                <label for="rating" class="label">Rating(0-5):</label>
-              </div>
-              <div class="col-2">
-                <input
-                  id="rating"
-                  data-bind="textInput: (selectedItem() ? selectedItem().rating : '')"
-                  type="text"
-                  data-toggle="tooltip"
-                  title="Rating"
-                  class="form-control text-center mt-item-edit-control"
-                  placeholder="Rating"
-                  disabled>
-                </input>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col">
-                <textarea
-                  id="itemReview"
-                  data-bind="textInput: (selectedItem() ? selectedItem().review : '')"
-                  type="textarea"
-                  data-toggle="tooltip"
-                  class="form-control text-wrap mt-item-edit-control"
-                  placeholder="Review"
-                  disabled>
-                </textarea>
+              <div class="row">
+                <div class="col">
+                  <textarea
+                    id="itemReview"
+                    data-bind="textInput: (selectedItem() ? selectedItem().review : ''),
+                               attr: {title: (selectedItem() ? selectedItem().nodeReviewTooltip : '')}"
+                    type="textarea"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-wrap mt-item-edit-control"
+                    placeholder="Review"
+                    disabled>
+                  </textarea>
+                </div>
               </div>
             </div>
           </div>
@@ -820,6 +842,20 @@
         </div>
       </div>
     </div>
+    <div class="modal hide" id="loadingDialog"  tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Loading...</h5>
+          </div>
+          <div class="modal-body">
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="jquery/jquery-3.3.1.min.js"></script>
     <script>
@@ -889,7 +925,7 @@
       self.forgettableAspects = ['children', 'collapsed',
                                  'uneditedData', 'forgettableAspects',
                                  'changed', 'nodeTooltip', 'nodeDescriptionTooltip',
-                                 'leavesNeeded'];
+                                 'nodeReviewTooltip','leavesNeeded'];
       if(data) {
         self.loadData(data);
       }
@@ -916,6 +952,9 @@
         self.nodeDescriptionTooltip = ko.pureComputed(function() {
           return (self.description() ? self.description() : '');
         });
+        self.nodeReviewTooltip = ko.pureComputed(function() {
+          return (self.review() ? self.review() : '');
+        });
         self.leavesNeeded = ko.pureComputed(function() {
           var needed = 0;
           var leaves = self.findLeaves();
@@ -926,6 +965,21 @@
           }
           return needed;
         });
+        self.image = ko.computed(function() {
+          var image = '';
+          if(nodesViewModel.type() === 'books') {
+            image = 'images/book.jpeg';
+          } else if(nodesViewModel.type() === 'beer') {
+            image = "images/beer.png";
+          } else if(nodesViewModel.type() === 'wine') {
+            image = "images/wine.png";
+          } else if(nodesViewModel.type() === 'spirits') {
+            image = "images/spirits.png";
+          } else if(nodesViewModel.type() === 'camping') {
+            image = "images/camping.png";
+          }
+          return image;
+        })
       }
     }
 
@@ -1135,85 +1189,103 @@
                         'wine':'Winery',
                         'beer':'Brewery',
                         'spirits':'Distillery',
+                        'campgrounds':'State',
                         'other':'Main'}
       self.subLabels = {'books':'Series',
                         'wine':'Type',
                         'beer':'Type',
                         'spirits':'Type',
+                        'campgrounds':'Region',
                         'other':'Sub'}
       self.itemLabels = {'books':'Book',
                         'wine':'Name',
                         'beer':'Name',
                         'spirits':'Name',
+                        'campgrounds':'Name',
                         'other':'Item'}
       self.triedLabels = {'books':'Read',
                         'wine':'Tried',
                         'beer':'Tried',
                         'spirits':'Tried',
+                        'campgrounds':'Camped',
                         'other':'Tried'}
       self.sortIndexLabels = {'books':'Series Order',
                              'wine':'n/a',
                              'beer':'n/a',
+                             'spirits':'n/a',
+                             'campgrounds':'n/a',
                              'other':'Sort Index'}
       self.nodeInfo1Keys = {'books':'publisher',
                             'wine':'vintage',
                             'beer':'vintage',
                             'spirits':'vintage',
+                            'campgrounds':'type',
                             'other':'nodeinfo1'}
       self.nodeInfo2Keys = {'books':'publishedDate',
                             'wine':'region',
                             'beer':'region',
                             'spirits':'region',
+                            'campgrounds':'dates',
                             'other':'nodeinfo2'}
       self.nodeInfo3Keys = {'books':'pageCount',
                             'wine':'ABV',
                             'beer':'ABV',
                             'spirits':'ABV',
+                            'campgrounds':'amenities',
                             'other':'nodeinfo3'}
       self.nodeInfo4Keys = {'books':'ISBN',
                             'wine':'taste',
                             'beer':'IBU',
                             'spirits':'taste',
+                            'campgrounds':'sites',
                             'other':'nodeinfo4'}
       self.nodeInfo5Keys = {'books':'ASIN',
                             'wine':'color',
                             'beer':'SRM',
                             'spirits':'color',
+                            'campgrounds':'cost',
                             'other':'nodeinfo5'}
       self.nodeInfo6Keys = {'books':'googleLink',
                             'wine':'link',
                             'beer':'link',
                             'spirits':'link',
+                            'campgrounds':'link',
                             'other':'nodeinfo6'}
       self.nodeInfo1Labels = {'books':'Publisher',
                             'wine':'Vintage',
                             'beer':'Vintage',
                             'spirits':'Vintage',
+                            'campgrounds':'Type',
                             'other':'Node Info 1'}
       self.nodeInfo2Labels = {'books':'Published',
                             'wine':'Region',
                             'beer':'Region',
                             'spirits':'Region',
+                            'campgrounds':'Dates Open',
                             'other':'Node Info 2'}
       self.nodeInfo3Labels = {'books':'Pages',
                             'wine':'ABV',
                             'beer':'ABV',
                             'spirits':'ABV',
+                            'campgrounds':'Amenities',
                             'other':'Node Info 3'}
       self.nodeInfo4Labels = {'books':'ISBN',
                             'wine':'Taste',
                             'beer':'IBU',
                             'spirits':'Taste',
+                            'campgrounds':'Site details',
                             'other':'Node Info 4'}
       self.nodeInfo5Labels = {'books':'ASIN',
                             'wine':'Color',
                             'beer':'SRM',
                             'spirits':'Color',
+                            'campgrounds':'Cost',
                             'other':'Node Info 5'}
       self.nodeInfo6Labels = {'books':'Link',
                             'wine':'Link',
                             'beer':'Link',
                             'spirits':'Link',
+                            'campgrounds':'Link',
                             'other':'Node Info 6'}
       self.defaultGoogleIcon = 'G';
       self.defaultItemSaveIcon = 'Save';
@@ -1236,6 +1308,7 @@
         {type: ko.observable('beer')},
         {type: ko.observable('wine')},
         {type: ko.observable('spirits')},
+        {type: ko.observable('campgrounds')},
         {type: ko.observable('other')}
       ]);
       self.mainLabel = ko.observable();
@@ -1367,7 +1440,7 @@
       var self = this;
       nodesViewModel.unloadItem();
       nodesViewModel.type($('#typesSelect').val());
-      nodesViewModel.setType()
+      nodesViewModel.setType();
     }
 
     NodesViewModel.prototype.setLabels = function() {
@@ -1394,21 +1467,38 @@
       $('.mt-add-buttons button').tooltip('enable');
     }
 
-    NodesViewModel.prototype.updateTooltips = function() {
-      $ ('span[data-toggle="tooltip"]').tooltip('dispose');
-      $ ('span[data-toggle="tooltip"]').tooltip('enable');
+    NodesViewModel.prototype.updateItemListTooltips = function() {
+      var self = this;
+      $('#itemList [data-toggle="tooltip"]').tooltip('dispose');
+      $('#itemList [data-toggle="tooltip"]').tooltip('enable');
+      self.updateItemEditTooltips();
+    }
+
+    NodesViewModel.prototype.updateControlsTooltips = function() {
+      var self = this;
+      $('#controls [data-toggle="tooltip"]').tooltip('dispose');
+      $('#controls [data-toggle="tooltip"]').tooltip('enable');
+    }
+
+    NodesViewModel.prototype.updateItemEditTooltips = function() {
+      var self = this;
+      $('#itemDetails [data-toggle="tooltip"]').tooltip('dispose');
+      $('#itemDetails [data-toggle="tooltip"]').tooltip('enable');
     }
 
     NodesViewModel.prototype.setType = function() {
       var self = this;
       self.setLabels();
       $("html").addClass("waiting");
+      $('#loadingDialog').modal('show');
       return nodesViewModel.getNodes()
       .then(function() {
         setDefaultAlert();
         $('.fa, .far').css({'visibility':'visible'});
         $('.mt-add-buttons, .nav-item, .nav-link').css({'visibility':'visible'});
-        self.updateTooltips();
+        self.updateItemListTooltips();
+        self.updateControlsTooltips();
+        $('#loadingDialog').modal('hide');
       })
     }
 
@@ -1579,6 +1669,7 @@
         $('.mt-edit-buttons, .mt-item-edit-form').css({'visibility':'visible'});
       }
       self.disableItemEdit();
+      self.updateItemEditTooltips();
     }
 
     NodesViewModel.prototype.unloadItem = function() {
@@ -1767,7 +1858,7 @@
         $("html").removeClass("waiting");
         self.selectedItem().changed = false;
         self.selectedItem().rememberUneditedData();
-        self.updateTooltips();
+        self.updateItemListTooltips();
         setAlert('Successfully updated "' + response.name +'"', 'alert-success');
         //self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
       })
@@ -1806,7 +1897,7 @@
         $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
         setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
         self.mainNodes.sort(self.sortByIndexOrPubDateOrName);
-        self.updateTooltips();
+        self.updateItemListTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1842,7 +1933,7 @@
         $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
         setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
         self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
-        self.updateTooltips();
+        self.updateItemListTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1905,7 +1996,7 @@
         $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
         setAlert('Successfully Added "' + node.name +'"', 'alert-success');
         $('.fa, .far').css({'visibility':'visible'});
-        self.updateTooltips();
+        self.updateItemListTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1965,7 +2056,7 @@
         self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
         $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
         $('.fa, .far').css({'visibility':'visible'});
-        self.updateTooltips();
+        self.updateItemListTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
