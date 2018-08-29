@@ -211,7 +211,8 @@
                       <span data-toggle="tooltip"
                             data-html="true"
                             data-bind="text: name,
-                                       attr: {title: nodeTooltip}"
+                                       attr: {title: nodeTooltip,
+                                              'data-original-title': nodeTooltip}"
                             data-boundary="viewport"
                             class="mt-tooltip">
                       </span>
@@ -267,7 +268,8 @@
                             <span data-toggle="tooltip"
                                   data-html="true"
                                   data-bind="text: name,
-                                             attr: {title: nodeTooltip}"
+                                             attr: {title: nodeTooltip,
+                                                    'data-original-title': nodeTooltip}"
                                   data-boundary="viewport"
                                   class="mt-tooltip">
                             </span>
@@ -306,7 +308,9 @@
                                 </span>
                                 <span data-toggle="tooltip"
                                       data-bind="text: name,
-                                                 attr:{title: name, 'mt-data-id': id }"
+                                                 attr:{title: name,
+                                                       'data-original-title': name,
+                                                       'mt-data-id': id }"
                                       data-boundary="viewport">
                                 </span>
                               </span>
@@ -337,6 +341,7 @@
                   <input
                     id="mainName"
                     data-bind="attr: {title: (selectedMainNode() ? selectedMainNode().name : ''),
+                                      'data-original-title': (selectedMainNode() ? selectedMainNode().name : ''),
                                       placeholder: mainLabel},
                               textInput: (selectedMainNode() ? selectedMainNode().name : '')"
                     type="text"
@@ -350,6 +355,7 @@
                   <input
                     id="subName"
                     data-bind="attr: {title: (selectedSubNode() ? selectedSubNode().name : ''),
+                                      'data-original-title': (selectedSubNode() ? selectedSubNode().name : ''),
                                       placeholder: subLabel},
                               textInput: (selectedSubNode() ? selectedSubNode().name : '')"
                     type="text"
@@ -378,6 +384,7 @@
                   <input
                     id="itemName"
                     data-bind="attr: {title: (selectedItem() ? selectedItem().name : ''),
+                                      'data-original-title': (selectedItem() ? selectedItem().name : ''),
                                       placeholder: itemLabel},
                               textInput: (selectedItem() ? selectedItem().name : '')"
                     type="text"
@@ -475,6 +482,7 @@
                   <input
                     id="triedDate"
                     data-bind="attr: {title: 'Date ' + triedLabel(),
+                                      'data-original-title': 'Date ' + triedLabel(),
                                       placeholder: 'Date ' + triedLabel()},
                               textInput: (selectedItem() ? selectedItem().dateTried : '')"
                     type="text"
@@ -502,7 +510,8 @@
                   <textarea
                     id="itemDescription"
                     data-bind="textInput: (selectedItem() ? selectedItem().description : ''),
-                               attr: {title: (selectedItem() ? selectedItem().nodeDescriptionTooltip : '')}"
+                               attr: {title: (selectedItem() ? selectedItem().nodeDescriptionTooltip : ''),
+                                      'data-original-title': (selectedItem() ? selectedItem().nodeDescriptionTooltip : '')}"
                     type="textarea"
                     data-toggle="tooltip"
                     data-boundary="viewport"
@@ -551,7 +560,8 @@
                   <textarea
                     id="itemReview"
                     data-bind="textInput: (selectedItem() ? selectedItem().review : ''),
-                               attr: {title: (selectedItem() ? selectedItem().nodeReviewTooltip : '')}"
+                               attr: {title: (selectedItem() ? selectedItem().nodeReviewTooltip : ''),
+                                      'data-original-title': (selectedItem() ? selectedItem().nodeReviewTooltip : '')}"
                     type="textarea"
                     data-toggle="tooltip"
                     data-boundary="viewport"
@@ -975,7 +985,7 @@
             image = "images/wine.png";
           } else if(nodesViewModel.type() === 'spirits') {
             image = "images/spirits.png";
-          } else if(nodesViewModel.type() === 'camping') {
+          } else if(nodesViewModel.type() === 'campgrounds') {
             image = "images/camping.png";
           }
           return image;
@@ -1198,10 +1208,10 @@
                         'campgrounds':'Region',
                         'other':'Sub'}
       self.itemLabels = {'books':'Book',
-                        'wine':'Name',
-                        'beer':'Name',
-                        'spirits':'Name',
-                        'campgrounds':'Name',
+                        'wine':'Wine',
+                        'beer':'Beer',
+                        'spirits':'Spirit',
+                        'campgrounds':'Campground',
                         'other':'Item'}
       self.triedLabels = {'books':'Read',
                         'wine':'Tried',
@@ -1469,20 +1479,17 @@
 
     NodesViewModel.prototype.updateItemListTooltips = function() {
       var self = this;
-      $('#itemList [data-toggle="tooltip"]').tooltip('dispose');
       $('#itemList [data-toggle="tooltip"]').tooltip('enable');
       self.updateItemEditTooltips();
     }
 
     NodesViewModel.prototype.updateControlsTooltips = function() {
       var self = this;
-      $('#controls [data-toggle="tooltip"]').tooltip('dispose');
       $('#controls [data-toggle="tooltip"]').tooltip('enable');
     }
 
     NodesViewModel.prototype.updateItemEditTooltips = function() {
       var self = this;
-      $('#itemDetails [data-toggle="tooltip"]').tooltip('dispose');
       $('#itemDetails [data-toggle="tooltip"]').tooltip('enable');
     }
 
@@ -1669,7 +1676,6 @@
         $('.mt-edit-buttons, .mt-item-edit-form').css({'visibility':'visible'});
       }
       self.disableItemEdit();
-      self.updateItemEditTooltips();
     }
 
     NodesViewModel.prototype.unloadItem = function() {
@@ -1858,9 +1864,7 @@
         $("html").removeClass("waiting");
         self.selectedItem().changed = false;
         self.selectedItem().rememberUneditedData();
-        self.updateItemListTooltips();
         setAlert('Successfully updated "' + response.name +'"', 'alert-success');
-        //self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1897,7 +1901,6 @@
         $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
         setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
         self.mainNodes.sort(self.sortByIndexOrPubDateOrName);
-        self.updateItemListTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1933,7 +1936,6 @@
         $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
         setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
         self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
-        self.updateItemListTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -1996,7 +1998,6 @@
         $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
         setAlert('Successfully Added "' + node.name +'"', 'alert-success');
         $('.fa, .far').css({'visibility':'visible'});
-        self.updateItemListTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
@@ -2056,7 +2057,6 @@
         self.selectedSubNode().children.sort(self.sortByIndexOrPubDateOrName);
         $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
         $('.fa, .far').css({'visibility':'visible'});
-        self.updateItemListTooltips();
       })
       .catch(function(err) {
         $("html").removeClass("waiting");
