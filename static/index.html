@@ -371,7 +371,7 @@
                     data-bind="attr: {title: sortIndexLabel,
                                       placeholder: '#'},
                               textInput: (selectedItem() ? selectedItem().sortIndex : ''),
-                              visible: $root.type() === 'books'"
+                              visible: $root.type() === 'books' || $root.type() === 'videos'"
                     type="text"
                     data-toggle="tooltip"
                     data-boundary="viewport"
