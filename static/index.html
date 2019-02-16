@@ -987,6 +987,8 @@
             image = "images/spirits.png";
           } else if(nodesViewModel.type() === 'campgrounds') {
             image = "images/camping.png";
+          } else if(nodesViewModel.type() === 'tv') {
+            image = "images/tv.png";
           }
           return image;
         })
@@ -1200,102 +1202,119 @@
                         'beer':'Brewery',
                         'spirits':'Distillery',
                         'campgrounds':'State',
+                        'videos':'Genre',
                         'other':'Main'}
       self.subLabels = {'books':'Series',
                         'wine':'Type',
                         'beer':'Type',
                         'spirits':'Type',
                         'campgrounds':'Region',
+                        'videos':'Type',
                         'other':'Sub'}
       self.itemLabels = {'books':'Book',
                         'wine':'Wine',
                         'beer':'Beer',
                         'spirits':'Spirit',
                         'campgrounds':'Campground',
+                        'videos':'Name',
                         'other':'Item'}
       self.triedLabels = {'books':'Read',
                         'wine':'Tried',
                         'beer':'Tried',
                         'spirits':'Tried',
                         'campgrounds':'Camped',
+                        'videos':'Viewed'
                         'other':'Tried'}
       self.sortIndexLabels = {'books':'Series Order',
                              'wine':'n/a',
                              'beer':'n/a',
                              'spirits':'n/a',
                              'campgrounds':'n/a',
+                             'videos':'Series Order',
                              'other':'Sort Index'}
       self.nodeInfo1Keys = {'books':'publisher',
                             'wine':'vintage',
                             'beer':'vintage',
                             'spirits':'vintage',
                             'campgrounds':'type',
+                            'videos':'provider',
                             'other':'nodeinfo1'}
       self.nodeInfo2Keys = {'books':'publishedDate',
                             'wine':'region',
                             'beer':'region',
                             'spirits':'region',
                             'campgrounds':'dates',
+                            'videos':'aired',
                             'other':'nodeinfo2'}
       self.nodeInfo3Keys = {'books':'pageCount',
                             'wine':'ABV',
                             'beer':'ABV',
                             'spirits':'ABV',
                             'campgrounds':'amenities',
+                            'videos':'epsiodes',
                             'other':'nodeinfo3'}
       self.nodeInfo4Keys = {'books':'ISBN',
                             'wine':'taste',
                             'beer':'IBU',
                             'spirits':'taste',
                             'campgrounds':'sites',
+                            'videos':'length',
                             'other':'nodeinfo4'}
       self.nodeInfo5Keys = {'books':'ASIN',
                             'wine':'color',
                             'beer':'SRM',
                             'spirits':'color',
                             'campgrounds':'cost',
+                            'videos':'actors',
                             'other':'nodeinfo5'}
       self.nodeInfo6Keys = {'books':'googleLink',
                             'wine':'link',
                             'beer':'link',
                             'spirits':'link',
                             'campgrounds':'link',
+                            'videos':'link',
                             'other':'nodeinfo6'}
       self.nodeInfo1Labels = {'books':'Publisher',
                             'wine':'Vintage',
                             'beer':'Vintage',
                             'spirits':'Vintage',
                             'campgrounds':'Type',
+                            'videos':'Provider',
                             'other':'Node Info 1'}
       self.nodeInfo2Labels = {'books':'Published',
                             'wine':'Region',
                             'beer':'Region',
                             'spirits':'Region',
                             'campgrounds':'Dates Open',
+                            'videos':'First Aired',
                             'other':'Node Info 2'}
       self.nodeInfo3Labels = {'books':'Pages',
                             'wine':'ABV',
                             'beer':'ABV',
                             'spirits':'ABV',
                             'campgrounds':'Amenities',
+                            'videos':'# Episodes',
                             'other':'Node Info 3'}
       self.nodeInfo4Labels = {'books':'ISBN',
                             'wine':'Taste',
                             'beer':'IBU',
                             'spirits':'Taste',
                             'campgrounds':'Site details',
+                            'videos':'Avg. Length',
                             'other':'Node Info 4'}
       self.nodeInfo5Labels = {'books':'ASIN',
                             'wine':'Color',
                             'beer':'SRM',
                             'spirits':'Color',
                             'campgrounds':'Cost',
+                            'videos':'Actors',
                             'other':'Node Info 5'}
       self.nodeInfo6Labels = {'books':'Link',
                             'wine':'Link',
                             'beer':'Link',
                             'spirits':'Link',
                             'campgrounds':'Link',
+                            'videos':'Link',
                             'other':'Node Info 6'}
       self.defaultGoogleIcon = 'G';
       self.defaultItemSaveIcon = 'Save';
@@ -1319,6 +1338,7 @@
         {type: ko.observable('wine')},
         {type: ko.observable('spirits')},
         {type: ko.observable('campgrounds')},
+        {type: ko.observable('videos')},
         {type: ko.observable('other')}
       ]);
       self.mainLabel = ko.observable();
