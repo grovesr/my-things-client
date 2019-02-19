@@ -211,8 +211,7 @@
                       <span data-toggle="tooltip"
                             data-html="true"
                             data-bind="text: name,
-                                       attr: {title: nodeTooltip,
-                                              'data-original-title': nodeTooltip}"
+                                       attr: {'data-original-title': nodeTooltip}"
                             data-boundary="viewport"
                             class="mt-tooltip">
                       </span>
@@ -268,8 +267,7 @@
                             <span data-toggle="tooltip"
                                   data-html="true"
                                   data-bind="text: name,
-                                             attr: {title: nodeTooltip,
-                                                    'data-original-title': nodeTooltip}"
+                                             attr: {'data-original-title': nodeTooltip}"
                                   data-boundary="viewport"
                                   class="mt-tooltip">
                             </span>
@@ -510,8 +508,7 @@
                   <textarea
                     id="itemDescription"
                     data-bind="textInput: (selectedItem() ? selectedItem().description : ''),
-                               attr: {title: (selectedItem() ? selectedItem().nodeDescriptionTooltip : ''),
-                                      'data-original-title': (selectedItem() ? selectedItem().nodeDescriptionTooltip : '')}"
+                               attr: {'data-original-title': (selectedItem() ? selectedItem().nodeDescriptionTooltip : '')}"
                     type="textarea"
                     data-toggle="tooltip"
                     data-boundary="viewport"
@@ -560,8 +557,7 @@
                   <textarea
                     id="itemReview"
                     data-bind="textInput: (selectedItem() ? selectedItem().review : ''),
-                               attr: {title: (selectedItem() ? selectedItem().nodeReviewTooltip : ''),
-                                      'data-original-title': (selectedItem() ? selectedItem().nodeReviewTooltip : '')}"
+                               attr: {'data-original-title': (selectedItem() ? selectedItem().nodeReviewTooltip : '')}"
                     type="textarea"
                     data-toggle="tooltip"
                     data-boundary="viewport"
