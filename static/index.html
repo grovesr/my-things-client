@@ -128,36 +128,20 @@
             <div class="row mt-edit-buttons">
               <div class="col text-center">
                 <button
-                  data-bind="click: beginCancelItemEdit"
-                  title="Cancel"
-                  data-toggle="tooltip"
-                  class="btn btn-secondary btn-sm mt-item-edit-control"
-                  disabled>
-                  Cancel
-                </button>
-              </div>
-              <div class="col text-center">
-                <button
                   data-bind="click: beginDeleteItem,
                              html: itemDeleteIcon"
                   title="Delete"
                   data-toggle="tooltip"
-                  class="btn btn-secondary btn-sm mt-item-edit-control"
-                  disabled>
+                  class="btn btn-secondary btn-sm">
                 </button>
               </div>
               <div class="col text-center">
                 <button
-                  data-bind="click: saveItem,
-                             html: itemSaveIcon"
-                  title="Save"
-                  class="btn btn-secondary btn-sm mt-item-edit-control"
-                  disabled>
+                  data-bind="click: beginEditItem,
+                             html: itemEditIcon"
+                  title="Edit"
+                  class="btn btn-secondary btn-sm">
                 </button>
-              </div>
-              <div class="col-1 form-inline text-center">
-                <input id="enItemEd" class="form-horizontal checkbox" type="checkbox"></input>
-                <label for="enItemEd" class="label">Edit</label>
               </div>
             </div>
           </div>
@@ -719,6 +703,253 @@
         </div>
       </div>
     </div>
+    <div id="editItemNode" class="modal hide fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document" style="width: 90%; max-width: 90%">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class = "mt-item-edit-form">
+              <div class="row">
+                <div class="col">
+                  <input
+                    id="mainNodeName"
+                    data-bind="attr: {'data-original-title': (mainNode() ? mainNode().name : ''),
+                                      placeholder: nodesViewModel.mainLabel},
+                              textInput: (mainNode() ? mainNode().name : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col">
+                  <input
+                    id="subNodeName"
+                    data-bind="attr: {'data-original-title': (subNode() ? subNode().name : ''),
+                                      placeholder: nodesViewModel.subLabel},
+                              textInput: (subNode() ? subNode().name : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col-1">
+                  <input
+                    id="itemNodeSortIndex"
+                    data-bind="attr: {title: nodesViewModel.sortIndexLabel,
+                                      placeholder: '#'},
+                              textInput: (itemNode() ? itemNode().sortIndex : ''),
+                              visible: nodesViewModel.type() === 'books' || nodesViewModel.type() === 'videos'"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center mt-item-edit-control"
+                    title="sort index"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col">
+                  <input
+                    id="itemNodeName"
+                    data-bind="attr: {'data-original-title': (itemNode() ? itemNode().name : ''),
+                                      placeholder: nodesViewModel.itemLabel},
+                              textInput: (itemNode() ? itemNode().name : '')"
+                    type="text"
+                    data-toggle="tooltip"
+                    data-boundary="viewport"
+                    class="form-control text-center text mt-item-edit-control"
+                    disabled>
+                  </input>
+                </div>
+                <div class="col-2 text-center">
+
+                  <input id="itemNodeTried"
+                         data-bind="checked: (itemNode() ? itemNode().haveTried : false)"
+                         class="checkbox mt-item-edit-control"
+                         type="checkbox"
+                         disabled></input>
+                  <label for="tried" class="label" data-bind="text: nodesViewModel.triedLabel"></label>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="row">
+                <label for="nodeInfo1" class="col-2 label" data-bind="text: nodesViewModel.nodeInfo1Label() + ':'"></label>
+                <input id="nodeInfo1"
+                       data-bind="textInput: (itemNode() ? itemNode().nodeInfo()[nodesViewModel.nodeInfo1Key()] : ''),
+                                  attr:{placeholder: nodesViewModel.nodeInfo1Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo2" class="col-2 label" data-bind="text: nodesViewModel.nodeInfo2Label() + ':'"></label>
+                  <input id="nodeInfo2"
+                         data-bind="textInput: (itemNode() ? itemNode().nodeInfo()[nodesViewModel.nodeInfo2Key()] : ''),
+                                    attr:{placeholder: nodesViewModel.nodeInfo2Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo3" class="col-2 label" data-bind="text: nodesViewModel.nodeInfo3Label() + ':'"></label>
+                  <input id="nodeInfo3"
+                         data-bind="textInput: (itemNode() ? itemNode().nodeInfo()[nodesViewModel.nodeInfo3Key()] : ''),
+                                    attr:{placeholder: nodesViewModel.nodeInfo3Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo4" class="col-2 label" data-bind="text: nodesViewModel.nodeInfo4Label() + ':'"></label>
+                  <input id="nodeInfo4"
+                         data-bind="textInput: (itemNode() ? itemNode().nodeInfo()[nodesViewModel.nodeInfo4Key()] : ''),
+                                    attr:{placeholder: nodesViewModel.nodeInfo4Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                  <button class="btn btn-secondary btn-sm col-1 mt-item-edit-control"
+                     data-toggle="tooltip"
+                     data-bind="click: itemNode.fillItemFromGoogle,
+                                visible: nodesViewModel.type() === 'books',
+                                attr: {title: 'Attempt to fill information from books.google.com'}"
+                     disabled>
+                     <span data-bind="html: nodesViewModel.fillItemFromGoogleIcon"></span>
+                  </button>
+                </div>
+                <div class="row">
+                  <label for="nodeInfo5" class="col-2 label"
+                         data-bind="text: nodesViewModel.nodeInfo5Label() + ':'"></label>
+                  <input id="nodeInfo5"
+                         data-bind="textInput: (itemNode() ? itemNode().nodeInfo()[nodesViewModel.nodeInfo5Key()] : ''),
+                                    attr:{placeholder: nodesViewModel.nodeInfo5Label()}"
+                         class="col form-control mt-item-edit-control"
+                         type="text"
+                         disabled></input>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
+                            title="Edit link"
+                            data-toggle="tooltip"
+                            data-bind="click: nodesViewModel.beginEditItemLink"
+                            disabled>
+                            <span class="fa fa-edit fa-xs"></span>
+                    </button>
+                    <label for="nodeInfo6" class="col-2 label" data-bind="text: nodesViewModel.nodeInfo6Label() + ':'"></label>
+                    <a id="nodeInfo6"
+                       data-bind="text: (itemNode() ? itemNode().name(): ''),
+                                  attr: {href: (itemNode() ? itemNode().nodeInfo()[nodesViewModel.nodeInfo6Key()] : '')}"
+                       class="col">
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-2">
+                <input
+                  id="triedDate"
+                  data-bind="attr: {title: 'Date ' + nodesViewModel.triedLabel(),
+                                    'data-original-title': 'Date ' + nodesViewModel.triedLabel(),
+                                    placeholder: 'Date ' + nodesViewModel.triedLabel()},
+                            textInput: (itemNode() ? itemNode().dateTried : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  data-boundary="viewport"
+                  class="form-control text-center mt-item-edit-control"
+                  disabled>
+                </input>
+                <img id="itemImage" class="img-responsive"
+                     data-bind="attr:{src: (itemNode() ? itemNode().image : '')}"></img>
+                <button class="btn btn-secondary btn-sm mt-edit-field-button mt-item-edit-control"
+                        title="Edit image"
+                        data-toggle="tooltip"
+                        data-boundary="viewport"
+                        data-bind="click: nodesViewModel.editItemImage,
+                                   visible: false"
+                        disabled>
+                        <span class="fa fa-edit fa-xs"></span>
+                </button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <label for="itemDescription" class="label">Description:</label>
+                <textarea
+                  id="itemDescription"
+                  data-bind="textInput: (itemNode() ? itemNode().description : ''),
+                             attr: {'data-original-title': (itemNode() ? itemNode().nodeDescriptionTooltip : '')}"
+                  type="textarea"
+                  data-toggle="tooltip"
+                  data-boundary="viewport"
+                  class="form-control text-wrap mt-item-edit-control"
+                  placeholder="Description"
+                  disabled>
+                </textarea>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-1">
+                <label for="reviewedDate" class="label">Reviewed:</label>
+              </div>
+              <div class="col-2">
+                <input
+                  id="reviewedDate"
+                  data-bind="textInput: (itemNode() ? itemNode().dateReviewed : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  data-boundary="viewport"
+                  title="Review Date"
+                  class="form-control text-center mt-item-edit-control"
+                  placeholder="Review Date"
+                  disabled>
+                </input>
+              </div>
+              <div class="col-1 text-right">
+                <label for="rating" class="label">Rating(0-5):</label>
+              </div>
+              <div class="col-2">
+                <input
+                  id="rating"
+                  data-bind="textInput: (itemNode() ? itemNode().rating : '')"
+                  type="text"
+                  data-toggle="tooltip"
+                  data-boundary="viewport"
+                  title="Rating"
+                  class="form-control text-center mt-item-edit-control"
+                  placeholder="Rating"
+                  disabled>
+                </input>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <textarea
+                  id="itemReview"
+                  data-bind="textInput: (itemNode() ? itemNode().review : ''),
+                             attr: {'data-original-title': (itemNode() ? itemNode().nodeReviewTooltip : '')}"
+                  type="textarea"
+                  data-toggle="tooltip"
+                  data-boundary="viewport"
+                  class="form-control text-wrap mt-item-edit-control"
+                  placeholder="Review"
+                  disabled>
+                </textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="editItemLink" class="modal hide fade" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -1191,6 +1422,101 @@
       self.changed = false;
     }
 
+    Node.prototype.copy = function() {
+      var self = this;
+      var nodeCopy = new Node();
+      Object.keys(self).forEach(function(aspect) {
+        if(self.forgettableAspects.indexOf(aspect) === -1) {
+          if( self[aspect]() && typeof self[aspect]() === 'object') {
+            nodeCopy[aspect] = ko.observable({});
+            Object.keys(self[aspect]()).forEach( function(nodeInfoAspect) {
+              nodeCopy[aspect]()[nodeInfoAspect]=ko.observable((self[aspect]()[nodeInfoAspect]()));
+            })
+          } else {
+            nodeCopy[aspect]=ko.observable(self[aspect]());
+          }
+        }
+      });
+      return nodeCopy;
+    }
+
+    Node.prototype.fillItemFromGoogle = function() {
+      var self = this;
+      if(!('ISBN' in self.nodeInfo()) || self.nodeInfo()['ISBN']() === null || self.nodeInfo()['ISBN']().length ===0) {
+        setAlert('No ISBN information in selected ' + nodesViewModel.itemLabel(), 'alert-danger');
+        return;
+      }
+      // remove any dashes
+      self.nodeInfo()['ISBN'](self.nodeInfo()['ISBN']().replace('-','').trim());
+      var url = 'https://www.googleapis.com/books/v1/volumes?q=';
+      url += encodeURIComponent('ISBN=' + self.nodeInfo()['ISBN']());
+      url += '&' + encodeURIComponent('key=' + secrets['MY_BOOKS_KEY']);
+      nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultSpinnerIcon);
+      self.ajax('GET', url)
+      .then(function(data) {
+        $("html").removeClass("waiting");
+        nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultGoogleIcon);
+        self.changed  = true;
+        var parsedData = {};
+        if(data.totalItems === 0) {
+          setAlert('No books found with ISBN = ' + self.nodeInfo()['ISBN'](), 'alert-danger');
+        } else {
+          if('title' in data.items[0].volumeInfo) {
+            parsedData['name'] = data.items[0].volumeInfo.title;
+          }
+          if('description' in data.items[0].volumeInfo) {
+            parsedData['description'] = data.items[0].volumeInfo.description;
+          }
+          if('publisher' in data.items[0].volumeInfo) {
+            parsedData['publisher'] = data.items[0].volumeInfo.publisher;
+          }
+          if('publishedDate' in data.items[0].volumeInfo) {
+            parsedData['publishedDate'] = data.items[0].volumeInfo.publishedDate;
+          }
+          if('pageCount' in data.items[0].volumeInfo) {
+            parsedData['pageCount'] = data.items[0].volumeInfo.pageCount;
+          }
+          if('industryIdentifiers' in data.items[0].volumeInfo) {
+            parsedIsbn = null
+            if(data.items[0].volumeInfo.industryIdentifiers.length >= 1) {
+              if(data.items[0].volumeInfo.industryIdentifiers.length >= 2) {
+                data.items[0].volumeInfo.industryIdentifiers.forEach(function(ident) {
+                  if(ident.type === 'ISBN_13') {
+                    parsedIsbn = ident.identifier;
+                  } else if(!parsedIsbn && ident.type === 'ISBN_10') {
+                    parsedIsbn = ident.identifier;
+                  }
+                })
+              } else {
+                parsedIsbn = data.items[0].volumeInfo.industryIdentifiers[0].identifier;
+              }
+            }
+            if(parsedIsbn) {
+              parsedData['ISBN'] = parsedIsbn;
+            }
+          }
+          if('infoLink' in data.items[0].volumeInfo) {
+            parsedData['googleLink'] = data.items[0].volumeInfo.infoLink;
+          }
+          self.updateNodeInfoData(parsedData);
+          setAlert('Filled information from books.google.com', 'alert-success');
+        }
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        nodesViewModel.fillItemFromGoogleIcon(self.defaultGoogleIcon);
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.fillItemFromGoogle ajax call: ' + errorMessage, 'alert-danger')
+        }
+      })
+    }
+
     var NodesViewModel = function() {
       var self = this;
       self.mainLabels = {'books':'Author',
@@ -1315,10 +1641,12 @@
       self.defaultGoogleIcon = 'G';
       self.defaultItemSaveIcon = 'Save';
       self.defaultItemDeleteIcon = 'Delete';
+      self.defaultItemEditIcon = 'Edit'
       self.defaultSpinnerIcon = '<i class="fa fa-spinner fa-spin"></i>';
       self.fillItemFromGoogleIcon = ko.observable(self.defaultGoogleIcon);
       self.itemSaveIcon = ko.observable(self.defaultItemSaveIcon);
       self.itemDeleteIcon = ko.observable(self.defaultItemDeleteIcon);
+      self.itemEditIcon = ko.observable(self.defaultItemEditIcon);
       self.defaultAlert = ko.observable();
       self.currentUser = ko.observable();
       self.currentUserId = null;
@@ -1691,7 +2019,6 @@
         // only do this if it is currently hidden
         $('.mt-edit-buttons, .mt-item-edit-form').css({'visibility':'visible'});
       }
-      self.disableItemEdit();
     }
 
     NodesViewModel.prototype.unloadItem = function() {
@@ -1780,6 +2107,15 @@
     NodesViewModel.prototype.beginDeleteItem = function() {
       var self = this;
       $('#confirmDeleteItem').modal({show: true, backdrop: 'static'});
+    }
+
+    NodesViewModel.prototype.beginEditItem = function() {
+      var self = this;
+      editItemNodeModel.populateFields(nodesViewModel.selectedMainNode().copy(),
+                                       nodesViewModel.selectedSubNode().copy(),
+                                       nodesViewModel.selectedItem().copy());
+      $('.mt-item-edit-control').prop('disabled', false);
+      $('#editItemNode').modal({show: true, backdrop: 'static'});
     }
 
     NodesViewModel.prototype.proceedWithSubNodeDelete = function() {
@@ -1940,6 +2276,34 @@
     }
 
     NodesViewModel.prototype.proceedWithSubNodeEdit = function(nodeData = {}) {
+      // add a main or sub node
+      var self = this;
+      var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedSubNode().id();
+      self.ajax('PUT', url, nodeData, self.authHeader)
+      .then(function(node) {
+        $("html").removeClass("waiting");
+        self.selectedSubNode().name(node.name);
+        self.selectedSubNode().description(node.description);
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
+        setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+        self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
+      })
+      .catch(function(err) {
+        $("html").removeClass("waiting");
+        if(typeof err.responseJSON !== 'undefined') {
+          setAlert(err.responseJSON['error'], 'alert-danger')
+        } else {
+          var errorMessage = err.state();
+          if(err.state() === 'rejected') {
+            errorMessage = 'Possible network issue. Please try again later.';
+          }
+          setAlert('error in NodesViewModel.proceedWithSubNodeEdit ajax call: ' + errorMessage, 'alert-danger')
+        }
+      });
+    }
+
+    NodesViewModel.prototype.proceedWithItemNodeEdit = function(nodeData = {}) {
       // add a main or sub node
       var self = this;
       var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedSubNode().id();
@@ -2292,6 +2656,32 @@
       nodesViewModel.proceedWithEditItemLink(itemLink);
     }
 
+    var EditItemNodeModel = function() {
+      var self = this;
+      self.mainNode = ko.observable();
+      self.subNode = ko.observable();
+      self.itemNode = ko.observable()
+      self.populateFields();
+    }
+
+    EditItemNodeModel.prototype.populateFields = function(mainNode = null, subNode = null, itemNode = null) {
+      var self = this;
+      self.mainNode(mainNode);
+      self.subNode(subNode);
+      self.itemNode(itemNode);
+    }
+
+    EditItemNodeModel.prototype.editItemNode = function() {
+      var self = this;
+      var nodeData = {
+        name: self.name(),
+        description: self.description(),
+      }
+      self.name('');
+      self.description('');
+      nodesViewModel.proceedWithItemNodeEdit(nodeData);
+    }
+
     var LoginModel = function() {
       var self = this;
       self.username = ko.observable();
@@ -2377,6 +2767,7 @@
     addSubNodeModel = new AddSubNodeModel();
     editMainNodeModel = new EditMainNodeModel();
     editSubNodeModel = new EditSubNodeModel();
+    editItemNodeModel = new EditItemNodeModel();
     editItemLinkModel = new EditItemLinkModel();
     loginModel = new LoginModel();
     ko.applyBindings(nodesViewModel, $('#mainBody')[0]);
@@ -2384,6 +2775,7 @@
     ko.applyBindings(addSubNodeModel, $('#addSubNode')[0]);
     ko.applyBindings(editMainNodeModel, $('#editMainNode')[0]);
     ko.applyBindings(editSubNodeModel, $('#editSubNode')[0]);
+    ko.applyBindings(editItemNodeModel, $('#editItemNode')[0]);
     ko.applyBindings(editItemLinkModel, $('#editItemLink')[0]);
     ko.applyBindings(loginModel, $('#login')[0]);
     $('#enItemEd').prop('checked', false);
