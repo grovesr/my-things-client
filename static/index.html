@@ -754,7 +754,7 @@
                     id="itemNodeTriedDate"
                     data-bind="attr: {'data-original-title': 'Date '+nodesViewModel.triedLabel(),
                                       placeholder: 'Date '+nodesViewModel.triedLabel()},
-                              textInput: (itemNode()?itemNode().dateTried():'&nbsp;')"
+                              textInput: (itemNode()?itemNode().dateTried:'&nbsp;')"
                     type="text"
                     data-toggle="tooltip"
                     data-boundary="viewport"
@@ -779,7 +779,7 @@
                   <label for="itemNodeDescription" class="label">Description:</label>
                   <textarea
                     id="itemNodeDescription"
-                    data-bind="textInput:(itemNode()?itemNode().description():'&nbsp;')"
+                    data-bind="textInput:(itemNode()?itemNode().description:'')"
                     type="textarea"
                     data-boundary="viewport"
                     class="form-control text-wrap"
@@ -794,7 +794,7 @@
                 <div class="col-2">
                   <input
                     id="itemNodeReviewedDate"
-                    data-bind="textInput:(itemNode()?itemNode().dateReviewed():'&nbsp;')"
+                    data-bind="textInput:(itemNode()?itemNode().dateReviewed:'&nbsp;')"
                     type="text"
                     data-toggle="tooltip"
                     data-boundary="viewport"
@@ -809,7 +809,7 @@
                 <div class="col-2">
                   <input
                     id="itemNodeRating"
-                    data-bind="textInput:(itemNode()?itemNode().rating():'&nbsp;')"
+                    data-bind="textInput:(itemNode()?itemNode().rating:'&nbsp;')"
                     type="text"
                     data-toggle="tooltip"
                     data-boundary="viewport"
@@ -823,7 +823,7 @@
                 <div class="col">
                   <textarea
                     id="itemNodeReview"
-                    data-bind="textInput:(itemNode()?itemNode().review():'&nbsp;')"
+                    data-bind="textInput:(itemNode()?itemNode().review:'')"
                     type="textarea"
                     data-boundary="viewport"
                     class="form-control text-wrap"
@@ -2189,7 +2189,7 @@
 
     NodesViewModel.prototype.viewDescription = function() {
       var self = this;
-      if(nodesViewModel.selectedItem().description() !== '') {
+      if(nodesViewModel.selectedItem().description()) {
         viewTextModel.text(nodesViewModel.selectedItem().description());
         viewTextModel.header('Description');
         $('#viewText').modal({show: true});
@@ -2198,7 +2198,7 @@
 
     NodesViewModel.prototype.viewReview = function() {
       var self = this;
-      if(nodesViewModel.selectedItem().review() !== '') {
+      if(nodesViewModel.selectedItem().review()) {
         viewTextModel.text(nodesViewModel.selectedItem().review());
         viewTextModel.header('Review');
         $('#viewText').modal({show: true});
@@ -2321,17 +2321,6 @@
         }
       }
       return itemNode;
-    }
-
-    EditItemNodeModel.prototype.editItemNode = function() {
-      var self = this;
-      self.itemNode().name('');
-      self.itemNode().description('');
-      var nodeData = {
-        name: self.itemNode().name(),
-        description: self.itemNode().description(),
-      }
-      nodesViewModel.proceedWithItemNodeEdit(nodeData);
     }
 
     EditItemNodeModel.prototype.updateItemEditTooltips = function() {
