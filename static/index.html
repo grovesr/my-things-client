@@ -27,7 +27,7 @@
      div.mt-item-a {margin-left: 45px; /* to indent items */}
     .badge {float: right; /* to move the category totals to the right of the lists */}
     .mt-edit-field-button {float: right; /* move edit pencils  button to the right of field*/}
-    .mt-trash, .mt-need {float: right;}
+    .mt-trash, .mt-need, .mt-dialog-buttons {float: right;}
     .mt-dialog-input {width: 100%;}
     a.list-group-item { /* make category lists look like the alert */
       color: black !important;
@@ -556,9 +556,10 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Edit <span data-bind="text: (nodesViewModel.selectedMainNode() ? nodesViewModel.selectedMainNode().name() : '')"></span></h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <div class="mt-dialog-buttons">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editMainNode">Proceed</button>
+            </div>
           </div>
           <div class="modal-body">
             <form class="form-horizontal">
@@ -578,10 +579,6 @@
               </div>
             </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editMainNode">Proceed</button>
-          </div>
         </div>
       </div>
     </div>
@@ -590,9 +587,10 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Edit <span data-bind="text: (nodesViewModel.selectedSubNode() ? nodesViewModel.selectedSubNode().name() : '')"></span></h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <div class="mt-dialog-buttons">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editSubNode">Proceed</button>
+            </div>
           </div>
           <div class="modal-body">
             <form class="form-horizontal">
@@ -612,10 +610,6 @@
               </div>
             </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editSubNode">Proceed</button>
-          </div>
         </div>
       </div>
     </div>
@@ -623,9 +617,11 @@
       <div class="modal-dialog" role="document" style="width: 90%; max-width: 90%">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <h5 class="modal-title">Edit <span data-bind="text: (itemNode()?itemNode().name():'')"></span></h5>
+            <div class="mt-dialog-buttons">
+              <button type="button" class="btn btn-primary" data-bind="click: editItemNodeModel.saveItem">Save</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
           </div>
           <div class="modal-body">
             <div id="editItemNodeAlertBox" class="alert alert-dark" role="alert">
@@ -833,10 +829,6 @@
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-bind="click: editItemNodeModel.saveItem">Save</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          </div>
         </div>
       </div>
     </div>
@@ -845,16 +837,13 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Confirm</h5>
-            <button type="button" class="close" data-dismiss="modal" data-bind="click: editItemNodeModel.continueItemEdit" aria-label="Cancel">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <div class="mt-dialog-buttons">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bind="click: editItemNodeModel.continueItemEdit">Continue Editing</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editItemNodeModel.proceedWithCancelItemEdit">Proceed</button>
+            </div>
           </div>
           <div class="modal-body">
             <p>Warning! You will lose current changes to <span data-bind="text: nodesViewModel.itemLabel"></span> item. Proceed and revert to previous data?</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bind="click: editItemNodeModel.continueItemEdit">Continue Editing</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editItemNodeModel.proceedWithCancelItemEdit">Proceed</button>
           </div>
         </div>
       </div>
@@ -864,9 +853,10 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Add <span data-bind="text: nodesViewModel.mainLabel"></span></h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <div class="mt-dialog-buttons">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: addMainNode">Proceed</button>
+            </div>
           </div>
           <div class="modal-body">
             <form class="form-horizontal">
@@ -886,10 +876,6 @@
               </div>
             </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: addMainNode">Proceed</button>
-          </div>
         </div>
       </div>
     </div>
@@ -898,9 +884,10 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Add  <span data-bind="text: nodesViewModel.subLabel"></span></h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <div class="mt-dialog-buttons">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: addSubNode">Proceed</button>
+            </div>
           </div>
           <div class="modal-body">
             <form class="form-horizontal">
@@ -920,10 +907,6 @@
               </div>
             </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: addSubNode">Proceed</button>
-          </div>
         </div>
       </div>
     </div>
@@ -932,9 +915,10 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Login</h5>
-            <button type="button" class="close" data-dismiss="modal" data-bind="click: nodesViewModel.cancelLogin" aria-label="Cancel">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <div class="mt-dialog-buttons">
+              <button type="button" class="btn btn-secondary" data-bind="click: nodesViewModel.cancelLogin" data-dismiss="modal" >Cancel</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: login">Proceed</button>
+            </div>
           </div>
           <div class="modal-body">
             <form class="form-horizontal">
@@ -953,10 +937,6 @@
                 </div>
               </div>
             </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bind="click: nodesViewModel.cancelLogin" data-dismiss="modal" >Cancel</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: login">Proceed</button>
           </div>
         </div>
       </div>
@@ -1986,6 +1966,7 @@
           $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
           $('#editItemNode').modal("hide");
         }
+        self.updateItemListTooltips();
         setAlert('Successfully Added "' + node.name +'"', 'alert-success');
         $('.fa, .far').css({'visibility':'visible'});
       })
