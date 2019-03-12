@@ -64,7 +64,7 @@
   </head>
   <body>
     <div class="container-fluid" id="mainBody">
-      <nav class="navbar navbar-expand-md navbar-light fixed-top bg-light nav-center">
+      <nav class="navbar navbar-expand-md navbar-light fixed-top bg-light nav-center" data-bind="visible: visible">
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -95,52 +95,26 @@
           </ul>
         </div>
       </nav>
-      <div id="alertBox" class="alert alert-dark" role="alert">
+      <div id="alertBox" class="alert alert-dark" role="alert" data-bind="visible: visible">
         &nbsp;
       </div>
-      <div class="d-none d-sm-block">
-        <div id="controls" class="row">
-          <div class="col-4">
-            <div class="btn-group btn-group-sm mt-add-buttons mb-1">
-              <button
-                data-bind="attr: {title: addMainLabel},
-                          enable: enableAddMain(),
-                          click: beginAddMain"
-                data-toggle="tooltip"
-                class="btn btn-secondary mr-1">
-                <span class="fa fa-plus fa-xs">
-                </span>
-              </button>
-              <button
-                data-bind="attr: {title: addSubLabel},
-                          enable: enableAddSub(),
-                          click: beginAddSub"
-                data-toggle="tooltip"
-                class="btn btn-secondary mr-1">
-                <span class="fa fa-plus fa-xs">
-                </span>
-              </button>
-              <button
-                data-bind="attr: {title: addItemLabel},
-                          enable: enableAddItem(),
-                          click: beginAddItem"
-                data-toggle="tooltip"
-                class="btn btn-secondary text-capitalize">
-                <span class="fa fa-plus fa-xs">
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
+      <div class="row" data-bind="visible: visible">
         <!-- begin col-3 for hierarchical category lists-->
         <div id="itemList" class="col col-sm-4">
+          <div class="btn-group btn-group-sm mt-add-buttons mb-1">
+            <button
+              data-bind="click: beginAddMain"
+              data-toggle="tooltip"
+              class="btn btn-secondary mr-1">
+              Add <span data-bind="text: mainLabel()">
+              </span>
+            </button>
+          </div>
           <!-- begin accordian main -->
           <div class="accordion" id="accordianMain" style="height: 75vh;overflow-y: scroll;">
             <!-- ko foreach: mainNodes -->
               <!-- begin card main -->
-              <div class="card border-0">
+              <div class="card border-0" data-bind="visible: visible">
                 <span>
                   <i
                     data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
@@ -153,6 +127,12 @@
                                  attr:{title: 'Edit ' + $root.mainLabel()},
                                  click: $root.beginEditMainNode"
                       class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
+                      data-toggle="tooltip"></i>
+                    <i
+                      data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
+                                 attr:{title: 'Add ' + $root.subLabel()},
+                                 click: $root.beginAddSub"
+                      class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"
                       data-toggle="tooltip"></i>
                   <a data-bind="attr: { href: '#accordianCollapse_' + id(),
                                         'mt-data-id': id},
@@ -191,13 +171,13 @@
               </div>
               <!-- end card main -->
               <!-- begin sub node collapsed div -->
-              <div data-bind="attr: { id: 'accordianCollapse_' + id() }"
+              <div data-bind="attr: {id: 'accordianCollapse_' + id()}"
                   class="collapse mt-main-collapse" data-parent="#accordianMain">
                 <!-- begin sub accordian -->
                 <div data-bind="attr: { id: 'accordian_' + id() }" class="accordion">
                   <!-- ko foreach: children -->
                     <!-- begin sub card -->
-                    <div class="card border-0">
+                    <div class="card border-0" data-bind="visible: visible">
                       <span>
                         <i
                           data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
@@ -210,6 +190,12 @@
                                        attr:{title: 'Edit ' + $root.subLabel()},
                                        click: $root.beginEditSubNode"
                             class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
+                            data-toggle="tooltip"></i>
+                          <i
+                            data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
+                                       attr:{title: 'Add ' + $root.itemLabel()},
+                                       click: $root.beginAddItem"
+                            class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"
                             data-toggle="tooltip"></i>
                         <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id},
                                       click: $root.handleSubClick"
@@ -251,49 +237,51 @@
                           <div data-bind="attr: { id: 'accordianCollapse_' + id(),'data-parent': '#accordian_' + $parent.id() }"
                               class="collapse mt-sub-collapse mt-item-a">
                             <!-- ko foreach: children -->
-                            <i
-                            data-bind="visible: ($root.selectedItem() ? ($root.selectedItem().id() === $data.id() ? true : false) : false),
-                                       attr:{title: 'Delete ' + $root.itemLabel()},
-                                       click: $root.beginDeleteItem"
-                            class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
-                            data-toggle="tooltip"></i>
-                            <i
+                            <div data-bind="visible: visible">
+                              <i
                               data-bind="visible: ($root.selectedItem() ? ($root.selectedItem().id() === $data.id() ? true : false) : false),
-                                         attr:{title: 'Edit ' + $root.itemLabel()},
-                                         click: $root.beginEditItem"
-                              class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
+                                         attr:{title: 'Delete ' + $root.itemLabel()},
+                                         click: $root.beginDeleteItem"
+                              class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
                               data-toggle="tooltip"></i>
-                              <a data-bind="attr: { href: '#item_ ' + id(), 'mt-data-id': id},
-                                           click: $root.handleItemClick"
-                                class="list-group-item mt-item-a text-truncate border-0 mb-1" >
-                                <span class="mt-item">
-                                  <i data-bind="style: {opacity: ($root.selectedItem() && $root.selectedItem().id() === $data.id() ? '1.0': '0.2'),
-                                                        color: (need() ? 'red': 'black')}"
-                                        data-toggle="tooltip" title="need"
-                                        class="mt-need fa fa-cart-plus fa-s"></i>
-                                  <i data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
-                                        data-toggle="tooltip" title="tried"
-                                        class="fa fa-check fa-xs"></i>
-                                  <span class="fa-stack fa-fw"
-                                        data-bind="style: {opacity: (rating() !== null && rating() !== '' ? '1.0': '0.5')}"
-                                        data-toggle="tooltip" title="rating">
-                                    <i class="far fa-star fa-stack-2x pb-1"></i>
-                                    <i class="fa fa-text fa-xs pl-1"
-                                       data-bind="text: (rating() ? rating() : '')"></i>
+                              <i
+                                data-bind="visible: ($root.selectedItem() ? ($root.selectedItem().id() === $data.id() ? true : false) : false),
+                                           attr:{title: 'Edit ' + $root.itemLabel()},
+                                           click: $root.beginEditItem"
+                                class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
+                                data-toggle="tooltip"></i>
+                                <a data-bind="attr: { href: '#item_ ' + id(), 'mt-data-id': id},
+                                             click: $root.handleItemClick"
+                                  class="list-group-item mt-item-a text-truncate border-0 mb-1" >
+                                  <span class="mt-item">
+                                    <i data-bind="style: {opacity: ($root.selectedItem() && $root.selectedItem().id() === $data.id() ? '1.0': '0.2'),
+                                                          color: (need() ? 'red': 'black')}"
+                                          data-toggle="tooltip" title="need"
+                                          class="mt-need fa fa-cart-plus fa-s"></i>
+                                    <i data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
+                                          data-toggle="tooltip" title="tried"
+                                          class="fa fa-check fa-xs"></i>
+                                    <span class="fa-stack fa-fw"
+                                          data-bind="style: {opacity: (rating() !== null && rating() !== '' ? '1.0': '0.5')}"
+                                          data-toggle="tooltip" title="rating">
+                                      <i class="far fa-star fa-stack-2x pb-1"></i>
+                                      <i class="fa fa-text fa-xs pl-1"
+                                         data-bind="text: (rating() ? rating() : '')"></i>
+                                    </span>
+                                    <span data-bind="visible: sortIndex() !== null && sortIndex() !== ''" class="mr-1 ml-1">
+                                      (<span data-bind="text: sortIndex"
+                                             class="mt-tooltip"></span>)
+                                    </span>
+                                    <span data-toggle="tooltip"
+                                          data-bind="text: name,
+                                                     attr:{title: name,
+                                                           'data-original-title': name,
+                                                           'mt-data-id': id }"
+                                          data-boundary="viewport">
+                                    </span>
                                   </span>
-                                  <span data-bind="visible: sortIndex() !== null && sortIndex() !== ''" class="mr-1 ml-1">
-                                    (<span data-bind="text: sortIndex"
-                                           class="mt-tooltip"></span>)
-                                  </span>
-                                  <span data-toggle="tooltip"
-                                        data-bind="text: name,
-                                                   attr:{title: name,
-                                                         'data-original-title': name,
-                                                         'mt-data-id': id }"
-                                        data-boundary="viewport">
-                                  </span>
-                                </span>
-                              </a>
+                                </a>
+                              </div>
                             <!-- /ko -->
                           </div>
                         </span>
@@ -496,7 +484,7 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Confirm</h5>
+              <h5 class="modal-title">Confirm Deletion of: <span data-bind="text:(selectedItem()?selectedItem().name():'')"></span></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -515,7 +503,7 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Confirm</h5>
+              <h5 class="modal-title">Confirm Deletion of: <span data-bind="text:(selectedMainNode()? selectedMainNode().name():'')"></span></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -534,7 +522,7 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Confirm</h5>
+              <h5 class="modal-title">Confirm Deletion of: <span data-bind="text:(selectedSubNode()?selectedSubNode().name():'')"></span></h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -555,7 +543,7 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Edit <span data-bind="text: (nodesViewModel.selectedMainNode() ? nodesViewModel.selectedMainNode().name() : '')"></span></h5>
+            <h5 class="modal-title">Edit: <span data-bind="text: (nodesViewModel.selectedMainNode() ? nodesViewModel.selectedMainNode().name() : '')"></span></h5>
             <div class="mt-dialog-buttons">
               <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
               <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editMainNode">Proceed</button>
@@ -586,7 +574,7 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Edit <span data-bind="text: (nodesViewModel.selectedSubNode() ? nodesViewModel.selectedSubNode().name() : '')"></span></h5>
+            <h5 class="modal-title">Edit: <span data-bind="text: (nodesViewModel.selectedSubNode() ? nodesViewModel.selectedSubNode().name() : '')"></span></h5>
             <div class="mt-dialog-buttons">
               <button type="button" class="btn btn-secondary" data-dismiss="modal" >Cancel</button>
               <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editSubNode">Proceed</button>
@@ -671,7 +659,7 @@
                     id="itemNodeName"
                     data-bind="attr: {'data-original-title':nodesViewModel.itemLabel()+': '+(itemNode()?itemNode().name():''),
                                       placeholder: nodesViewModel.itemLabel()},
-                              textInput: (itemNode()?itemNode().name():'&nbsp;')"
+                              textInput: (itemNode()?itemNode().name:'&nbsp;')"
                     type="text"
                     data-toggle="tooltip"
                     data-boundary="viewport"
@@ -832,22 +820,6 @@
         </div>
       </div>
     </div>
-    <div id="confirmCancelItemEdit" class="modal hide fade" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Confirm</h5>
-            <div class="mt-dialog-buttons">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bind="click: editItemNodeModel.continueItemEdit">Continue Editing</button>
-              <button type="button" class="btn btn-primary" data-dismiss="modal" data-bind="click: editItemNodeModel.proceedWithCancelItemEdit">Proceed</button>
-            </div>
-          </div>
-          <div class="modal-body">
-            <p>Warning! You will lose current changes to <span data-bind="text: nodesViewModel.itemLabel"></span> item. Proceed and revert to previous data?</p>
-          </div>
-        </div>
-      </div>
-    </div>
     <div id="addMainNode" class="modal hide fade" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -941,11 +913,15 @@
         </div>
       </div>
     </div>
-    <div class="modal hide" id="loadingDialog"  tabindex="-1" role="dialog">
+    <div id="loadingDialog" class="modal hide" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5>Loading...</h5>
+            <h5 class="modal-title">Loading: <span data-bind="text: nodesViewModel.type()"></span></h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Cancel"
+               data-bind="click: nodesViewModel.logout">
+                <span aria-hidden="true">&times;</span>
+              </button>
           </div>
           <div class="modal-body">
             <div class="progress">
@@ -960,7 +936,7 @@
        style="width: 80%; max-width: 80%">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" data-bind="text: header"></h5>
+            <h5 class="modal-title" data-bind="text: header+': '+name"></h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Cancel"
              data-bind="click: cancel">
               <span aria-hidden="true">&times;</span>
@@ -981,7 +957,7 @@
     var addSubNodeModel = null;
     var editMainNodeModel = null;
     var editSubNodeModel = null;
-    var editItemLinkModel = null;
+    var editItemNodeModel = null;
     var addTypeModel = null;
     var loginModel = null;
     var secrets = null;
@@ -990,7 +966,10 @@
     $('.mt-add-buttons, .mt-edit-buttons, .mt-item-form, .nav-item, .nav-link').css({'visibility':'hidden'});
 
     function setDefaultAlert() {
-      setAlert(nodesViewModel.defaultAlert(),'','#alertBox');
+      var alerts = $('.alert');
+      Object.keys(alerts).forEach(function(indx) {
+        setAlert(nodesViewModel.defaultAlert(),'','#'+alerts[indx].id);
+      });
     }
 
     function setAlert(alertText='', alertClass = '', alertId='#alertBox') {
@@ -1035,11 +1014,9 @@
       if(initialize) {
         self.children = ko.observableArray([]);
         self.collapsed = ko.observable(true);
-        self.uneditedData = {};
-        self.changed = false;
+        self.visible = ko.observable(true);
       }
-      self.forgettableAspects = ['children', 'collapsed',
-                                 'uneditedData', 'forgettableAspects',
+      self.forgettableAspects = ['children', 'collapsed', 'forgettableAspects',
                                  'changed', 'nodeTooltip', 'nodeDescriptionTooltip',
                                  'nodeReviewTooltip','leavesNeeded'];
       if(data) {
@@ -1047,24 +1024,6 @@
       }
 
       if(initialize) {
-        self.nodeTooltip = ko.pureComputed(function() {
-          var subLabel = (self.isMain() ? nodesViewModel.subLabel() : nodesViewModel.itemLabel());
-          if(self.isMain()) {
-            var tooltipText = '<h5>' + self.name() + ':</h5>' +
-                              (self.description() ? '<p>' + self.description() + '</p><br>' : '') +
-                              '<b>' + nodesViewModel.subLabel() + ':</b><span> ' + self.children().length + '</span><br>' +
-                              '<b>' + nodesViewModel.itemLabel() + 's:</b><span> ' + self.findLeaves().length + '</span><br>' +
-                              '<b>Have ' + nodesViewModel.triedLabel() + ':</b><span> ' + self.numLeavesHaveTried() + '</span><br>' +
-                              '<b>Need:</b><span> ' + self.leavesNeeded() + '</span><br>';
-          } else {
-            var tooltipText = '<h5>' + self.name() + ':</h5>' +
-                              (self.description() ? '<p>' + self.description() + '</p><br>' : '') +
-                              '<b>' + nodesViewModel.itemLabel() + 's:</b><span> ' + self.children().length + '</span><br>' +
-                              '<b>Have ' + nodesViewModel.triedLabel() + ':</b><span> ' + self.numLeavesHaveTried() + '</span><br>' +
-                              '<b>Need:</b><span> ' + self.leavesNeeded() + '</span><br>';
-          }
-          return tooltipText;
-        });
         self.nodeDescriptionTooltip = ko.pureComputed(function() {
           return (self.description() ? self.description() : '');
         });
@@ -1099,11 +1058,6 @@
           return image;
         })
       }
-    }
-
-    Node.prototype.isMain = function() {
-      var self = this;
-      return self.parentId() == nodesViewModel.rootNode.id();
     }
 
     Node.prototype.toggleNeed = function() {
@@ -1341,6 +1295,7 @@
 
     var NodesViewModel = function() {
       var self = this;
+      self.visible = ko.observable(false);
       self.mainLabels = {'books':'Author',
                         'wine':'Winery',
                         'beer':'Brewery',
@@ -1505,13 +1460,11 @@
       self.nodeInfo5Label = ko.observable();
       self.nodeInfo6Label = ko.observable();
       self.defaultAlert = ko.observable();
-      self.enableAddMain = ko.observable(true);
-      self.enableAddSub = ko.observable(false);
-      self.enableAddItem = ko.observable(false);
       self.mainNodes = ko.observableArray();
       self.selectedMainNode = ko.observable(null);
       self.selectedSubNode = ko.observable(null);
       self.selectedItem = ko.observable(null);
+      self.filterText = ko.observable('');
       self.previousSelectedItem = null;
       self.rootNode = null;
       self.adjacencyList = {};
@@ -1526,6 +1479,21 @@
       self.addItemLabel = ko.pureComputed(function() {
         return 'Add ' + self.itemLabel();
       });
+      self.filterItems = ko.computed(function() {
+  			var filter = self.filterText();
+        //if(self.rootNode) {
+        //  if(filter === '') {
+    		//		return self.rootNode.children();
+    		//	} else {
+    		//		var tempList = self.rootNode.children().slice();
+    		//		return tempList.filter(function(node) {
+    		//			return node.name() === filter;
+    		//		});
+    		//	}
+        //} else {
+        //  return null;
+        //}
+  		});
     }
 
     NodesViewModel.prototype.beginLogin = function() {
@@ -1656,6 +1624,7 @@
     NodesViewModel.prototype.setType = function() {
       var self = this;
       self.setLabels();
+      nodesViewModel.visible(false);
       $("html").addClass("waiting");
       $('#loadingDialog').modal('show');
       return nodesViewModel.getNodes()
@@ -1666,6 +1635,7 @@
         self.updateItemListTooltips();
         self.updateControlsTooltips();
         $('#loadingDialog').modal('hide');
+        nodesViewModel.visible(true);
       })
     }
 
@@ -1731,8 +1701,6 @@
         self.rootNode.children.remove(self.selectedMainNode());
         self.mainNodes(self.rootNode.children());
         self.selectedMainNode(null);
-        self.enableAddSub(false);
-        self.enableAddItem(false);
         self.unloadItem();
         $('mt-main-collapse').collapse('hide');
         setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
@@ -1789,7 +1757,6 @@
         }
         self.selectedMainNode().children.remove(self.selectedSubNode());
         self.selectedSubNode(null);
-        self.enableAddItem(false);
         self.unloadItem();
         $('mt-sub-collapse').collapse('hide');
         setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
@@ -1947,7 +1914,6 @@
           $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideMainCollapse);
           $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowMainCollapse);
           self.selectedMainNode(addedNode);
-          self.enableAddSub(true);
           $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
         } else if(addedNode.parentId() === self.selectedMainNode().id()){
           $('a.mt-sub-a').removeClass('active');
@@ -1956,7 +1922,6 @@
           $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowSubCollapse);
           $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
           self.selectedSubNode(addedNode);
-          self.enableAddItem(true);
           $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
         } else {
           $('a.mt-item-a').removeClass('active');
@@ -1991,16 +1956,16 @@
     NodesViewModel.prototype.beginAddItem = function() {
       var self = this;
       var nodeInfo = {};
-      nodeInfo[self.nodeInfo1Key()] = null;
-      nodeInfo[self.nodeInfo2Key()] = null;
-      nodeInfo[self.nodeInfo3Key()] = null;
-      nodeInfo[self.nodeInfo4Key()] = null;
-      nodeInfo[self.nodeInfo5Key()] = null;
-      nodeInfo[self.nodeInfo6Key()] = null;
+      nodeInfo[nodesViewModel.nodeInfo1Key()] = null;
+      nodeInfo[nodesViewModel.nodeInfo2Key()] = null;
+      nodeInfo[nodesViewModel.nodeInfo3Key()] = null;
+      nodeInfo[nodesViewModel.nodeInfo4Key()] = null;
+      nodeInfo[nodesViewModel.nodeInfo5Key()] = null;
+      nodeInfo[nodesViewModel.nodeInfo6Key()] = null;
       var nodeData = {
-        owner: self.currentUser(),
-        type: self.type(),
-        parentId: self.selectedSubNode().id(),
+        owner: nodesViewModel.currentUser(),
+        type: nodesViewModel.type(),
+        parentId: nodesViewModel.selectedSubNode().id(),
         nodeInfo: nodeInfo,
         haveTried: false,
         dateTried: null,
@@ -2101,6 +2066,29 @@
       if(!(self.nodeInfo6Key() in node.nodeInfo())) {
         node.nodeInfo()[self.nodeInfo6Key()] = ko.observable(null);
       }
+      node.nodeTooltip = ko.pureComputed(function() {
+        var subLabel = (self.isMain(node) ? self.subLabel() : self.itemLabel());
+        if(self.isMain(node)) {
+          var tooltipText = '<h5>' + node.name() + ':</h5>' +
+                            (node.description() ? '<p>' + node.description() + '</p><br>' : '') +
+                            '<b>' + self.subLabel() + ':</b><span> ' + node.children().length + '</span><br>' +
+                            '<b>' + self.itemLabel() + 's:</b><span> ' + node.findLeaves().length + '</span><br>' +
+                            '<b>Have ' + self.triedLabel() + ':</b><span> ' + node.numLeavesHaveTried() + '</span><br>' +
+                            '<b>Need:</b><span> ' + node.leavesNeeded() + '</span><br>';
+        } else {
+          var tooltipText = '<h5>' + node.name() + ':</h5>' +
+                            (node.description() ? '<p>' + node.description() + '</p><br>' : '') +
+                            '<b>' + self.itemLabel() + 's:</b><span> ' + node.children().length + '</span><br>' +
+                            '<b>Have ' + self.triedLabel() + ':</b><span> ' + node.numLeavesHaveTried() + '</span><br>' +
+                            '<b>Need:</b><span> ' + node.leavesNeeded() + '</span><br>';
+        }
+        return tooltipText;
+      });
+    }
+
+    NodesViewModel.prototype.isMain = function(node) {
+      var self = this;
+      return node.parentId() == self.rootNode.id();
     }
 
     NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null) {
@@ -2148,7 +2136,6 @@
       $(e.currentTarget).addClass('active');
       nodesViewModel.selectedMainNode(node);
       nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-      nodesViewModel.enableAddSub(true);
     }
 
     NodesViewModel.prototype.handleSubClick = function(node, e) {
@@ -2156,7 +2143,6 @@
       $(e.currentTarget).addClass('active');
       nodesViewModel.selectedSubNode(node);
       nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-      nodesViewModel.enableAddItem(true);
     }
 
     NodesViewModel.prototype.handleItemClick = function(node, e) {
@@ -2475,21 +2461,6 @@
       });
     }
 
-    EditItemNodeModel.prototype.proceedWithCancelItemEdit = function() {
-      var self = this;
-    }
-
-    EditItemNodeModel.prototype.continueItemEdit = function() {
-      var self = this;
-      $('a.mt-item-a').removeClass('active');
-      if(nodesViewModel.previousSelectedItem && nodesViewModel.selectedItem() !== nodesViewModel.previousSelectedItem) {
-        nodesViewModel.selectedItem(nodesViewModel.previousSelectedItem);
-      }
-      $('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]').addClass('active');
-      nodesViewModel.previousSelectedItem = null;
-      $('#enItemEd').prop('checked', true);
-    }
-
     EditItemNodeModel.prototype.beginEditItemLink = function() {
       var self = this;
       editItemLinkModel.itemLink(self.itemNode().nodeInfo()[nodesViewModel.nodeInfo6Key()]());
@@ -2514,12 +2485,14 @@
 
     var ViewTextModel = function() {
       var self = this;
+      self.name = ko.observable()
       self.text = ko.observable();
       self.header = ko.observable();
     }
 
     ViewTextModel.prototype.cancel = function() {
       var self = this;
+      self.name('');
       self.text('');
       self.header('');
     }
@@ -2533,7 +2506,6 @@
         nodesViewModel.unloadItem();
         nodesViewModel.selectedSubNode(null);
         nodesViewModel.selectedItem(null);
-        nodesViewModel.enableAddItem(false);
         // switch collapse icon to '+'
         nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
       }
@@ -2605,6 +2577,7 @@
     ko.applyBindings(editItemNodeModel, $('#editItemNode')[0]);
     ko.applyBindings(viewTextModel, $('#viewText')[0]);
     ko.applyBindings(loginModel, $('#login')[0]);
+    ko.applyBindings(nodesViewModel, $('#loadingDialog')[0]);
     $('#typesSelect').on('change', nodesViewModel.initType);
     $('#itemNodeTried').on('change', editItemNodeModel.setDateTriedItem.bind(editItemNodeModel));
     $(document).keypress(function(e) {
