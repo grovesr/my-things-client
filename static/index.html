@@ -131,10 +131,10 @@
                                  click: $root.beginAddSub"
                       class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"
                       data-toggle="tooltip"></i>
-                  <a data-bind="attr: { href: '#accordianCollapse_' + id(),
-                                        'mt-data-id': id},
-                                click: $root.handleMainClick"
-                    class="list-group-item mt-main-a text-truncate border-0 mb-1" data-toggle="collapse">
+                  <a data-bind="attr: { href: '#/'+$root.type()+'/'+id(),
+                                        'data-target': '#accordianCollapse_'+id(),
+                                        'mt-data-id': id}"
+                    class="list-group-item mt-main-a text-truncate border-0 mb-1">
                     <span>
                       <span class="badge badge-secondary"
                             data-bind="text: leavesNeeded,
@@ -194,9 +194,10 @@
                                        click: $root.beginAddItem"
                             class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"
                             data-toggle="tooltip"></i>
-                        <a data-bind="attr: { href: '#accordianCollapse_' + id(), 'mt-data-id': id},
-                                      click: $root.handleSubClick"
-                          class="list-group-item mt-sub-a text-truncate border-0 mb-1"  data-toggle="collapse">
+                        <a data-bind="attr: { href: '#/'+$root.type()+'/'+$parents[0].id()+'/'+ id(),
+                                              'mt-data-id': id,
+                                              'data-target': '#accordianCollapse_'+id()}"
+                          class="list-group-item mt-sub-a text-truncate border-0 mb-1">
                           <span>
                             <span class="badge badge-secondary"
                                   data-bind="text: leavesNeeded,
@@ -247,7 +248,8 @@
                                            click: $root.beginEditItem"
                                 class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
                                 data-toggle="tooltip"></i>
-                                <a data-bind="attr: { href: '#item_ ' + id(), 'mt-data-id': id},
+                                <a data-bind="attr: { href: '#/'+$root.type()+'/'+$parents[1].id()+'/'+$parents[0].id()+'/'+ id(),
+                                                      'mt-data-id': id},
                                              click: $root.handleItemClick"
                                   class="list-group-item mt-item-a text-truncate border-0 mb-1" >
                                   <span class="mt-item">
@@ -300,26 +302,26 @@
         <!-- begin col-9 for item details -->
         <div  id="itemDetails" class="col-8 card"  style="height: 75vh;overflow-y: scroll;">
           <div class="d-none d-sm-block">
-            <div class = "mt-item-form">
+            <div>
               <div class="row">
-                <div class="col">
+                <div class="col-3">
                   <div
                     id="mainName"
                     data-bind="attr: {'data-original-title':mainLabel()+': '+(selectedMainNode()?(selectedMainNode().name()?selectedMainNode().name():'&nbsp;'):'&nbsp;')},
                               text: (selectedMainNode()?(selectedMainNode().name()?selectedMainNode().name():'&nbsp;'):'&nbsp;')"
                     data-toggle="tooltip"
-                    class="form-control text-center"
+                    class="form-control text-center text-truncate"
                     readonly>
 
                   </div>
                 </div>
-                <div class="col">
+                <div class="col-4">
                   <div
                     id="subName"
                     data-bind="attr: {'data-original-title':subLabel()+': '+(selectedSubNode()?selectedSubNode().name():'')},
                               text: (selectedSubNode()?(selectedSubNode().name()?selectedSubNode().name():'&nbsp;'):'&nbsp;')"
                     data-toggle="tooltip"
-                    class="form-control text-center"
+                    class="form-control text-center text-truncate"
                     readonly>
                   </div>
                 </div>
@@ -330,22 +332,22 @@
                               text: (selectedItem() ? (selectedItem().sortIndex()? selectedItem().sortIndex: '#') : ''),
                               visible: $root.type() === 'books' || $root.type() === 'videos'"
                     data-toggle="tooltip"
-                    class="form-control text-center"
+                    class="form-control text-center mt-item-form"
                     readonly>
                   </div>
                 </div>
-                <div class="col">
+                <div class="col-4">
                   <div
                     id="itemName"
                     data-bind="attr: {'data-original-title': itemLabel() +  ': '+(selectedItem() ? selectedItem().name() : '')},
                               text: (selectedItem()?(selectedItem().name()?selectedItem().name():'&nbsp;'):'&nbsp;')"
                     data-toggle="tooltip"
                     data-boundary="viewport"
-                    class="form-control text-center text"
+                    class="form-control text-center text-truncate"
                     readonly>
                   </div>
                 </div>
-                <div class="col-2 text-center">
+                <div class="col-2 text-center mt-item-form">
                   <input id="tried"
                          data-bind="checked: (selectedItem() ? selectedItem().haveTried : false)"
                          class="checkbox"
@@ -354,7 +356,7 @@
                   <label for="tried" class="label" data-bind="text: triedLabel"></label>
                 </div>
               </div>
-              <div class="row">
+              <div class="row  mt-item-form">
                 <div class="col">
                   <div class="row">
                     <label for="nodeInfo1" class="col-2 label" data-bind="text: nodeInfo1Label()+':'"></label>
@@ -415,10 +417,10 @@
                     readonly>
                   </div>
                   <img id="itemImage" class="img-fluid"
-                       data-bind="attr:{src: (selectedItem() ? selectedItem().image : '&nbsp;')}"></img>
+                       data-bind="attr:{src: (selectedItem() ? selectedItem().image : '')}"></img>
                 </div>
               </div>
-              <div class="row">
+              <div class="row  mt-item-form">
                 <div class="col">
                   <label for="itemDescription" class="label">Description:</label>
                   <div
@@ -432,7 +434,7 @@
                     ></div>
                 </div>
               </div>
-              <div class="row">
+              <div class="row  mt-item-form">
                 <div class="col-1">
                   <label for="reviewedDate" class="label">Reviewed:</label>
                 </div>
@@ -458,7 +460,7 @@
                   </div>
                 </div>
               </div>
-              <div class="row">
+              <div class="row  mt-item-form">
                 <div class="col">
                   <label for="itemReview" class="label">Review:</label>
                   <div
@@ -743,7 +745,7 @@
                   </input>
                   <div>
                     <img id="itemNodeImage" class="img-fluid"
-                         data-bind="attr:{src:(itemNode()?itemNode().image :'&nbsp;')}"></img>
+                         data-bind="attr:{src:(itemNode()?itemNode().image :'')}"></img>
                     <button class="btn btn-secondary btn-sm mt-edit-field-button"
                             title="Edit image"
                             data-toggle="tooltip"
@@ -943,7 +945,7 @@
        style="width: 80%; max-width: 80%">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" data-bind="text: header+': '+name"></h5>
+            <h5 class="modal-title" data-bind="text: header()+': '+name()"></h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Cancel"
              data-bind="click: cancel">
               <span aria-hidden="true">&times;</span>

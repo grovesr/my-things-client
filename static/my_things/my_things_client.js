@@ -65,7 +65,7 @@ var Node = function(initialize=true, data={}) {
     self.visible = ko.observable(true);
   }
   self.forgettableAspects = ['children', 'collapsed', 'forgettableAspects',
-                             'changed', 'nodeTooltip', 'nodeDescriptionTooltip',
+                             'changed', 'nodeTooltip', 'nodeviewTooltip',
                              'nodeReviewTooltip','leavesNeeded'];
   if(data) {
     self.loadData(data);
@@ -579,6 +579,7 @@ NodesViewModel.prototype.logout = function() {
     self.selectedMainNode(null);
     self.mainNodes.removeAll();
   }
+  self.mainNodes([]);
   self.loggedIn(false);
 }
 
@@ -655,7 +656,7 @@ NodesViewModel.prototype.setType = function() {
     $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
     $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
     $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
-    $('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
+    //$('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
     $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
   })
   .then(function() {
@@ -685,7 +686,6 @@ NodesViewModel.prototype.setType = function() {
 
 NodesViewModel.prototype.loadItem = function() {
   var self = this;
-  self.selectedItem(self.findNode($('a.mt-item-a.active').attr('mt-data-id')))
   if($('.mt-edit-buttons, .mt-item-form').css('visibility') === 'hidden') {
     // only do this if it is currently hidden
     $('.mt-edit-buttons, .mt-item-form').css({'visibility':'visible'});
@@ -962,8 +962,8 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
     } else if(addedNode.parentId() === self.selectedMainNode().id()){
       $('a.mt-sub-a').removeClass('active');
       $('.mt-sub-collapse').collapse('hide');
-      $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideSubCollapse);
-      $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowSubCollapse);
+      $('#accordianCollapse_' + addedNode.id()).on('hidden.bs.collapse', handleHideSubCollapse);
+      $('#accordianCollapse_' + addedNode.id()).on('shown.bs.collapse', handleShowSubCollapse);
       $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
       self.selectedSubNode(addedNode);
       $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
@@ -1155,33 +1155,11 @@ NodesViewModel.prototype.ajax = function(method, uri, data, authHeader = {}) {
   return Promise.resolve($.ajax(request))
 }
 
-NodesViewModel.prototype.handleMainClick =  function(node, e) {
-  $('a.mt-main-a').removeClass('active');
-  $(e.currentTarget).addClass('active');
-  nodesViewModel.selectedMainNode(node);
-  nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-}
-
-NodesViewModel.prototype.handleSubClick = function(node, e) {
-  $('a.mt-sub-a').removeClass('active');
-  $(e.currentTarget).addClass('active');
-  nodesViewModel.selectedSubNode(node);
-  nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-}
-
-NodesViewModel.prototype.handleItemClick = function(node, e) {
-  $('a.mt-item-a').removeClass('active');
-  $(e.currentTarget).addClass('active');
-  nodesViewModel.loadItem();
-  if($(e.target).hasClass('mt-need')) {
-    nodesViewModel.toggleItemNeed();
-  }
-}
-
 NodesViewModel.prototype.viewDescription = function() {
   var self = this;
   if(nodesViewModel.selectedItem().description()) {
     viewTextModel.text(nodesViewModel.selectedItem().description());
+    viewTextModel.name(nodesViewModel.selectedItem().name());
     viewTextModel.header('Description');
     $('#viewText').modal({show: true});
   }
@@ -1191,6 +1169,7 @@ NodesViewModel.prototype.viewReview = function() {
   var self = this;
   if(nodesViewModel.selectedItem().review()) {
     viewTextModel.text(nodesViewModel.selectedItem().review());
+    viewTextModel.name(nodesViewModel.selectedItem().name());
     viewTextModel.header('Review');
     $('#viewText').modal({show: true});
   }
@@ -1557,38 +1536,40 @@ var handleHideMainCollapse = function (e) {
   if ($(this).is(e.target)) {
     // if a main collapse occurs, make sure the sub divs collapse as well
     // and that the sub and items go inactive
+    var mainNode = $('a[data-target="#' + $(this).attr('id') + '"]');
     $('.mt-sub-collapse').collapse('hide');
     $('a.mt-sub-a, a.mt-item-a').removeClass('active');
     nodesViewModel.unloadItem();
-    nodesViewModel.selectedSubNode(null);
-    nodesViewModel.selectedItem(null);
     // switch collapse icon to '+'
-    nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
+    nodesViewModel.findNode(mainNode.attr('mt-data-id')).collapsed(true);
   }
 }
 
 var handleHideSubCollapse = function (e) {
   if ($(this).is(e.target)) {
     // if a sub collapse occurs, make sure the items go inactive
+    var subNode = $('a[data-target="#' + $(this).attr('id') + '"]');
     $('a.mt-item-a').removeClass('active');
     nodesViewModel.unloadItem();
-    nodesViewModel.selectedItem(null);
     // switch collapse icon to '+'
-    nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(true);
+    nodesViewModel.findNode(subNode.attr('mt-data-id')).collapsed(true);
   }
 }
 
 var handleShowMainCollapse = function (e) {
   if ($(this).is(e.target)) {
     // switch collapse icon to '-'
-    nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(false);
+    var mainNode = $('a[data-target="#' + $(this).attr('id') + '"]');
+    // switch collapse icon to '-'
+    nodesViewModel.findNode(mainNode.attr('mt-data-id')).collapsed(false);
   }
 }
 
 var handleShowSubCollapse = function (e) {
   if ($(this).is(e.target)) {
+    var subNode = $('a[data-target="#' + $(this).attr('id') + '"]');
     // switch collapse icon to '-'
-    nodesViewModel.findNode($('a[href="#' + $(this).attr('id') + '"]').attr('mt-data-id')).collapsed(false);
+    nodesViewModel.findNode(subNode.attr('mt-data-id')).collapsed(false);
   }
 }
 
@@ -1616,6 +1597,41 @@ var scrollToSelectedItem = function() {
   });
 }
 
+var handleMainClick =  function(mainNode, collapseSub=true) {
+  $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
+  mainNode.addClass('active');
+  var node = nodesViewModel.findNode(mainNode.attr('mt-data-id'));
+  nodesViewModel.selectedMainNode(node);
+  nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
+  if(nodesViewModel.selectedSubNode() && collapseSub) {
+    $('#accordianCollapse_'+nodesViewModel.selectedSubNode().id()).collapse('hide');
+  }
+  nodesViewModel.selectedSubNode(null);
+  nodesViewModel.selectedItem(null);
+  $(mainNode.attr('data-target')).collapse('show');
+}
+
+var handleSubClick = function(subNode) {
+  $('a.mt-sub-a, a.mt-item-a').removeClass('active');
+  subNode.addClass('active');
+  var node = nodesViewModel.findNode(subNode.attr('mt-data-id'));
+  nodesViewModel.selectedSubNode(node);
+  nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
+  nodesViewModel.selectedItem(null);
+  $(subNode.attr('data-target')).collapse('show');
+}
+
+var handleItemClick = function(itemNode) {
+  $('a.mt-item-a').removeClass('active');
+  itemNode.addClass('active');
+  var node = nodesViewModel.findNode(itemNode.attr('mt-data-id'));
+  nodesViewModel.selectedItem(node);
+  nodesViewModel.loadItem();
+  if(itemNode.hasClass('mt-need')) {
+    nodesViewModel.toggleItemNeed();
+  }
+}
+
 var initType = function() {
   var self = this;
   if(self.value !== nodesViewModel.type()) {
@@ -1624,7 +1640,7 @@ var initType = function() {
   }
 }
 
-var beginLogin = function(context) {
+var login = function(context) {
   nodesViewModel.context = context;
   nodesViewModel.previousUser = nodesViewModel.currentUser();
   nodesViewModel.previousUserPassword = nodesViewModel.currentUserPassword;
@@ -1634,7 +1650,7 @@ var beginLogin = function(context) {
                      backdrop: 'static'});
 }
 
-var beginLogout = function(context) {
+var logout = function(context) {
   nodesViewModel.context = context;
   nodesViewModel.logout();
   nodesViewModel.context.redirect('#/login');
@@ -1651,6 +1667,42 @@ var setType = function(context) {
   nodesViewModel.setType();
 }
 
+var selectMain = function(context) {
+  nodesViewModel.context = context;
+  var type = context.params['type'];
+  var mainNodeId = context.params['main'];
+  var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
+  handleMainClick(mainNode);
+}
+
+var selectSub = function(context) {
+  nodesViewModel.context = context;
+  var type = context.params['type'];
+  var mainNodeId = context.params['main'];
+  var subNodeId = context.params['sub'];
+  var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
+  var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
+  var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
+  handleMainClick(mainNode, collapseSub=false);
+  handleSubClick(subNode);
+}
+
+var selectItem = function(context) {
+  nodesViewModel.context = context;
+  var type = context.params['type'];
+  var mainNodeId = context.params['main'];
+  var subNodeId = context.params['sub'];
+  var itemNodeId = context.params['item'];
+  var itemNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId+'"]');
+  var subNodeId = nodesViewModel.findNode(itemNode.attr('mt-data-id')).parentId();
+  var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
+  var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
+  var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
+  handleMainClick(mainNode, collapseSub=false);
+  handleSubClick(subNode);
+  handleItemClick(itemNode);
+}
+
 setAlert('');
 nodesViewModel = new NodesViewModel();
 addMainNodeModel = new AddMainNodeModel();
@@ -1660,6 +1712,7 @@ editSubNodeModel = new EditSubNodeModel();
 editItemNodeModel = new EditItemNodeModel();
 viewTextModel = new ViewTextModel();
 loginModel = new LoginModel();
+ko.options.deferUpdates = true;
 ko.applyBindings(nodesViewModel, $('#mainBody')[0]);
 ko.applyBindings(addMainNodeModel, $('#addMainNode')[0]);
 ko.applyBindings(addSubNodeModel, $('#addSubNode')[0]);
@@ -1677,10 +1730,12 @@ var app = $.sammy('#mainBody', function() {
     nodesViewModel.context = this;
     nodesViewModel.context.redirect('#/books');
   });
-  self.get('#/login', beginLogin);
-  self.get('#/logout', beginLogout);
+  self.get('#/login', login);
+  self.get('#/logout', logout);
   self.get('#/:type', setType);
-
+  self.get('#/:type/:main', selectMain);
+  self.get('#/:type/:main/:sub', selectSub);
+  self.get('#/:type/:main/:sub/:item', selectItem);
 });
 
 $('#typesSelect').on('keyup mouseup', initType);
