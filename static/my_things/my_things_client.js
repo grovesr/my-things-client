@@ -12,6 +12,7 @@ var app = null;
 
 $('.fa, .far').css({'visibility':'hidden'});
 $('.mt-add-buttons, .mt-edit-buttons, .mt-item-form, .nav-item, .nav-link').css({'visibility':'hidden'});
+$('#itemSortIndex').addClass("d-none");
 
 function setDefaultAlert() {
   var alerts = $('.alert');
@@ -527,6 +528,10 @@ var NodesViewModel = function() {
   self.addItemLabel = ko.pureComputed(function() {
     return 'Add ' + self.itemLabel();
   });
+
+  self.itemNameColClass = ko.pureComputed(function() {
+    return ((self.type() === 'books' || self.type() === 'videos')?'col-2':'col-3')
+  });
   self.filterItems = ko.computed(function() {
     var filter = self.filterText();
     //if(self.rootNode) {
@@ -689,6 +694,7 @@ NodesViewModel.prototype.loadItem = function() {
   if($('.mt-edit-buttons, .mt-item-form').css('visibility') === 'hidden') {
     // only do this if it is currently hidden
     $('.mt-edit-buttons, .mt-item-form').css({'visibility':'visible'});
+    $('#itemSortIndex').removeClass("d-none");
   }
   editItemNodeModel.updateItemEditTooltips();
 }
@@ -698,6 +704,7 @@ NodesViewModel.prototype.unloadItem = function() {
   if($('.mt-edit-buttons, .mt-item-form').css('visibility') === 'visible') {
     // only do this if it is currently visible
     $('.mt-edit-buttons, .mt-item-form').css({'visibility':'hidden'});
+    $('#itemSortIndex').addClass("d-none");
   }
 }
 
@@ -1608,6 +1615,7 @@ var handleMainClick =  function(mainNode, collapseSub=true) {
   }
   nodesViewModel.selectedSubNode(null);
   nodesViewModel.selectedItem(null);
+  nodesViewModel.unloadItem();
   $(mainNode.attr('data-target')).collapse('show');
 }
 
@@ -1618,6 +1626,7 @@ var handleSubClick = function(subNode) {
   nodesViewModel.selectedSubNode(node);
   nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
   nodesViewModel.selectedItem(null);
+  nodesViewModel.unloadItem();
   $(subNode.attr('data-target')).collapse('show');
 }
 
@@ -1664,6 +1673,10 @@ var setType = function(context) {
     nodesViewModel.context.redirect('#/login');
   }
   nodesViewModel.type(context.params['type']);
+  nodesViewModel.selectedItem(null);
+  nodesViewModel.unloadItem();
+  nodesViewModel.selectedSubNode(null);
+  nodesViewModel.selectedMainNode(null);
   nodesViewModel.setType();
 }
 
