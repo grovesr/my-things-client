@@ -105,7 +105,7 @@ var Node = function(initialize=true, data={}) {
         image = "images/tv.png";
       }
       return image;
-    })
+    });
   }
 }
 
@@ -534,19 +534,51 @@ var NodesViewModel = function() {
   });
   self.filterItems = ko.computed(function() {
     var filter = self.filterText();
-    //if(self.rootNode) {
-    //  if(filter === '') {
-    //		return self.rootNode.children();
-    //	} else {
-    //		var tempList = self.rootNode.children().slice();
-    //		return tempList.filter(function(node) {
-    //			return node.name() === filter;
-    //		});
-    //	}
-    //} else {
-    //  return null;
-    //}
+    if(self.rootNode && filter !== '') {
+  		var tempList = self.rootNode.children().slice();
+  		return tempList.filter(function(node) {
+  			return node.name().match(new RegExp(filter,'ig')) !== null;
+  		});
+    } else {
+      return [];
+    }
   });
+  self.itemHref = ko.pureComputed(function() {
+    href = '';
+    if(self.selectedItem()) {
+      href = self.nodeHref(self.selectedItem());
+    }
+    return href;
+  });
+  self.subHref = ko.pureComputed(function() {
+    href = '';
+    if(self.selectedSubNode()) {
+      href = self.nodeHref(self.selectedSubNode());
+    }
+    return href;
+  });
+  self.mainHref = ko.pureComputed(function() {
+    href = '';
+    if(self.selectedMainNode()) {
+      href = self.nodeHref(self.selectedMainNode());
+    }
+    return href;
+  });
+}
+
+NodesViewModel.prototype.nodeHref = function(nodeId) {
+  var self = this;
+  var href = ''
+  var node = self.findNode(nodeId);
+  if(node !== null) {
+    var href = node.id();
+    var parentNode = self.findNode(node.parentId());
+    while(parentNode) {
+      href = parentNode.id() + '/' + href;
+      var parentNode = self.findNode(parentNode.parentId());
+    }
+  }
+  return '#/'+self.type()+'/'+href;
 }
 
 NodesViewModel.prototype.cancelLogin = function() {
@@ -661,8 +693,9 @@ NodesViewModel.prototype.setType = function() {
     $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
     $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
     $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
-    //$('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
+    $('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
     $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
+    $('.mt-sub-collapse').on('shown.bs.collapse', scrollToSelectedSubNode);
   })
   .then(function() {
     setDefaultAlert();
@@ -1673,11 +1706,13 @@ var setType = function(context) {
     nodesViewModel.context.redirect('#/login');
   }
   nodesViewModel.type(context.params['type']);
+  nodesViewModel.filterText('';)
   nodesViewModel.selectedItem(null);
   nodesViewModel.unloadItem();
   nodesViewModel.selectedSubNode(null);
   nodesViewModel.selectedMainNode(null);
   nodesViewModel.setType();
+  $('#itemDetailsTab').tab('show');
 }
 
 var selectMain = function(context) {
@@ -1686,6 +1721,7 @@ var selectMain = function(context) {
   var mainNodeId = context.params['main'];
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
   handleMainClick(mainNode);
+  $('#itemDetailsTab').tab('show');
 }
 
 var selectSub = function(context) {
@@ -1698,6 +1734,7 @@ var selectSub = function(context) {
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
   handleMainClick(mainNode, collapseSub=false);
   handleSubClick(subNode);
+  $('#itemDetailsTab').tab('show');
 }
 
 var selectItem = function(context) {
@@ -1714,6 +1751,7 @@ var selectItem = function(context) {
   handleMainClick(mainNode, collapseSub=false);
   handleSubClick(subNode);
   handleItemClick(itemNode);
+  $('#itemDetailsTab').tab('show');
 }
 
 setAlert('');
@@ -1738,7 +1776,7 @@ ko.applyBindings(nodesViewModel, $('#loadingDialog')[0]);
 
 var app = $.sammy('#mainBody', function() {
   var self = this;
-  self.debug = true;
+  //self.debug = true;
   self.get('#/', function() {
     nodesViewModel.context = this;
     nodesViewModel.context.redirect('#/books');

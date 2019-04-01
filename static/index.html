@@ -485,7 +485,23 @@
               </div>
             </div>
             <div  id="search" class="card tab-pane fade">
-              Search functions and list go here...
+              <div>
+                <input
+                  id="filterText"
+                  data-bind="attr: {placeholder: 'enter filter text'},
+                            textInput: filterText"
+                  type="text"
+                  data-boundary="viewport"
+                  class="form-control">
+                </input>
+              </div>
+              <!-- ko foreach: filterItems -->
+                <div>
+                  <a data-bind="attr:{href: $root.nodeHref(id())},
+                                text: name">
+                  </a>
+                </div>
+              <!-- /ko -->
             </div>
           </div>
         </div>
