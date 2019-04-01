@@ -1706,7 +1706,7 @@ var setType = function(context) {
     nodesViewModel.context.redirect('#/login');
   }
   nodesViewModel.type(context.params['type']);
-  nodesViewModel.filterText('';)
+  nodesViewModel.filterText('');
   nodesViewModel.selectedItem(null);
   nodesViewModel.unloadItem();
   nodesViewModel.selectedSubNode(null);
