@@ -236,6 +236,11 @@
                               class="collapse mt-sub-collapse mt-item-a">
                             <!-- ko foreach: children -->
                             <div data-bind="visible: visible">
+                              <a data-bind="style: {opacity: ($root.selectedItem() && $root.selectedItem().id() === $data.id() ? '1.0': '0.2'),
+                                                      color: (need() ? 'red': 'black')},
+                                            attr: {href: '#/'+$root.type()+'/'+$parents[1].id()+'/'+$parents[0].id()+'/'+ id()+'/toggleNeed'}"
+                                      data-toggle="tooltip" title="need"
+                                      class="ml-1 mr-1 mt-3 mt-need fa fa-cart-plus fa-s"></a>
                               <i
                               data-bind="visible: ($root.selectedItem() ? ($root.selectedItem().id() === $data.id() ? true : false) : false),
                                          attr:{title: 'Delete ' + $root.itemLabel()},
@@ -249,14 +254,9 @@
                                 class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
                                 data-toggle="tooltip"></i>
                                 <a data-bind="attr: { href: '#/'+$root.type()+'/'+$parents[1].id()+'/'+$parents[0].id()+'/'+ id(),
-                                                      'mt-data-id': id},
-                                             click: $root.handleItemClick"
+                                                      'mt-data-id': id}"
                                   class="list-group-item mt-item-a text-truncate border-0 mb-1" >
                                   <span class="mt-item">
-                                    <i data-bind="style: {opacity: ($root.selectedItem() && $root.selectedItem().id() === $data.id() ? '1.0': '0.2'),
-                                                          color: (need() ? 'red': 'black')}"
-                                          data-toggle="tooltip" title="need"
-                                          class="mt-need fa fa-cart-plus fa-s"></i>
                                     <i data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
                                           data-toggle="tooltip" title="tried"
                                           class="fa fa-check fa-xs"></i>

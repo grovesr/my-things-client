@@ -1067,9 +1067,9 @@ NodesViewModel.prototype.beginAddItem = function() {
 
 NodesViewModel.prototype.toggleItemNeed = function() {
   var self = this;
-  if(nodesViewModel.selectedItem()) {
-    nodesViewModel.selectedItem().toggleNeed();
-    nodesViewModel.updateItem();
+  if(self.selectedItem() && self.selectedMainNode() && self.selectedSubNode()) {
+    self.selectedItem().toggleNeed();
+    self.updateItem();
   }
 }
 
@@ -1669,9 +1669,6 @@ var handleItemClick = function(itemNode) {
   var node = nodesViewModel.findNode(itemNode.attr('mt-data-id'));
   nodesViewModel.selectedItem(node);
   nodesViewModel.loadItem();
-  if(itemNode.hasClass('mt-need')) {
-    nodesViewModel.toggleItemNeed();
-  }
 }
 
 var initType = function() {
@@ -1754,6 +1751,25 @@ var selectItem = function(context) {
   $('#itemDetailsTab').tab('show');
 }
 
+var toggleItemNeed = function(context) {
+  nodesViewModel.context = context;
+  var type = context.params['type'];
+  var mainNodeId = context.params['main'];
+  var subNodeId = context.params['sub'];
+  var itemNodeId = context.params['item'];
+  var itemNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId+'"]');
+  var subNodeId = nodesViewModel.findNode(itemNode.attr('mt-data-id')).parentId();
+  var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
+  var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
+  var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
+  handleMainClick(mainNode, collapseSub=false);
+  handleSubClick(subNode);
+  handleItemClick(itemNode);
+  $('#itemDetailsTab').tab('show');
+  nodesViewModel.toggleItemNeed();
+  nodesViewModel.context.redirect('/#'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
+}
+
 setAlert('');
 nodesViewModel = new NodesViewModel();
 addMainNodeModel = new AddMainNodeModel();
@@ -1776,7 +1792,7 @@ ko.applyBindings(nodesViewModel, $('#loadingDialog')[0]);
 
 var app = $.sammy('#mainBody', function() {
   var self = this;
-  //self.debug = true;
+  self.debug = true;
   self.get('#/', function() {
     nodesViewModel.context = this;
     nodesViewModel.context.redirect('#/books');
@@ -1787,6 +1803,7 @@ var app = $.sammy('#mainBody', function() {
   self.get('#/:type/:main', selectMain);
   self.get('#/:type/:main/:sub', selectSub);
   self.get('#/:type/:main/:sub/:item', selectItem);
+  self.get('#/:type/:main/:sub/:item/toggleNeed', toggleItemNeed);
 });
 
 $('#typesSelect').on('keyup mouseup', initType);
