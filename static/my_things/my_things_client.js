@@ -1806,7 +1806,7 @@ var selectItem = function(context) {
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
   var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNode, expandMain=true, collapseSub=true, scroll=false);
+  handleMainClick(mainNode);
   handleSubClick(subNode);
   handleItemClick(itemNode, scroll=true);
   $('#itemDetailsTab').tab('show');
@@ -1825,7 +1825,7 @@ var toggleItemNeed = function(context) {
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
   handleMainClick(mainNode, scroll=false);
   handleSubClick(subNode, scroll=false);
-  handleItemClick(itemNode, scroll=true);
+  handleItemClick(itemNode, scroll=false);
   $('#itemDetailsTab').tab('show');
   nodesViewModel.toggleItemNeed();
   nodesViewModel.context.redirect('/#'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
