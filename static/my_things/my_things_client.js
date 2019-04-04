@@ -693,9 +693,7 @@ NodesViewModel.prototype.setType = function() {
     $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
     $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
     $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
-    $('.mt-main-collapse').on('shown.bs.collapse', scrollToSelectedMainNode);
     $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
-    $('.mt-sub-collapse').on('shown.bs.collapse', scrollToSelectedSubNode);
   })
   .then(function() {
     setDefaultAlert();
@@ -972,11 +970,12 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
   // add a node
   var self = this;
   var url = secrets['MY_THINGS_SERVER'] + '/add/node';
+  var addedNode = null;
   return self.ajax('POST', url, nodeData, self.authHeader)
   .then(function(node) {
     $("html").removeClass("waiting");
     // build adjacencyList structure
-    var addedNode = new Node(true, node);
+    addedNode = new Node(true, node);
     self.initNode(addedNode);
     if(!(node.parentId in self.adjacencyList)) {
       self.adjacencyList[node.parentId] = [];
@@ -991,8 +990,13 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
       self.rootNode.children.sort(self.sortByIndexOrPubDateOrName);
       self.mainNodes(self.rootNode.children());
     }
-
+  })
+  .then(function() {
+    var main = false;
+    var sub = false;
+    var item = false;
     if(addedNode.parentId() === self.rootNode.id()) {
+      main = true;
       $('a.mt-main-a').removeClass('active');
       $('.mt-main-collapse').collapse('hide');
       $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideMainCollapse);
@@ -1000,24 +1004,33 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
       self.selectedMainNode(addedNode);
       $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
     } else if(addedNode.parentId() === self.selectedMainNode().id()){
+      sub = true;
       $('a.mt-sub-a').removeClass('active');
       $('.mt-sub-collapse').collapse('hide');
-      $('#accordianCollapse_' + addedNode.id()).on('hidden.bs.collapse', handleHideSubCollapse);
-      $('#accordianCollapse_' + addedNode.id()).on('shown.bs.collapse', handleShowSubCollapse);
+      $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideSubCollapse);
+      $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowSubCollapse);
       $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
       self.selectedSubNode(addedNode);
       $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
     } else {
+      item = true;;
       $('a.mt-item-a').removeClass('active');
       $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
       self.selectedItem(addedNode);
-      self.loadItem()
+      self.loadItem();
       $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
       $('#editItemNode').modal("hide");
     }
     self.updateItemListTooltips();
-    setAlert('Successfully Added "' + node.name +'"', 'alert-success');
+    setAlert('Successfully Added "' + addedNode.name() +'"', 'alert-success');
     $('.fa, .far').css({'visibility':'visible'});
+    if(main) {
+      self.context.redirect('#/'+self.type()+'/'+addedNode.id());
+    } else if(sub) {
+      self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+addedNode.id());
+    } else {
+      self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id()+'/'+addedNode.id());
+    }
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -1577,7 +1590,6 @@ var handleHideMainCollapse = function (e) {
     // if a main collapse occurs, make sure the sub divs collapse as well
     // and that the sub and items go inactive
     var mainNode = $('a[data-target="#' + $(this).attr('id') + '"]');
-    $('.mt-sub-collapse').collapse('hide');
     $('a.mt-sub-a, a.mt-item-a').removeClass('active');
     nodesViewModel.unloadItem();
     // switch collapse icon to '+'
@@ -1598,7 +1610,6 @@ var handleHideSubCollapse = function (e) {
 
 var handleShowMainCollapse = function (e) {
   if ($(this).is(e.target)) {
-    // switch collapse icon to '-'
     var mainNode = $('a[data-target="#' + $(this).attr('id') + '"]');
     // switch collapse icon to '-'
     nodesViewModel.findNode(mainNode.attr('mt-data-id')).collapsed(false);
@@ -1614,45 +1625,89 @@ var handleShowSubCollapse = function (e) {
 }
 
 var scrollToSelectedMainNode = function() {
-  $('#accordianMain').animate({
-     scrollTop: $('#accordianMain').scrollTop() +
-                  $('a[mt-data-id="' + nodesViewModel.selectedMainNode().id() + '"]').offset().top -
-                  $('#accordianMain').offset().top
-  });
+  var accordianMain = $('#accordianMain');
+  var containerScrollTop = accordianMain.scrollTop();
+  var containerOffsetTop = accordianMain.offset().top;
+  var mainNode = $('a[mt-data-id="' + nodesViewModel.selectedMainNode().id() + '"]');
+  var selectionOffsetTop = mainNode.offset().top;
+  accordianMain.animate({
+     scrollTop: containerScrollTop+selectionOffsetTop-containerOffsetTop},
+     function() {
+       $(mainNode.attr('data-target')).off('shown.bs.collapse', scrollToSelectedMainNode);
+     });
+
 }
 
 var scrollToSelectedSubNode = function() {
-  $('#accordianMain').animate({
-     scrollTop: $('#accordianMain').scrollTop() +
-                  $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]').offset().top -
-                  $('#accordianMain').offset().top
-  });
+  var accordianMain = $('#accordianMain');
+  var containerScrollTop = accordianMain.scrollTop();
+  var containerOffsetTop = accordianMain.offset().top;
+  var subNode = $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]');
+  var selectionOffsetTop = subNode.offset().top;
+  accordianMain.animate({
+     scrollTop: containerScrollTop+selectionOffsetTop-containerOffsetTop});
 }
 
 var scrollToSelectedItem = function() {
-  $('#accordianMain').animate({
-     scrollTop: $('#accordianMain').scrollTop() +
-                  $('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]').offset().top -
-                  $('#accordianMain').offset().top
-  });
+  var accordianMain = $('#accordianMain');
+  var containerScrollTop = accordianMain.scrollTop();
+  var containerOffsetTop = accordianMain.offset().top;
+  var itemNode = $('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]');
+  var selectionOffsetTop = itemNode.offset().top;
+  accordianMain.animate({
+     scrollTop: containerScrollTop+selectionOffsetTop-containerOffsetTop});
 }
 
-var handleMainClick =  function(mainNode, collapseSub=true) {
+var showMainCollapse = function() {
+  if(nodesViewModel.selectedMainNode()) {
+    var mainNode = $('a[mt-data-id="' + nodesViewModel.selectedMainNode().id() + '"]');
+    $(mainNode.attr('data-target')).collapse('show');
+  }
+}
+
+var hideMainCollapse = function() {
+  if(nodesViewModel.selectedMainNode()) {
+    var mainNode = $('a[mt-data-id="' + nodesViewModel.selectedMainNode().id() + '"]');
+    $(mainNode.attr('data-target')).collapse('hide');
+  }
+}
+
+var showSubCollapse = function() {
+  if(nodesViewModel.selectedSubNode()) {
+    var subNode = $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]');
+    $(subNode.attr('data-target')).collapse('show');
+  }
+}
+
+var hideSubCollapse = function() {
+  if(nodesViewModel.selectedSubNode()) {
+    var subNode = $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]');
+    $(subNode.attr('data-target')).collapse('hide');
+  }
+}
+
+var handleMainClick =  function(mainNode, scroll=false) {
   $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
   mainNode.addClass('active');
   var node = nodesViewModel.findNode(mainNode.attr('mt-data-id'));
   nodesViewModel.selectedMainNode(node);
   nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-  if(nodesViewModel.selectedSubNode() && collapseSub) {
-    $('#accordianCollapse_'+nodesViewModel.selectedSubNode().id()).collapse('hide');
-  }
   nodesViewModel.selectedSubNode(null);
   nodesViewModel.selectedItem(null);
   nodesViewModel.unloadItem();
-  $(mainNode.attr('data-target')).collapse('show');
+  if(nodesViewModel.selectedSubNode()) {
+    var subNode = $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]');
+    $(subNode.attr('data-target')).collapse('hide');
+    $(subNode.attr('data-target')).on('hidden.bs.collapse', showMainCollapse);
+  } else {
+    showMainCollapse();
+  }
+  if(scroll) {
+    $(mainNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedMainNode)
+  }
 }
 
-var handleSubClick = function(subNode) {
+var handleSubClick = function(subNode, scroll=false) {
   $('a.mt-sub-a, a.mt-item-a').removeClass('active');
   subNode.addClass('active');
   var node = nodesViewModel.findNode(subNode.attr('mt-data-id'));
@@ -1660,15 +1715,21 @@ var handleSubClick = function(subNode) {
   nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
   nodesViewModel.selectedItem(null);
   nodesViewModel.unloadItem();
-  $(subNode.attr('data-target')).collapse('show');
+  showSubCollapse();
+  if(scroll) {
+    $(subNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedSubNode);
+  }
 }
 
-var handleItemClick = function(itemNode) {
+var handleItemClick = function(itemNode, scroll=false) {
   $('a.mt-item-a').removeClass('active');
   itemNode.addClass('active');
   var node = nodesViewModel.findNode(itemNode.attr('mt-data-id'));
   nodesViewModel.selectedItem(node);
   nodesViewModel.loadItem();
+  if(scroll) {
+    scrollToSelectedItem();
+  }
 }
 
 var initType = function() {
@@ -1717,7 +1778,7 @@ var selectMain = function(context) {
   var type = context.params['type'];
   var mainNodeId = context.params['main'];
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNode);
+  handleMainClick(mainNode, scroll=true);
   $('#itemDetailsTab').tab('show');
 }
 
@@ -1729,8 +1790,8 @@ var selectSub = function(context) {
   var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
-  handleMainClick(mainNode, collapseSub=false);
-  handleSubClick(subNode);
+  handleMainClick(mainNode);
+  handleSubClick(subNode, scroll=true);
   $('#itemDetailsTab').tab('show');
 }
 
@@ -1745,9 +1806,9 @@ var selectItem = function(context) {
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
   var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNode, collapseSub=false);
+  handleMainClick(mainNode, expandMain=true, collapseSub=true, scroll=false);
   handleSubClick(subNode);
-  handleItemClick(itemNode);
+  handleItemClick(itemNode, scroll=true);
   $('#itemDetailsTab').tab('show');
 }
 
@@ -1762,9 +1823,9 @@ var toggleItemNeed = function(context) {
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
   var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNode, collapseSub=false);
-  handleSubClick(subNode);
-  handleItemClick(itemNode);
+  handleMainClick(mainNode, scroll=false);
+  handleSubClick(subNode, scroll=false);
+  handleItemClick(itemNode, scroll=true);
   $('#itemDetailsTab').tab('show');
   nodesViewModel.toggleItemNeed();
   nodesViewModel.context.redirect('/#'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
