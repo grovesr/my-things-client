@@ -912,6 +912,7 @@ NodesViewModel.prototype.proceedWithMainNodeEdit = function(nodeData = {}) {
     $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
     setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
     self.mainNodes.sort(self.sortByIndexOrPubDateOrName);
+    self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id());
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -947,6 +948,7 @@ NodesViewModel.prototype.proceedWithSubNodeEdit = function(nodeData = {}) {
     $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
     setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
     self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
+    self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id());
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -1704,6 +1706,8 @@ var handleMainClick =  function(mainNode, scroll=false) {
   }
   if(scroll) {
     $(mainNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedMainNode)
+  } else if(node.children().length === 0) {
+    scrollToSelectedMainNode();
   }
 }
 
@@ -1718,6 +1722,8 @@ var handleSubClick = function(subNode, scroll=false) {
   showSubCollapse();
   if(scroll) {
     $(subNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedSubNode);
+  } else if(node.children().length === 0) {
+    scrollToSelectedSubNode();
   }
 }
 
@@ -1828,7 +1834,7 @@ var toggleItemNeed = function(context) {
   handleItemClick(itemNode, scroll=false);
   $('#itemDetailsTab').tab('show');
   nodesViewModel.toggleItemNeed();
-  nodesViewModel.context.redirect('/#'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
+  nodesViewModel.context.redirect('/#'+self.type()+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
 }
 
 setAlert('');
