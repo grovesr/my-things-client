@@ -106,6 +106,22 @@
               Add <span data-bind="text: mainLabel()">
               </span>
             </button>
+            <button
+              data-bind="visible: ($root.selectedMainNode() ? true : false),
+                         click: beginAddSub"
+              data-toggle="tooltip"
+              class="btn btn-secondary mr-1">
+              Add <span data-bind="text: subLabel()">
+              </span>
+            </button>
+            <button
+              data-bind="visible: ($root.selectedSubNode() ? true : false),
+                         click: beginAddItem"
+              data-toggle="tooltip"
+              class="btn btn-secondary mr-1">
+              Add <span data-bind="text: itemLabel()">
+              </span>
+            </button>
           </div>
           <!-- begin accordian main -->
           <div class="accordion" id="accordianMain" style="height: 75vh;overflow-y: scroll;">
