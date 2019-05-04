@@ -1706,7 +1706,7 @@ var handleMainClick =  function(mainNode, scroll=false) {
   }
   if(scroll) {
     $(mainNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedMainNode)
-  } else if(node.children().length === 0) {
+  } else if(mainNode.children().length === 0) {
     scrollToSelectedMainNode();
   }
 }
