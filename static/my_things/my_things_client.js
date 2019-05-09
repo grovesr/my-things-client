@@ -1722,7 +1722,7 @@ var handleSubClick = function(subNode, scroll=false) {
   showSubCollapse();
   if(scroll) {
     $(subNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedSubNode);
-  } else if(node.children().length === 0) {
+  } else if(subNode.children().length === 0) {
     scrollToSelectedSubNode();
   }
 }
