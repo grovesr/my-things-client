@@ -1031,6 +1031,7 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
     } else if(sub) {
       self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+addedNode.id());
     } else {
+      addedNode.toggleNeed();
       self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id()+'/'+addedNode.id());
     }
   })
