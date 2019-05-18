@@ -498,24 +498,63 @@
                 </div>
               </div>
             </div>
-            <div  id="search" class="card tab-pane fade">
-              <div>
-                <input
-                  id="filterText"
-                  data-bind="attr: {placeholder: 'enter filter text'},
-                            textInput: filterText"
-                  type="text"
-                  data-boundary="viewport"
-                  class="form-control">
-                </input>
-              </div>
-              <!-- ko foreach: filterItems -->
-                <div>
-                  <a data-bind="attr:{href: $root.nodeHref(id())},
-                                text: name">
-                  </a>
+            <div  id="search" class="tab-pane fade">
+              <div id="filterControls">
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label" for="filterOptMainName"
+                         data-bind="text: mainLabel()">
+                  </label>
+                  <input type="radio" class="form-check-input" name="filterOptions" value="mainNameFilter" id="filterOptMainName" checked></input>
                 </div>
-              <!-- /ko -->
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label" for="filterOptSubName"
+                         data-bind="text: subLabel()">
+                  </label>
+                  <input type="radio" class="form-check-input" name="filterOptions" value="subNameFilter" id="filterOptSubName"></input>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label" for="filterOptItemName"
+                        data-bind="text: itemLabel()+' Name'">
+                  </label>
+                  <input type="radio" class="form-check-input" name="filterOptions" value="itemNameFilter" id="filterOptItemName"></input>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label" for="filterOptItemDescr"
+                         data-bind="text: itemLabel()+' Description'">
+                  </label>
+                  <input type="radio" class="form-check-input" name="filterOptions" value="itemDescrFilter" id="filterOptItemDescr"></input>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="col-md-11">
+                  <input
+                    id="filterText"
+                    data-bind="attr: {placeholder: 'enter search text'},
+                              textInput: filterText"
+                    type="text"
+                    data-boundary="viewport"
+                    class="form-control">
+                  </input>
+                </div>
+                <div class="col">
+                  <button
+                    data-bind="click: filter"
+                    data-toggle="tooltip"
+                    class="form-control btn btn-secondary"
+                    data-original-title="Search">
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="card" style="height: 72vh;overflow-y: scroll;">
+                <!-- ko foreach: filterItems -->
+                  <div>
+                    <a data-bind="attr:{href: $root.nodeHref(id())},
+                                  text: name">
+                    </a>
+                  </div>
+                <!-- /ko -->
+              </div>
             </div>
           </div>
         </div>

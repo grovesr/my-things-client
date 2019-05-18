@@ -81,7 +81,7 @@ var Node = function(initialize=true, data={}) {
     });
     self.leavesNeeded = ko.pureComputed(function() {
       var needed = 0;
-      var leaves = self.findLeaves();
+      var leaves = self.leaves();
       for(var indx=0; indx<leaves.length; indx++) {
         if(leaves[indx].need()) {
           needed++;
@@ -133,20 +133,20 @@ Node.prototype.setDateReviewed = function() {
   }
 }
 
-Node.prototype.findLeaves = function(leaves = []) {
+Node.prototype.leaves = function(leaves = []) {
   var self = this;
   if(self.children().length === 0) {
     return leaves.push(self);
   }
   self.children().forEach(function(child) {
-    leaves.concat(child.findLeaves(leaves));
+    leaves.concat(child.leaves(leaves));
   })
   return leaves;
 }
 
 Node.prototype.numLeavesHaveTried = function() {
   var self = this;
-  var leaves = self.findLeaves();
+  var leaves = self.leaves();
   var count = 0;
   for(var indx=0; indx<leaves.length; indx++) {
     if(leaves[indx].haveTried()) {
@@ -158,7 +158,7 @@ Node.prototype.numLeavesHaveTried = function() {
 
 Node.prototype.leavesHaveTried = function() {
   var self = this;
-  var leaves = self.findLeaves();
+  var leaves = self.leaves();
   for(var indx=0; indx<leaves.length; indx++) {
     if(leaves[indx].haveTried()) {
       return true;
@@ -169,7 +169,7 @@ Node.prototype.leavesHaveTried = function() {
 
 Node.prototype.allLeavesHaveTried = function() {
   var self = this;
-  var leaves = self.findLeaves();
+  var leaves = self.leaves();
   for(var indx=0; indx<leaves.length; indx++) {
     if(!leaves[indx].haveTried()) {
       return false;
@@ -180,7 +180,7 @@ Node.prototype.allLeavesHaveTried = function() {
 
 Node.prototype.leavesHaveReviewed = function() {
   var self = this;
-  var leaves = self.findLeaves();
+  var leaves = self.leaves();
   for(var indx=0; indx<leaves.length; indx++) {
     if(leaves[indx].review()) {
       return true;
@@ -191,7 +191,7 @@ Node.prototype.leavesHaveReviewed = function() {
 
 Node.prototype.leavesHaveRating = function() {
   var self = this;
-  var leaves = self.findLeaves();
+  var leaves = self.leaves();
   for(var indx=0; indx<leaves.length; indx++) {
     if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
       return true;
@@ -204,7 +204,7 @@ Node.prototype.averageRating = function() {
   var self = this;
   var numRated = 0;
   var sumRating = 0;
-  var leaves = self.findLeaves();
+  var leaves = self.leaves();
   for(var indx=0; indx<leaves.length; indx++) {
     if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
       numRated++;
@@ -514,6 +514,7 @@ var NodesViewModel = function() {
   self.selectedSubNode = ko.observable(null);
   self.selectedItem = ko.observable(null);
   self.filterText = ko.observable('');
+  self.filterItems = ko.observableArray([]);
   self.previousSelectedItem = null;
   self.rootNode = null;
   self.adjacencyList = {};
@@ -531,17 +532,6 @@ var NodesViewModel = function() {
 
   self.itemNameColClass = ko.pureComputed(function() {
     return ((self.type() === 'books' || self.type() === 'videos')?'col-2':'col-3')
-  });
-  self.filterItems = ko.computed(function() {
-    var filter = self.filterText();
-    if(self.rootNode && filter !== '') {
-  		var tempList = self.rootNode.children().slice();
-  		return tempList.filter(function(node) {
-  			return node.name().match(new RegExp(filter,'ig')) !== null;
-  		});
-    } else {
-      return [];
-    }
   });
   self.itemHref = ko.pureComputed(function() {
     href = '';
@@ -563,6 +553,70 @@ var NodesViewModel = function() {
       href = self.nodeHref(self.selectedMainNode());
     }
     return href;
+  });
+}
+
+NodesViewModel.prototype.filter = function() {
+  var self = nodesViewModel;
+  var tempList = [];
+  var filter = self.filterText();
+  if(self.rootNode && filter !== '') {
+    switch($('#filterControls input:radio:checked').val()) {
+      case 'mainNameFilter':
+        tempList = self.filterMainName(filter);
+        break;
+      case 'subNameFilter':
+        tempList = self.filterSubName(filter);
+        break;
+        case 'itemNameFilter':
+          tempList = self.filterItemName(filter);
+          break;
+      case 'itemDescrFilter':
+        tempList = self.filterItemDescription(filter);
+        break;
+    }
+  }
+  self.filterItems(tempList);
+}
+
+NodesViewModel.prototype.filterMainName = function(filter) {
+  var self = this;
+  var tempList = self.rootNode.children().slice();
+  return tempList.filter(function(node) {
+    return node.name().match(new RegExp(filter,'ig')) !== null;
+  });
+}
+
+NodesViewModel.prototype.filterSubName = function(filter) {
+  var self = this;
+  var tempList = [];
+  self.rootNode.children().forEach(function(nodeType) {
+    tempList = tempList.concat(nodeType.leaves().slice());
+  });
+  return tempList.filter(function(node) {
+    return self.findNode(node.parentId()).name().match(new RegExp(filter,'ig')) !== null;
+  });
+}
+
+NodesViewModel.prototype.filterItemName = function(filter) {
+  var self = this;
+  var tempList = [];
+  self.rootNode.children().forEach(function(nodeType) {
+    tempList = tempList.concat(nodeType.leaves().slice());
+  });
+  return tempList.filter(function(node) {
+    return node.name().match(new RegExp(filter,'ig')) !== null;
+  });
+}
+
+NodesViewModel.prototype.filterItemDescription = function(filter) {
+  var self = this;
+  var tempList = [];
+  self.rootNode.children().forEach(function(nodeType) {
+    tempList = tempList.concat(nodeType.leaves().slice());
+  });
+  return tempList.filter(function(node) {
+    return node.description() !== null && node.description().match(new RegExp(filter,'ig')) !== null;
   });
 }
 
@@ -1152,7 +1206,7 @@ NodesViewModel.prototype.initNode = function(node) {
       var tooltipText = '<h5>' + node.name() + ':</h5>' +
                         (node.description() ? '<p>' + node.description() + '</p><br>' : '') +
                         '<b>' + self.subLabel() + ':</b><span> ' + node.children().length + '</span><br>' +
-                        '<b>' + self.itemLabel() + 's:</b><span> ' + node.findLeaves().length + '</span><br>' +
+                        '<b>' + self.itemLabel() + 's:</b><span> ' + node.leaves().length + '</span><br>' +
                         '<b>Have ' + self.triedLabel() + ':</b><span> ' + node.numLeavesHaveTried() + '</span><br>' +
                         '<b>Need:</b><span> ' + node.leavesNeeded() + '</span><br>';
     } else {
@@ -1882,6 +1936,8 @@ $(document).keypress(function(e) {
       // ISBN
       e.preventDefault();
       editItemNodeModel.fillItemFromGoogle();
+    } else if($("#searchTab").hasClass("show")) {
+      nodesViewModel.filter();
     } else {
       if($('.modal-open').length) {
         e.preventDefault();
