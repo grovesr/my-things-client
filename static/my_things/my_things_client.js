@@ -1889,7 +1889,7 @@ var toggleItemNeed = function(context) {
   handleItemClick(itemNode, scroll=false);
   $('#itemDetailsTab').tab('show');
   nodesViewModel.toggleItemNeed();
-  nodesViewModel.context.redirect('/#'+self.type()+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
+  nodesViewModel.context.redirect('/#'+nodesViewModel.type()+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
 }
 
 setAlert('');
