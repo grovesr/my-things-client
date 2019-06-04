@@ -315,7 +315,7 @@
           <!-- end accordian main -->
         </div>
         <!-- end col-3 -->
-        <!-- begin col-8 for item details/search -->
+        <!-- begin col-8 for item details/search/sort -->
         <div class="col d-none d-sm-block">
           <ul class="nav nav-tabs" id="tabs" role="tablist">
             <li class="nav-item">
@@ -323,6 +323,9 @@
             </li>
             <li class="nav-item">
               <a class="nav-link" id="searchTab" data-toggle="tab" href="#search" role="tab" >Search</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="sortTab" data-toggle="tab" href="#sortedList" role="tab" >Sort</a>
             </li>
           </ul>
           <div class="tab-content">
@@ -550,7 +553,46 @@
                 <!-- ko foreach: filterItems -->
                   <div>
                     <a data-bind="attr:{href: $root.nodeHref(id())},
-                                  text: name">
+                                  text: $root.nodeSlug(id())">
+                    </a>
+                  </div>
+                <!-- /ko -->
+              </div>
+            </div>
+            <div  id="sortedList" class="tab-pane fade">
+              <div id="sortControls">
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label" for="sortedOptMainRating"
+                        data-bind="text: mainLabel()+' Rating'">
+                  </label>
+                  <input type="radio" class="form-check-input" name="sortedListOptions" value="mainRatingSort" id="sortedOptMainRating"></input>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label" for="sortedOptItemRating"
+                        data-bind="text: itemLabel()+' Rating'">
+                  </label>
+                  <input type="radio" class="form-check-input" name="sortedListOptions" value="itemRatingSort" id="sortedOptItemRating"></input>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label" for="sortedOptAdded"
+                         data-bind="text: 'Date '+triedLabel()">
+                  </label>
+                  <input type="radio" class="form-check-input" name="sortedListOptions" value="addedSort" id="sortedOptAdded"></input>
+                </div>
+              </div>
+              <div class="card" style="height: 72vh;overflow-y: scroll;">
+                <!-- ko foreach: sortedItems -->
+                  <div>
+                    <span class="fa-stack fa-fw mt-rating-list"
+                          data-bind="style: {opacity: (averageRating() !== null ? '1.0': '0.5')}"
+                          data-toggle="tooltip" title="rating">
+                      <i class="far fa-star fa-stack-2x pb-1"></i>
+                      <i class="fa fa-text fa-xs pl-1"
+                         data-bind="text: averageRating()"></i>
+                    </span>
+                    <span class="mt-date-list" data-bind="text: ('0'+((new Date(dateTried())).getMonth()+1)).substr(-2,2)+'/'+('0'+(new Date(dateTried()).getDate())).substr(-2,2)+'/'+('0'+(new Date(dateTried())).getFullYear()).substr(-2,2)"> </span>
+                    <a data-bind="attr:{href: $root.nodeHref(id())},
+                                  text: $root.nodeSlug(id())">
                     </a>
                   </div>
                 <!-- /ko -->

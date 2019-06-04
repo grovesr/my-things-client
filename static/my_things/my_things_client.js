@@ -10,7 +10,7 @@ var loginModel = null;
 var secrets = null;
 var app = null;
 
-$('.fa, .far').css({'visibility':'hidden'});
+$('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'hidden'});
 $('.mt-add-buttons, .mt-edit-buttons, .mt-item-form, .nav-item, .nav-link').css({'visibility':'hidden'});
 $('#itemSortIndex').addClass("d-none");
 
@@ -56,6 +56,16 @@ function setAlert(alertText='', alertClass = '', alertId='#alertBox') {
          $(alertId).append(nodesViewModel.defaultAlert());
      })
    }
+}
+
+var ListNode = function(node=new Node()) {
+  var self = this;
+  self.type = ko.observable(node.type());
+  self.name = ko.observable(node.name());
+  self.id = ko.observable(node.id());
+  self.dateTried = ko.observable(node.dateTried());
+  self.description = ko.observable(node.description());
+  self.averageRating = ko.observable(node.averageRating());
 }
 
 var Node = function(initialize=true, data={}) {
@@ -109,6 +119,17 @@ var Node = function(initialize=true, data={}) {
   }
 }
 
+Node.prototype.slug = function() {
+  var self = this;
+  var slug = '';
+  var trimmed = $.trim(self.name());
+  //slug = trimmed.replace(/[^a-z0-9-]/gi, '-').
+  //replace(/-+/g, '-').
+  //replace(/^-|-$/g, '');
+  //return slug.toLowerCase();
+  return trimmed;
+}
+
 Node.prototype.toggleNeed = function() {
   var self = this;
   self.need(!self.need());
@@ -136,7 +157,8 @@ Node.prototype.setDateReviewed = function() {
 Node.prototype.leaves = function(leaves = []) {
   var self = this;
   if(self.children().length === 0) {
-    return leaves.push(self);
+    leaves.push(self);
+    return leaves;
   }
   self.children().forEach(function(child) {
     leaves.concat(child.leaves(leaves));
@@ -515,6 +537,7 @@ var NodesViewModel = function() {
   self.selectedItem = ko.observable(null);
   self.filterText = ko.observable('');
   self.filterItems = ko.observableArray([]);
+  self.sortedItems = ko.observableArray([]);
   self.previousSelectedItem = null;
   self.rootNode = null;
   self.adjacencyList = {};
@@ -568,9 +591,9 @@ NodesViewModel.prototype.filter = function() {
       case 'subNameFilter':
         tempList = self.filterSubName(filter);
         break;
-        case 'itemNameFilter':
-          tempList = self.filterItemName(filter);
-          break;
+      case 'itemNameFilter':
+        tempList = self.filterItemName(filter);
+        break;
       case 'itemDescrFilter':
         tempList = self.filterItemDescription(filter);
         break;
@@ -579,9 +602,87 @@ NodesViewModel.prototype.filter = function() {
   self.filterItems(tempList);
 }
 
+NodesViewModel.prototype.sortList = function() {
+  var self = nodesViewModel;
+  var tempList = [];
+  //$('#sortedList i.fa, #sortedList i.far').css({'visibility':'hidden'});
+  if(self.rootNode) {
+    switch($('#sortControls input:radio:checked').val()) {
+      case 'mainRatingSort':
+        tempList = self.sortMainRating();
+        break;
+      case 'itemRatingSort':
+        tempList = self.sortItemRating();
+        break;
+      case 'addedSort':
+        tempList = self.sortAdded();
+        break;
+    }
+  }
+  self.sortedItems(tempList);
+  if(self.rootNode) {
+    switch($('#sortControls input:radio:checked').val()) {
+      case 'mainRatingSort':
+        $('.mt-date-list').hide('fast');
+        $('.mt-rating-list').show('fast');
+        break;
+      case 'itemRatingSort':
+        $('.mt-date-list').hide('fast');
+        $('.mt-rating-list').show('fast');
+        break;
+      case 'addedSort':
+        $('.mt-rating-list').hide('fast');
+        $('.mt-date-list').show('fast');
+        break;
+    }
+  }
+}
+
+NodesViewModel.prototype.sortMainRating = function(filter) {
+  var self = this;
+  //var tempList = self.rootNode.children().slice();
+  var tempList = self.rootNode.children().map(function(node) {
+    return new ListNode(node);
+  });
+  return tempList.sort(function(nodeA, nodeB) {
+    return nodeB.averageRating() - nodeA.averageRating();
+  });
+}
+
+NodesViewModel.prototype.sortItemRating = function(filter) {
+  var self = this;
+  var tempList = [];
+  self.rootNode.children().forEach(function(nodeType) {
+    //tempList = tempList.concat(nodeType.leaves().slice());
+    tempList = tempList.concat(nodeType.leaves().map(function(node) {
+      return new ListNode(node);
+    }));
+  });
+  return tempList.sort(function(nodeA, nodeB) {
+    return nodeB.averageRating() - nodeA.averageRating();
+  });
+}
+
+NodesViewModel.prototype.sortAdded = function(filter) {
+  var self = this;
+  var tempList = [];
+  self.rootNode.children().forEach(function(nodeType) {
+    //tempList = tempList.concat(nodeType.leaves().slice());
+    tempList = tempList.concat(nodeType.leaves().map(function(node) {
+      return new ListNode(node);
+    }));
+  });
+  return tempList.sort(function(nodeA, nodeB) {
+    return new Date(nodeB.dateTried()) - new Date(nodeA.dateTried());
+  });
+}
+
 NodesViewModel.prototype.filterMainName = function(filter) {
   var self = this;
-  var tempList = self.rootNode.children().slice();
+  //var tempList = self.rootNode.children().slice();
+  var tempList = self.rootNode.children().map(function(node) {
+    return new ListNode(node);
+  });
   return tempList.filter(function(node) {
     return node.name().match(new RegExp(filter,'ig')) !== null;
   });
@@ -591,7 +692,10 @@ NodesViewModel.prototype.filterSubName = function(filter) {
   var self = this;
   var tempList = [];
   self.rootNode.children().forEach(function(nodeType) {
-    tempList = tempList.concat(nodeType.leaves().slice());
+    //tempList = tempList.concat(nodeType.leaves().slice());
+    tempList = tempList.concat(nodeType.leaves().map(function(node) {
+      return new ListNode(node);
+    }));
   });
   return tempList.filter(function(node) {
     return self.findNode(node.parentId()).name().match(new RegExp(filter,'ig')) !== null;
@@ -602,7 +706,10 @@ NodesViewModel.prototype.filterItemName = function(filter) {
   var self = this;
   var tempList = [];
   self.rootNode.children().forEach(function(nodeType) {
-    tempList = tempList.concat(nodeType.leaves().slice());
+    //tempList = tempList.concat(nodeType.leaves().slice());
+    tempList = tempList.concat(nodeType.leaves().map(function(node) {
+      return new ListNode(node);
+    }));
   });
   return tempList.filter(function(node) {
     return node.name().match(new RegExp(filter,'ig')) !== null;
@@ -613,7 +720,10 @@ NodesViewModel.prototype.filterItemDescription = function(filter) {
   var self = this;
   var tempList = [];
   self.rootNode.children().forEach(function(nodeType) {
-    tempList = tempList.concat(nodeType.leaves().slice());
+    //tempList = tempList.concat(nodeType.leaves().slice());
+    tempList = tempList.concat(nodeType.leaves().map(function(node) {
+      return new ListNode(node);
+    }));
   });
   return tempList.filter(function(node) {
     return node.description() !== null && node.description().match(new RegExp(filter,'ig')) !== null;
@@ -633,6 +743,22 @@ NodesViewModel.prototype.nodeHref = function(nodeId) {
     }
   }
   return '#/'+self.type()+'/'+href;
+}
+
+NodesViewModel.prototype.nodeSlug = function(nodeId) {
+  var self = this;
+  var slug = ''
+  var node = self.findNode(nodeId);
+  if(node !== null) {
+    var href = node.id();
+    var slug = node.slug();
+    var parentNode = self.findNode(node.parentId());
+    while(parentNode) {
+      slug = parentNode.slug() + '/' + slug;
+      var parentNode = self.findNode(parentNode.parentId());
+    }
+  }
+  return slug;
 }
 
 NodesViewModel.prototype.cancelLogin = function() {
@@ -671,6 +797,7 @@ NodesViewModel.prototype.logout = function() {
     self.mainNodes.removeAll();
   }
   self.mainNodes([]);
+  self.sortedItems([]);
   self.loggedIn(false);
 }
 
@@ -744,6 +871,8 @@ NodesViewModel.prototype.setType = function() {
     });
     self.rootNode = self.buildNodeHierarchy();
     self.mainNodes(self.rootNode.children());
+    self.filterItems([]);
+    self.sortedItems([]);
     $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
     $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
     $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
@@ -751,7 +880,7 @@ NodesViewModel.prototype.setType = function() {
   })
   .then(function() {
     setDefaultAlert();
-    $('.fa, .far').css({'visibility':'visible'});
+    $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
     $('.mt-add-buttons, .nav-item, .nav-link').css({'visibility':'visible'});
     self.updateItemListTooltips();
     self.updateControlsTooltips();
@@ -840,6 +969,8 @@ NodesViewModel.prototype.proceedWithMainNodeDelete = function() {
     self.unloadItem();
     $('mt-main-collapse').collapse('hide');
     setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+    self.filterItems([]);
+    self.sortedItems([]);
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -896,6 +1027,8 @@ NodesViewModel.prototype.proceedWithSubNodeDelete = function() {
     self.unloadItem();
     $('mt-sub-collapse').collapse('hide');
     setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+    self.filterItems([]);
+    self.sortedItems([]);
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -930,6 +1063,8 @@ NodesViewModel.prototype.proceedWithItemDelete = function() {
     self.selectedItem(null);
     self.unloadItem();
     setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+    self.filterItems([]);
+    self.sortedItems([]);
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -967,6 +1102,8 @@ NodesViewModel.prototype.proceedWithMainNodeEdit = function(nodeData = {}) {
     setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
     self.mainNodes.sort(self.sortByIndexOrPubDateOrName);
     self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id());
+    self.filterItems([]);
+    self.sortedItems([]);
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -1003,6 +1140,8 @@ NodesViewModel.prototype.proceedWithSubNodeEdit = function(nodeData = {}) {
     setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
     self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
     self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id());
+    self.filterItems([]);
+    self.sortedItems([]);
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -1079,7 +1218,9 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
     }
     self.updateItemListTooltips();
     setAlert('Successfully Added "' + addedNode.name() +'"', 'alert-success');
-    $('.fa, .far').css({'visibility':'visible'});
+    $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
+    self.filterItems([]);
+    self.sortedItems([]);
     if(main) {
       self.context.redirect('#/'+self.type()+'/'+addedNode.id());
     } else if(sub) {
@@ -1153,6 +1294,8 @@ NodesViewModel.prototype.updateItem = function() {
     self.itemSaveIcon(self.defaultItemSaveIcon);
     $("html").removeClass("waiting");
     setAlert('Successfully updated "' + response.name +'"', 'alert-success');
+    self.filterItems([]);
+    self.sortedItems([]);
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -1930,6 +2073,7 @@ var app = $.sammy('#mainBody', function() {
 
 $('#typesSelect').on('keyup mouseup', initType);
 $('#itemNodeTried').on('change', editItemNodeModel.setDateTriedItem.bind(editItemNodeModel));
+$('#sortControls input').on('change', nodesViewModel.sortList.bind(nodesViewModel));
 $(document).keypress(function(e) {
   if(e.which == 13) {
     if(document.activeElement.id === 'itemNodeInfo4' && nodesViewModel.nodeInfo4Key() === 'ISBN') {
