@@ -68,7 +68,7 @@ var ListNode = function(node=new Node()) {
   self.averageRating = ko.observable(node.averageRating());
 }
 
-var Node = function(initialize=true, data={}) {
+var Node = function(initialize=true, data={}, aspects={}) {
   var self = this;
   if(initialize) {
     self.children = ko.observableArray([]);
@@ -78,8 +78,13 @@ var Node = function(initialize=true, data={}) {
   self.forgettableAspects = ['children', 'collapsed', 'forgettableAspects',
                              'changed', 'nodeTooltip', 'nodeviewTooltip',
                              'nodeReviewTooltip','leavesNeeded'];
-  if(data) {
-    self.loadData(data);
+  if(Object.keys(data).length) {
+    if(Object.keys(aspects).length) {
+      //self.loadData(data);
+      self.loadDataWithAspects(data, aspects);
+    } else {
+      self.loadData(data);
+    }
   }
 
   if(initialize) {
@@ -158,7 +163,6 @@ Node.prototype.leaves = function(leaves = []) {
   var self = this;
   if(self.children().length === 0) {
     leaves.push(self);
-    return leaves;
   }
   self.children().forEach(function(child) {
     leaves.concat(child.leaves(leaves));
@@ -247,7 +251,7 @@ Node.prototype.loadData = function(data) {
     if(data[aspect] && typeof data[aspect] === 'object') {
       self[aspect] = ko.observable({});
       Object.keys(data[aspect]).forEach( function(nodeInfoAspect) {
-        if(typeof nodeInfoAspect === 'array') {
+        if(typeof data[aspect][nodeInfoAspect] === 'array') {
           self[aspect]()[nodeInfoAspect] = ko.observableArray(data[aspect][nodeInfoAspect]);
         }else {
           self[aspect]()[nodeInfoAspect] = ko.observable(data[aspect][nodeInfoAspect]);
@@ -262,6 +266,32 @@ Node.prototype.loadData = function(data) {
       self[aspect] = ko.observable(data[aspect]);
     }
   })
+}
+
+Node.prototype.loadDataWithAspects = function(data, aspects) {
+  var self = this;
+  self['nodeInfo'] = ko.observable({});
+  // Only set aspects based on the passed in aspects dictionary
+  if(data['nodeInfo'] && typeof data['nodeInfo'] === 'object') {
+    aspects['nodeInfo'].forEach(function(nodeInfoAspect) {
+      if(typeof data['nodeInfo'][nodeInfoAspect] === 'array') {
+        self['nodeInfo']()[nodeInfoAspect] = ko.observableArray(data['nodeInfo'][nodeInfoAspect]);
+      }else {
+        self['nodeInfo']()[nodeInfoAspect] = ko.observable(data['nodeInfo'][nodeInfoAspect]);
+        if(nodeInfoAspect === 'ISBN_13' && data['nodeInfo']) {
+          self['nodeInfo']()['ISBN'] = ko.observable(data['nodeInfo'][nodeInfoAspect]);
+        } else if(nodeInfoAspect === 'ISBN_10' && data[aspect]) {
+          self['nodeInfo']()['ISBN'] = ko.observable(data['nodeInfo'][nodeInfoAspect]);
+        }
+      }
+    })
+  }
+  aspects['required'].forEach(function(requiredAspect) {
+    self[requiredAspect] = ko.observable(data[requiredAspect]);
+  })
+  if(self.hasOwnProperty('id') === false) {
+    console.log('no id property');
+  }
 }
 
 Node.prototype.updateData = function(data) {
@@ -374,119 +404,133 @@ var NodesViewModel = function() {
                     'spirits':'Distillery',
                     'campgrounds':'State',
                     'videos':'Genre',
-                    'other':'Main'}
+                    'other':'Main'};
   self.subLabels = {'books':'Series',
                     'wine':'Type',
                     'beer':'Type',
                     'spirits':'Type',
                     'campgrounds':'Region',
                     'videos':'Series Name/non-series',
-                    'other':'Sub'}
+                    'other':'Sub'};
   self.itemLabels = {'books':'Book',
                     'wine':'Wine',
                     'beer':'Beer',
                     'spirits':'Spirit',
                     'campgrounds':'Campground',
                     'videos':'Season #/Title',
-                    'other':'Item'}
+                    'other':'Item'};
   self.triedLabels = {'books':'Read',
                     'wine':'Tried',
                     'beer':'Tried',
                     'spirits':'Tried',
                     'campgrounds':'Camped',
                     'videos':'Viewed',
-                    'other':'Tried'}
+                    'other':'Tried'};
   self.sortIndexLabels = {'books':'Series Order',
                          'wine':'n/a',
                          'beer':'n/a',
                          'spirits':'n/a',
                          'campgrounds':'n/a',
                          'videos':'Series Order',
-                         'other':'Sort Index'}
+                         'other':'Sort Index'};
   self.nodeInfo1Keys = {'books':'publisher',
                         'wine':'vintage',
                         'beer':'vintage',
                         'spirits':'vintage',
                         'campgrounds':'type',
                         'videos':'provider',
-                        'other':'nodeinfo1'}
+                        'other':'nodeinfo1'};
   self.nodeInfo2Keys = {'books':'publishedDate',
                         'wine':'region',
                         'beer':'region',
                         'spirits':'region',
                         'campgrounds':'dates',
                         'videos':'aired',
-                        'other':'nodeinfo2'}
+                        'other':'nodeinfo2'};
   self.nodeInfo3Keys = {'books':'pageCount',
                         'wine':'ABV',
                         'beer':'ABV',
                         'spirits':'ABV',
                         'campgrounds':'amenities',
                         'videos':'epsiodes',
-                        'other':'nodeinfo3'}
+                        'other':'nodeinfo3'};
   self.nodeInfo4Keys = {'books':'ISBN',
                         'wine':'taste',
                         'beer':'IBU',
                         'spirits':'taste',
                         'campgrounds':'sites',
                         'videos':'length',
-                        'other':'nodeinfo4'}
+                        'other':'nodeinfo4'};
   self.nodeInfo5Keys = {'books':'ASIN',
                         'wine':'color',
                         'beer':'SRM',
                         'spirits':'color',
                         'campgrounds':'cost',
                         'videos':'actors',
-                        'other':'nodeinfo5'}
+                        'other':'nodeinfo5'};
   self.nodeInfo6Keys = {'books':'googleLink',
                         'wine':'link',
                         'beer':'link',
                         'spirits':'link',
                         'campgrounds':'link',
                         'videos':'link',
-                        'other':'nodeinfo6'}
+                        'other':'nodeinfo6'};
   self.nodeInfo1Labels = {'books':'Publisher',
                         'wine':'Vintage',
                         'beer':'Vintage',
                         'spirits':'Vintage',
                         'campgrounds':'Type',
                         'videos':'Provider',
-                        'other':'Node Info 1'}
+                        'other':'Node Info 1'};
   self.nodeInfo2Labels = {'books':'Published',
                         'wine':'Region',
                         'beer':'Region',
                         'spirits':'Region',
                         'campgrounds':'Dates Open',
                         'videos':'First Aired',
-                        'other':'Node Info 2'}
+                        'other':'Node Info 2'};
   self.nodeInfo3Labels = {'books':'Pages',
                         'wine':'ABV',
                         'beer':'ABV',
                         'spirits':'ABV',
                         'campgrounds':'Amenities',
                         'videos':'# Episodes',
-                        'other':'Node Info 3'}
+                        'other':'Node Info 3'};
   self.nodeInfo4Labels = {'books':'ISBN',
                         'wine':'Taste',
                         'beer':'IBU',
                         'spirits':'Taste',
                         'campgrounds':'Site details',
                         'videos':'Avg. Length',
-                        'other':'Node Info 4'}
+                        'other':'Node Info 4'};
   self.nodeInfo5Labels = {'books':'ASIN',
                         'wine':'Color',
                         'beer':'SRM',
                         'spirits':'Color',
                         'campgrounds':'Cost',
                         'videos':'Actors',
-                        'other':'Node Info 5'}
+                        'other':'Node Info 5'};
   self.nodeInfo6Labels = {'books':'Link',
                         'wine':'Link',
                         'beer':'Link',
                         'spirits':'Link',
                         'campgrounds':'Link',
                         'videos':'Link',
-                        'other':'Node Info 6'}
+                        'other':'Node Info 6'};
+  self.requiredAspects = ['id',
+                          'ownerId',
+                          'type',
+                          'need',
+                          'sortIndex',
+                          'parentId',
+                          'haveTried',
+                          'dateTried',
+                          'dateReviewed',
+                          'rating',
+                          'name',
+                          'description',
+                          'review',
+                          'uri'];
   self.defaultGoogleIcon = 'G';
   self.defaultItemSaveIcon = 'Save';
   self.defaultItemDeleteIcon = 'Delete';
@@ -541,6 +585,14 @@ var NodesViewModel = function() {
   self.previousSelectedItem = null;
   self.rootNode = null;
   self.adjacencyList = {};
+  self.nodeInfoKeys = ko.pureComputed(function() {
+    return [self.nodeInfo1Key(),
+            self.nodeInfo2Key(),
+            self.nodeInfo3Key(),
+            self.nodeInfo4Key(),
+            self.nodeInfo5Key(),
+            self.nodeInfo6Key()]
+  });
   self.addMainLabel = ko.pureComputed(function() {
     return 'Add ' + self.mainLabel();
   });
@@ -640,10 +692,12 @@ NodesViewModel.prototype.sortList = function() {
 
 NodesViewModel.prototype.sortMainRating = function(filter) {
   var self = this;
-  //var tempList = self.rootNode.children().slice();
-  var tempList = self.rootNode.children().map(function(node) {
-    return new ListNode(node);
+  var tempList = self.rootNode.children().filter(function(node) {
+    return node.averageRating() !== null;
   });
+  //var tempList = self.rootNode.children().map(function(node) {
+  //  return new ListNode(node);
+  //});
   return tempList.sort(function(nodeA, nodeB) {
     return nodeB.averageRating() - nodeA.averageRating();
   });
@@ -653,10 +707,12 @@ NodesViewModel.prototype.sortItemRating = function(filter) {
   var self = this;
   var tempList = [];
   self.rootNode.children().forEach(function(nodeType) {
-    //tempList = tempList.concat(nodeType.leaves().slice());
-    tempList = tempList.concat(nodeType.leaves().map(function(node) {
-      return new ListNode(node);
+    tempList = tempList.concat(nodeType.leaves().filter(function(node) {
+      return node.dateTried();
     }));
+    //tempList = tempList.concat(nodeType.leaves().map(function(node) {
+    //  return new ListNode(node);
+    //}));
   });
   return tempList.sort(function(nodeA, nodeB) {
     return nodeB.averageRating() - nodeA.averageRating();
@@ -667,10 +723,12 @@ NodesViewModel.prototype.sortAdded = function(filter) {
   var self = this;
   var tempList = [];
   self.rootNode.children().forEach(function(nodeType) {
-    //tempList = tempList.concat(nodeType.leaves().slice());
-    tempList = tempList.concat(nodeType.leaves().map(function(node) {
-      return new ListNode(node);
+    tempList = tempList.concat(nodeType.leaves().filter(function(node) {
+      return node.dateTried();
     }));
+    //tempList = tempList.concat(nodeType.leaves().map(function(node) {
+    //  return new ListNode(node);
+    //}));
   });
   return tempList.sort(function(nodeA, nodeB) {
     return new Date(nodeB.dateTried()) - new Date(nodeA.dateTried());
@@ -865,8 +923,12 @@ NodesViewModel.prototype.setType = function() {
       if(!(node.parentId in self.adjacencyList)) {
         self.adjacencyList[node.parentId] = [];
       }
-      var newNode = new Node(true, node);
+      var newNode = new Node(true, node, {'required':self.requiredAspects,
+                                          'nodeInfo': self.nodeInfoKeys()});
       self.initNode(newNode);
+      if(newNode.hasOwnProperty('id') === false) {
+        newNode;
+      }
       self.adjacencyList[node.parentId].push(newNode);
     });
     self.rootNode = self.buildNodeHierarchy();
@@ -894,6 +956,7 @@ NodesViewModel.prototype.setType = function() {
     if(typeof err.responseJSON !== 'undefined') {
       setAlert(err.responseJSON['error'], 'alert-danger')
     } else {
+      console.log(err);
       var errorMessage = err.state();
       if(err.state() === 'rejected') {
         errorMessage = 'Possible network issue. Please try again later.';
