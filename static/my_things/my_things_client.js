@@ -914,7 +914,7 @@ NodesViewModel.prototype.setType = function() {
   nodesViewModel.visible(false);
   $("html").addClass("waiting");
   $('#loadingDialog').modal('show');
-  return nodesViewModel.getNodes()
+  return nodesViewModel.getMainNodes()
   .then(function(response) {
     $("html").removeClass("waiting");
     // build adjacencyList structure
@@ -1373,6 +1373,14 @@ NodesViewModel.prototype.updateItem = function() {
       setAlert('error in NodesViewModel ajax call: ' + errorMessage, 'alert-danger')
     }
   });
+}
+
+NodesViewModel.prototype.getMainNodes = function() {
+  var self = this;
+  var url = secrets['MY_THINGS_SERVER'] + '/main/nodes?';
+  url += 'ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
 }
 
 NodesViewModel.prototype.getNodes = function() {
