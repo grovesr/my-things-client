@@ -935,10 +935,12 @@ NodesViewModel.prototype.logout = function() {
 
 NodesViewModel.prototype.sortByIndexOrPubDateOrName = function (left, right) {
 
-  if(left.sortIndex() !== null && right.sortIndex() !== null) {
+  if(left.sortIndex() !== null && right.sortIndex() !== null &&
+     left.sortIndex() !== undefined && right.sortIndex() !== undefined) {
     return (left.sortIndex() == right.sortIndex() ? 0 : (parseInt(left.sortIndex()) < parseInt(right.sortIndex()) ? -1 : 1));
   } else if('publishedDate' in left.nodeInfo() && 'publishedDate' in right.nodeInfo() &&
-            left.nodeInfo()['publishedDate']() !== null && right.nodeInfo()['publishedDate']() !== null) {
+            left.nodeInfo()['publishedDate']() !== null && right.nodeInfo()['publishedDate']() !== null &&
+            left.nodeInfo()['publishedDate']() !== undefined && right.nodeInfo()['publishedDate']() !== undefined) {
     var dleft = new Date(left.nodeInfo()['publishedDate']());
     var dright = new Date(right.nodeInfo()['publishedDate']());
     return (dleft == dright ? 0 : (dleft < dright ? -1 : 1));
@@ -1006,6 +1008,7 @@ NodesViewModel.prototype.setType = function() {
       self.adjacencyList[node.parentId].push(newNode);
     });
     self.rootNode = self.buildNodeHierarchy();
+    self.rootNode.children().sort(self.sortByIndexOrPubDateOrName)
     self.mainNodes(self.rootNode.children());
     self.filterItems([]);
     self.sortedItems([]);
