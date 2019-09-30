@@ -104,6 +104,13 @@ var Node = function(initialize=true, data={}, aspects={}) {
       }
       return needed;
     });
+    self.mainLeavesNeeded = ko.pureComputed(function() {
+      needed = self.nodeInfo()['needLeaves']();
+      if(!needed) {
+        needed = 0;
+      }
+      return needed;
+    });
     self.image = ko.computed(function() {
       var image = '';
       if(nodesViewModel.type() === 'books') {
@@ -182,6 +189,33 @@ Node.prototype.numLeavesHaveTried = function() {
   return count;
 }
 
+Node.prototype.mainNumLeavesHaveTried = function() {
+  var self = this;
+  haveTried = self.nodeInfo()['haveTriedLeaves']();
+  if(!haveTried) {
+    haveTried = 0;
+  }
+  return haveTried;
+}
+
+Node.prototype.mainNumberSubs = function() {
+  var self = this;
+  numSubs = self.nodeInfo()['numberSubs']();
+  if(!numSubs) {
+    numSubs = 0;
+  }
+  return numSubs;
+}
+
+Node.prototype.mainNumberLeaves = function() {
+  var self = this;
+  numLeaves = self.nodeInfo()['numberLeaves']();
+  if(!numLeaves) {
+    numLeaves = 0;
+  }
+  return numLeaves;
+}
+
 Node.prototype.leavesHaveTried = function() {
   var self = this;
   var leaves = self.leaves();
@@ -193,6 +227,15 @@ Node.prototype.leavesHaveTried = function() {
   return false;
 }
 
+Node.prototype.mainLeavesHaveTried = function() {
+  var self = this;
+  haveTried = self.nodeInfo()['haveTriedLeaves']();
+  if(!haveTried) {
+    haveTried = 0;
+  }
+  return haveTried;
+}
+
 Node.prototype.allLeavesHaveTried = function() {
   var self = this;
   var leaves = self.leaves();
@@ -202,6 +245,14 @@ Node.prototype.allLeavesHaveTried = function() {
     }
   }
   return true;
+}
+
+Node.prototype.mainAllLeavesHaveTried = function() {
+  var self = this;
+  if(self.mainLeavesHaveTried() == self.mainNumberLeaves()) {
+    return true;
+  }
+  return false;
 }
 
 Node.prototype.leavesHaveReviewed = function() {
@@ -226,6 +277,15 @@ Node.prototype.leavesHaveRating = function() {
   return false;
 }
 
+Node.prototype.mainLeavesHaveRating = function() {
+  var self = this;
+  averageRating = self.nodeInfo()['averageLeafRating']();
+  if(averageRating === null) {
+    return false;
+  }
+  return true;
+}
+
 Node.prototype.averageRating = function() {
   var self = this;
   var numRated = 0;
@@ -242,6 +302,15 @@ Node.prototype.averageRating = function() {
   } else {
     return Math.round(sumRating / numRated);
   }
+}
+
+Node.prototype.mainAverageRating = function() {
+  var self = this;
+  averageRating = self.nodeInfo()['averageLeafRating']();
+  if(!averageRating) {
+    averageRating = null;
+  }
+  return averageRating;
 }
 
 Node.prototype.loadData = function(data) {
@@ -591,7 +660,12 @@ var NodesViewModel = function() {
             self.nodeInfo3Key(),
             self.nodeInfo4Key(),
             self.nodeInfo5Key(),
-            self.nodeInfo6Key()]
+            self.nodeInfo6Key(),
+            'numberSubs',
+            'averageLeafRating',
+            'needLeaves',
+            'numberLeaves',
+            'haveTriedLeaves']
   });
   self.addMainLabel = ko.pureComputed(function() {
     return 'Add ' + self.mainLabel();
@@ -1377,7 +1451,7 @@ NodesViewModel.prototype.updateItem = function() {
 
 NodesViewModel.prototype.getMainNodes = function() {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/main/nodes?';
+  var url = secrets['MY_THINGS_SERVER'] + '/main/nodes/info/3?';
   url += 'ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -1419,10 +1493,10 @@ NodesViewModel.prototype.initNode = function(node) {
     if(self.isMain(node)) {
       var tooltipText = '<h5>' + node.name() + ':</h5>' +
                         (node.description() ? '<p>' + node.description() + '</p><br>' : '') +
-                        '<b>' + self.subLabel() + ':</b><span> ' + node.children().length + '</span><br>' +
-                        '<b>' + self.itemLabel() + 's:</b><span> ' + node.leaves().length + '</span><br>' +
-                        '<b>Have ' + self.triedLabel() + ':</b><span> ' + node.numLeavesHaveTried() + '</span><br>' +
-                        '<b>Need:</b><span> ' + node.leavesNeeded() + '</span><br>';
+                        '<b>' + self.subLabel() + ':</b><span> ' + node.mainNumberSubs() + '</span><br>' +
+                        '<b>' + self.itemLabel() + 's:</b><span> ' + node.mainNumberLeaves() + '</span><br>' +
+                        '<b>Have ' + self.triedLabel() + ':</b><span> ' + node.mainNumLeavesHaveTried() + '</span><br>' +
+                        '<b>Need:</b><span> ' + node.mainLeavesNeeded() + '</span><br>';
     } else {
       var tooltipText = '<h5>' + node.name() + ':</h5>' +
                         (node.description() ? '<p>' + node.description() + '</p><br>' : '') +

@@ -153,23 +153,23 @@
                     class="list-group-item mt-main-a text-truncate border-0 mb-1">
                     <span>
                       <span class="badge badge-secondary"
-                            data-bind="text: leavesNeeded,
-                                       style:{'background-color': leavesNeeded() ? 'red' : 'green'}"
+                            data-bind="text: mainLeavesNeeded,
+                                       style:{'background-color': mainLeavesNeeded() ? 'red' : 'green'}"
                             title="need"
                             data-toggle="tooltip"></span>
                       <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
                                         title: (collapsed() ? 'expand' : 'collapse')}"
                             data-toggle="tooltip"></i>
-                      <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2'),
-                                            color: (allLeavesHaveTried() ? 'green' : 'black')},
-                                            attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')}"
+                      <i data-bind="style: {opacity: (mainLeavesHaveTried() ? '1.0': '0.2'),
+                                            color: (mainAllLeavesHaveTried() ? 'green' : 'black')},
+                                            attr: {class: (mainAllLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')}"
                             data-toggle="tooltip" title="tried"></i>
                       <span class="fa-stack fa-fw"
-                            data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
+                            data-bind="style: {opacity: (mainLeavesHaveRating() ? '1.0': '0.5')}"
                             data-toggle="tooltip" title="rating">
                         <i class="far fa-star fa-stack-2x pb-1"></i>
                         <i class="fa fa-text fa-xs pl-1"
-                           data-bind="text: averageRating()"></i>
+                           data-bind="text: mainAverageRating()"></i>
                       </span>
                       <span data-toggle="tooltip"
                             data-html="true"
