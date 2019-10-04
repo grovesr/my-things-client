@@ -105,9 +105,11 @@ var Node = function(initialize=true, data={}, aspects={}) {
       return needed;
     });
     self.mainLeavesNeeded = ko.pureComputed(function() {
-      needed = self.nodeInfo()['needLeaves']();
-      if(!needed) {
+      if('leaves' in self.nodeInfo() && (self.nodeInfo()['needLeaves']() === null
+                                     || typeof self.nodeInfo()['needLeaves']() === 'undefined')) {
         needed = 0;
+      } else {
+        needed = self.nodeInfo()['needLeaves']();
       }
       return needed;
     });
@@ -339,6 +341,9 @@ Node.prototype.loadData = function(data) {
 
 Node.prototype.loadDataWithAspects = function(data, aspects) {
   var self = this;
+  if(!data.nodeInfo) {
+    data.nodeInfo = {};
+  }
   self['nodeInfo'] = ko.observable({});
   // Only set aspects based on the passed in aspects dictionary
   if(data['nodeInfo'] && typeof data['nodeInfo'] === 'object') {
@@ -1002,12 +1007,9 @@ NodesViewModel.prototype.setType = function() {
       var newNode = new Node(true, node, {'required':self.requiredAspects,
                                           'nodeInfo': self.nodeInfoKeys()});
       self.initNode(newNode);
-      if(newNode.hasOwnProperty('id') === false) {
-        newNode;
-      }
       self.adjacencyList[node.parentId].push(newNode);
     });
-    self.rootNode = self.buildNodeHierarchy();
+    self.rootNode = self.buildNodeHierarchy(nodeId=null, parentId=null, adjacencyList =self.adjacencyList);
     self.rootNode.children().sort(self.sortByIndexOrPubDateOrName)
     self.mainNodes(self.rootNode.children());
     self.filterItems([]);
@@ -1310,7 +1312,8 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
   .then(function(node) {
     $("html").removeClass("waiting");
     // build adjacencyList structure
-    addedNode = new Node(true, node);
+    addedNode = new Node(true, node, {'required':self.requiredAspects,
+                                      'nodeInfo': self.nodeInfoKeys()});
     self.initNode(addedNode);
     if(!(node.parentId in self.adjacencyList)) {
       self.adjacencyList[node.parentId] = [];
@@ -1332,6 +1335,10 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
     var item = false;
     if(addedNode.parentId() === self.rootNode.id()) {
       main = true;
+      addedNode.nodeInfo()['needLeaves'](0);
+      addedNode.nodeInfo()['numberSubs'](0);
+      addedNode.nodeInfo()['numberLeaves'](0);
+      addedNode.nodeInfo()['averageLeafRating'](null);
       $('a.mt-main-a').removeClass('active');
       $('.mt-main-collapse').collapse('hide');
       $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideMainCollapse);
@@ -1372,15 +1379,18 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger', alertId)
-    } else {
+    if('responseJSON' in err && 'error' in err.responseJSON) {
+      errorMessage = err.responseJSON['error'];
+    } else if('state' in err) {
       var errorMessage = err.state();
-      if(err.state() === 'rejected') {
+      if(errorMessage === 'rejected') {
         errorMessage = 'Possible network issue. Please try again later.';
       }
-      setAlert('error in NodesViewModel.addNode ajax call: ' + errorMessage, 'alert-danger', alertId)
+      errorMessage = 'error in NodesViewModel.addNode ajax call: ' + errorMessage
+    } else if('message' in err) {
+      errorMessage = err.message;
     }
+    setAlert(errorMessage, 'alert-danger', alertId)
   });
 }
 
@@ -1454,7 +1464,15 @@ NodesViewModel.prototype.updateItem = function() {
 
 NodesViewModel.prototype.getMainNodes = function() {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/main/nodes/info/3?';
+  var url = secrets['MY_THINGS_SERVER'] + '/main/nodes/info/depth/3?';
+  url += 'ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
+}
+
+NodesViewModel.prototype.getMainSubtree = function(id) {
+  var self = this;
+  var url = secrets['MY_THINGS_SERVER'] + '/tree/depth/3/'+id+'?';
   url += 'ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -1516,12 +1534,12 @@ NodesViewModel.prototype.isMain = function(node) {
   return node.parentId() == self.rootNode.id();
 }
 
-NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null) {
+NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null, adjacencyList=null) {
   var self = this;
   var sameParentList;
   var children;
-  if(parentId in self.adjacencyList) {
-    sameParentList = self.adjacencyList[parentId];
+  if(parentId in adjacencyList) {
+    sameParentList = adjacencyList[parentId];
   } else {
     // this is a leaf node
     return node;
@@ -1534,7 +1552,7 @@ NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null)
     } else {
       node.children.push(sibling);
     }
-    self.buildNodeHierarchy(sibling, sibling.id());
+    self.buildNodeHierarchy(sibling, sibling.id(), adjacencyList);
   });
   return node;
 }
@@ -2038,23 +2056,59 @@ var handleMainClick =  function(mainNode, scroll=false) {
   $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
   mainNode.addClass('active');
   var node = nodesViewModel.findNode(mainNode.attr('mt-data-id'));
+  if(nodesViewModel.selectedMainNode()) {
+    nodesViewModel.selectedMainNode().children([]);
+  }
   nodesViewModel.selectedMainNode(node);
-  nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-  nodesViewModel.selectedSubNode(null);
-  nodesViewModel.selectedItem(null);
-  nodesViewModel.unloadItem();
-  if(nodesViewModel.selectedSubNode()) {
-    var subNode = $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]');
-    $(subNode.attr('data-target')).collapse('hide');
-    $(subNode.attr('data-target')).on('hidden.bs.collapse', showMainCollapse);
-  } else {
-    showMainCollapse();
+  nodesViewModel.getMainSubtree(node.id())
+  .then(function (tree) {
+    $("html").removeClass("waiting");
+    var adjacencyList = {};
+    var tempRoot = new Node();
+    adjacencyList[null] = [nodesViewModel.rootNode.copy()];
+    tree.nodes.forEach(function(node) {
+      if(!(node.parentId in adjacencyList)) {
+        adjacencyList[node.parentId] = [];
+      }
+      var newNode = new Node(true, node, {'required':nodesViewModel.requiredAspects,
+                                          'nodeInfo': nodesViewModel.nodeInfoKeys()});
+      nodesViewModel.initNode(newNode);
+      adjacencyList[node.parentId].push(newNode);
+    });
+    var main = nodesViewModel.buildNodeHierarchy(node=null, parentId=null, adjacencyList=adjacencyList).children()[0];
+    //main.children().forEach(function(node) {
+      //$('#accordianCollapse_' + node.id()).on('hide.bs.collapse', handleHideSubCollapse);
+      //$('#accordianCollapse_' + node.id()).on('show.bs.collapse', handleShowSubCollapse);
+    //});
+    Promise.resolve(nodesViewModel.selectedMainNode().children(main.children()))
+    .then(function() {
+      $("div#accordianCollapse_" + nodesViewModel.selectedMainNode().id() + " i.fa, div#accordianCollapse_" + nodesViewModel.selectedMainNode().id() + " i.far").css({'visibility':'visible'});
+      nodesViewModel.updateItemListTooltips();
+    });
+    nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName)
+    nodesViewModel.filterItems([]);
+    nodesViewModel.sortedItems([]);
+    //$('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
+    //$('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
+    //$('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
+    //$('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
+    nodesViewModel.selectedSubNode(null);
+    nodesViewModel.selectedItem(null);
+    nodesViewModel.unloadItem();
+    if(nodesViewModel.selectedSubNode()) {
+      var subNode = $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]');
+      $(subNode.attr('data-target')).collapse('hide');
+      $(subNode.attr('data-target')).on('hidden.bs.collapse', showMainCollapse);
+    } else {
+      showMainCollapse();
+    }
+    if(scroll) {
+      $(mainNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedMainNode)
+    } else if(mainNode.children().length === 0) {
+      scrollToSelectedMainNode();
+    }
   }
-  if(scroll) {
-    $(mainNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedMainNode)
-  } else if(mainNode.children().length === 0) {
-    scrollToSelectedMainNode();
-  }
+  );
 }
 
 var handleSubClick = function(subNode, scroll=false) {
@@ -2130,7 +2184,7 @@ var selectMain = function(context) {
   var type = context.params['type'];
   var mainNodeId = context.params['main'];
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNode, scroll=true);
+  handleMainClick(mainNode);
   $('#itemDetailsTab').tab('show');
 }
 
@@ -2142,8 +2196,8 @@ var selectSub = function(context) {
   var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
-  handleMainClick(mainNode);
-  handleSubClick(subNode, scroll=true);
+  //handleMainClick(mainNode);
+  handleSubClick(subNode);
   $('#itemDetailsTab').tab('show');
 }
 
@@ -2158,9 +2212,9 @@ var selectItem = function(context) {
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
   var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNode);
-  handleSubClick(subNode);
-  handleItemClick(itemNode, scroll=true);
+  //handleMainClick(mainNode);
+  //handleSubClick(subNode);
+  handleItemClick(itemNode);
   $('#itemDetailsTab').tab('show');
 }
 
