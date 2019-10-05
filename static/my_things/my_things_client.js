@@ -2056,7 +2056,7 @@ var handleMainClick =  function(mainNode, scroll=false) {
   $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
   mainNode.addClass('active');
   var node = nodesViewModel.findNode(mainNode.attr('mt-data-id'));
-  if(nodesViewModel.selectedMainNode()) {
+  if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() !== node.id()) {
     nodesViewModel.selectedMainNode().children([]);
   }
   nodesViewModel.selectedMainNode(node);
@@ -2105,7 +2105,7 @@ var handleMainClick =  function(mainNode, scroll=false) {
     if(scroll) {
       $(mainNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedMainNode)
     } else if(mainNode.children().length === 0) {
-      scrollToSelectedMainNode();
+      //scrollToSelectedMainNode();
     }
   }
   );
@@ -2123,7 +2123,7 @@ var handleSubClick = function(subNode, scroll=false) {
   if(scroll) {
     $(subNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedSubNode);
   } else if(subNode.children().length === 0) {
-    scrollToSelectedSubNode();
+    //scrollToSelectedSubNode();
   }
 }
 
@@ -2229,12 +2229,12 @@ var toggleItemNeed = function(context) {
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
   var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNode, scroll=false);
-  handleSubClick(subNode, scroll=false);
-  handleItemClick(itemNode, scroll=false);
+  //handleMainClick(mainNode);
+  //handleSubClick(subNode);
+  handleItemClick(itemNode);
   $('#itemDetailsTab').tab('show');
   nodesViewModel.toggleItemNeed();
-  nodesViewModel.context.redirect('/#'+nodesViewModel.type()+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
+  nodesViewModel.context.redirect('/#/'+nodesViewModel.type()+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
 }
 
 setAlert('');
