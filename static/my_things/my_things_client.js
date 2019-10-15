@@ -1014,10 +1014,6 @@ NodesViewModel.prototype.setType = function() {
     self.mainNodes(self.rootNode.children());
     self.filterItems([]);
     self.sortedItems([]);
-    $('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
-    $('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
-    $('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
-    $('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
   })
   .then(function() {
     setDefaultAlert();
@@ -1341,16 +1337,12 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
       addedNode.nodeInfo()['averageLeafRating'](null);
       $('a.mt-main-a').removeClass('active');
       $('.mt-main-collapse').collapse('hide');
-      $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideMainCollapse);
-      $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowMainCollapse);
       self.selectedMainNode(addedNode);
       $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
     } else if(addedNode.parentId() === self.selectedMainNode().id()){
       sub = true;
       $('a.mt-sub-a').removeClass('active');
       $('.mt-sub-collapse').collapse('hide');
-      $('#accordianCollapse_' + addedNode.id()).on('hide.bs.collapse', handleHideSubCollapse);
-      $('#accordianCollapse_' + addedNode.id()).on('show.bs.collapse', handleShowSubCollapse);
       $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
       self.selectedSubNode(addedNode);
       $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
@@ -1373,7 +1365,6 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
     } else if(sub) {
       self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+addedNode.id());
     } else {
-      addedNode.toggleNeed();
       self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id()+'/'+addedNode.id());
     }
   })
@@ -2057,12 +2048,13 @@ var handleMainClick =  function(mainNode, scroll=false) {
   mainNode.addClass('active');
   var node = nodesViewModel.findNode(mainNode.attr('mt-data-id'));
   if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() !== node.id()) {
+    // we clicked a new main node, when one was already selected
     nodesViewModel.selectedMainNode().children([]);
+    nodesViewModel.selectedMainNode().collapsed(true);
   }
   nodesViewModel.selectedMainNode(node);
   nodesViewModel.getMainSubtree(node.id())
   .then(function (tree) {
-    $("html").removeClass("waiting");
     var adjacencyList = {};
     var tempRoot = new Node();
     adjacencyList[null] = [nodesViewModel.rootNode.copy()];
@@ -2076,55 +2068,64 @@ var handleMainClick =  function(mainNode, scroll=false) {
       adjacencyList[node.parentId].push(newNode);
     });
     var main = nodesViewModel.buildNodeHierarchy(node=null, parentId=null, adjacencyList=adjacencyList).children()[0];
-    //main.children().forEach(function(node) {
-      //$('#accordianCollapse_' + node.id()).on('hide.bs.collapse', handleHideSubCollapse);
-      //$('#accordianCollapse_' + node.id()).on('show.bs.collapse', handleShowSubCollapse);
-    //});
+    main.children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
     Promise.resolve(nodesViewModel.selectedMainNode().children(main.children()))
     .then(function() {
-      $("div#accordianCollapse_" + nodesViewModel.selectedMainNode().id() + " i.fa, div#accordianCollapse_" + nodesViewModel.selectedMainNode().id() + " i.far").css({'visibility':'visible'});
-      nodesViewModel.updateItemListTooltips();
+      // the subnodes for this clicked main node have been populated and made visible
+      var mainNodeId = nodesViewModel.selectedMainNode().id();
+      $("div#accordianCollapse_" + mainNodeId + " i.fa, div#accordianCollapse_" + mainNodeId + " i.far").css({'visibility':'visible'});
+      $('#accordian_' + mainNodeId + ' [data-toggle="tooltip"]').tooltip('enable');
+      $("html").removeClass("waiting");
+      $('#accordianCollapse_' + mainNodeId).off('hidden.bs.collapse');
+      $('#accordianCollapse_' + mainNodeId).on('hidden.bs.collapse', function(e) {
+        if ($(this).is(e.target)) {
+          nodesViewModel.selectedMainNode().collapsed(true);
+        }
+      });
+      $('#accordianCollapse_' + mainNodeId).off('shown.bs.collapse');
+      $('#accordianCollapse_' + mainNodeId).on('shown.bs.collapse', function(e) {
+        if ($(this).is(e.target)) {
+          nodesViewModel.selectedMainNode().collapsed(false);
+        }
+      });
+      $("a[mt-data-id=" + mainNodeId + "]").off('click', toggleCollapse);
+      $("a[mt-data-id=" + mainNodeId + "]").on('click', toggleCollapse);
+      $('#accordianCollapse_' + mainNodeId).collapse('show');
+      nodesViewModel.filterItems([]);
+      nodesViewModel.sortedItems([]);
     });
-    nodesViewModel.selectedMainNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName)
-    nodesViewModel.filterItems([]);
-    nodesViewModel.sortedItems([]);
-    //$('.mt-main-collapse').on('hide.bs.collapse', handleHideMainCollapse);
-    //$('.mt-sub-collapse').on('hide.bs.collapse', handleHideSubCollapse);
-    //$('.mt-main-collapse').on('show.bs.collapse', handleShowMainCollapse);
-    //$('.mt-sub-collapse').on('show.bs.collapse', handleShowSubCollapse);
     nodesViewModel.selectedSubNode(null);
     nodesViewModel.selectedItem(null);
     nodesViewModel.unloadItem();
-    if(nodesViewModel.selectedSubNode()) {
-      var subNode = $('a[mt-data-id="' + nodesViewModel.selectedSubNode().id() + '"]');
-      $(subNode.attr('data-target')).collapse('hide');
-      $(subNode.attr('data-target')).on('hidden.bs.collapse', showMainCollapse);
-    } else {
-      showMainCollapse();
-    }
-    if(scroll) {
-      $(mainNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedMainNode)
-    } else if(mainNode.children().length === 0) {
-      //scrollToSelectedMainNode();
-    }
-  }
-  );
+  });
 }
 
 var handleSubClick = function(subNode, scroll=false) {
   $('a.mt-sub-a, a.mt-item-a').removeClass('active');
   subNode.addClass('active');
   var node = nodesViewModel.findNode(subNode.attr('mt-data-id'));
+  var subNodeId = node.id();
   nodesViewModel.selectedSubNode(node);
   nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
+  $("div#accordianCollapse_" + subNodeId + " i.fa, div#accordianCollapse_" + subNodeId + " i.far").css({'visibility':'visible'});
+  $('#accordianCollapse_' + subNodeId).off('hidden.bs.collapse');
+  $('#accordianCollapse_' + subNodeId).on('hidden.bs.collapse', function(e) {
+    if ($(this).is(e.target)) {
+      node.collapsed(true);
+    }
+  });
+  $('#accordianCollapse_' + subNodeId).off('shown.bs.collapse');
+  $('#accordianCollapse_' + subNodeId).on('shown.bs.collapse', function(e) {
+    if ($(this).is(e.target)) {
+      node.collapsed(false);
+    }
+  });
+  $("a[mt-data-id=" + subNodeId + "]").off('click', toggleCollapse);
+  $("a[mt-data-id=" + subNodeId + "]").on('click', toggleCollapse);
+  $('#accordianCollapse_' + subNodeId).collapse('show');
   nodesViewModel.selectedItem(null);
   nodesViewModel.unloadItem();
   showSubCollapse();
-  if(scroll) {
-    $(subNode.attr('data-target')).on('shown.bs.collapse', scrollToSelectedSubNode);
-  } else if(subNode.children().length === 0) {
-    //scrollToSelectedSubNode();
-  }
 }
 
 var handleItemClick = function(itemNode, scroll=false) {
@@ -2183,9 +2184,16 @@ var selectMain = function(context) {
   nodesViewModel.context = context;
   var type = context.params['type'];
   var mainNodeId = context.params['main'];
-  var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNode);
+  var mainNodeLink = $('a[href="#/'+type+'/'+mainNodeId+'"]');
+  handleMainClick(mainNodeLink);
   $('#itemDetailsTab').tab('show');
+}
+
+var toggleCollapse = function(e) {
+  if ($(this).is(e.currentTarget)) {
+    targetNode = nodesViewModel.findNode($(this).attr('mt-data-id'));
+    $('#accordianCollapse_' + $(this).attr('mt-data-id')).collapse('toggle');
+  }
 }
 
 var selectSub = function(context) {
@@ -2196,6 +2204,8 @@ var selectSub = function(context) {
   var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
   var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
   var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
+  subNode.off('click', toggleCollapse);
+  subNode.on('click', toggleCollapse);
   //handleMainClick(mainNode);
   handleSubClick(subNode);
   $('#itemDetailsTab').tab('show');

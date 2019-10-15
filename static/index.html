@@ -124,49 +124,44 @@
             </button>
           </div>
           <!-- begin accordian main -->
-          <div class="accordion" id="accordianMain" style="height: 75vh;overflow-y: scroll;">
+          <div id="accordianMain" style="height: 75vh;overflow-y: scroll;">
             <!-- ko foreach: mainNodes -->
               <!-- begin card main -->
-              <div class="card border-0" data-bind="visible: visible">
+              <div class="card border-0" data-bind="attr:{visible: visible}">
                 <span>
                   <i
                     data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
                                attr:{title: 'Delete ' + $root.mainLabel()},
                                click: $root.beginDeleteMainNode"
-                    class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
-                    data-toggle="tooltip"></i>
+                    class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"></i>
                     <i
                       data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
                                  attr:{title: 'Edit ' + $root.mainLabel()},
                                  click: $root.beginEditMainNode"
-                      class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
-                      data-toggle="tooltip"></i>
+                      class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"></i>
                     <i
                       data-bind="visible: ($root.selectedMainNode() ? ($root.selectedMainNode().id() === $data.id() ? true : false) : false),
                                  attr:{title: 'Add ' + $root.subLabel()},
                                  click: $root.beginAddSub"
-                      class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"
-                      data-toggle="tooltip"></i>
+                      class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"></i>
                   <a data-bind="attr: { href: '#/'+$root.type()+'/'+id(),
-                                        'data-target': '#accordianCollapse_'+id(),
                                         'mt-data-id': id}"
                     class="list-group-item mt-main-a text-truncate border-0 mb-1">
                     <span>
                       <span class="badge badge-secondary"
                             data-bind="text: mainLeavesNeeded,
                                        style:{'background-color': mainLeavesNeeded() ? 'red' : 'green'}"
-                            title="need"
-                            data-toggle="tooltip"></span>
+                            title="need"></span>
                       <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
                                         title: (collapsed() ? 'expand' : 'collapse')}"
                             data-toggle="tooltip"></i>
                       <i data-bind="style: {opacity: (mainLeavesHaveTried() ? '1.0': '0.2'),
                                             color: (mainAllLeavesHaveTried() ? 'green' : 'black')},
-                                            attr: {class: (mainAllLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')}"
-                            data-toggle="tooltip" title="tried"></i>
+                                            attr: {class: (mainAllLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')},
+                                    attr: {title: $root.triedLabel}"></i>
                       <span class="fa-stack fa-fw"
                             data-bind="style: {opacity: (mainLeavesHaveRating() ? '1.0': '0.5')}"
-                            data-toggle="tooltip" title="rating">
+                            title="rating">
                         <i class="far fa-star fa-stack-2x pb-1"></i>
                         <i class="fa fa-text fa-xs pl-1"
                            data-bind="text: mainAverageRating()"></i>
@@ -185,9 +180,9 @@
               <!-- end card main -->
               <!-- begin sub node collapsed div -->
               <div data-bind="attr: {id: 'accordianCollapse_' + id()}"
-                  class="collapse mt-main-collapse" data-parent="#accordianMain">
+                  class="mt-main-collapse">
                 <!-- begin sub accordian -->
-                <div data-bind="attr: { id: 'accordian_' + id() }" class="accordion">
+                <div data-bind="attr: { id: 'accordian_' + id() }">
                   <!-- ko foreach: children -->
                     <!-- begin sub card -->
                     <div class="card border-0" data-bind="visible: visible">
@@ -196,20 +191,17 @@
                           data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
                                      attr:{title: 'Delete ' + $root.subLabel()},
                                      click: $root.beginDeleteSubNode"
-                          class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
-                          data-toggle="tooltip"></i>
+                          class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"></i>
                           <i
                             data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
                                        attr:{title: 'Edit ' + $root.subLabel()},
                                        click: $root.beginEditSubNode"
-                            class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
-                            data-toggle="tooltip"></i>
+                            class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"></i>
                           <i
                             data-bind="visible: ($root.selectedSubNode() ? ($root.selectedSubNode().id() === $data.id() ? true : false) : false),
                                        attr:{title: 'Add ' + $root.itemLabel()},
                                        click: $root.beginAddItem"
-                            class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"
-                            data-toggle="tooltip"></i>
+                            class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"></i>
                         <a data-bind="attr: { href: '#/'+$root.type()+'/'+$parents[0].id()+'/'+ id(),
                                               'mt-data-id': id,
                                               'data-target': '#accordianCollapse_'+id()}"
@@ -218,18 +210,16 @@
                             <span class="badge badge-secondary"
                                   data-bind="text: leavesNeeded,
                                              style:{'background-color': leavesNeeded() ? 'red' : 'green'}"
-                                  title="need"
-                                  data-toggle="tooltip"></span>
+                                  title="need"></span>
                             <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
-                                              title: (collapsed() ? 'expand' : 'collapse')}"
-                                  data-toggle="tooltip"></i>
+                                              title: (collapsed() ? 'expand' : 'collapse')}"></i>
                             <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2'),
                                                   color: (allLeavesHaveTried() ? 'green' : 'black')},
-                                                  attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')}"
-                                  data-toggle="tooltip" title="tried"></i>
+                                                  attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs'),
+                                                         title: $root.triedLabel}"></i>
                             <span class="fa-stack fa-fw"
                                   data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
-                                  data-toggle="tooltip" title="rating">
+                                  title="rating">
                               <i class="far fa-star fa-stack-2x pb-1"></i>
                               <i class="fa fa-text fa-xs pl-1"
                                  data-bind="text: averageRating()"></i>
@@ -255,30 +245,28 @@
                               <a data-bind="style: {opacity: ($root.selectedItem() && $root.selectedItem().id() === $data.id() ? '1.0': '0.2'),
                                                       color: (need() ? 'red': 'black')},
                                             attr: {href: '#/'+$root.type()+'/'+$parents[1].id()+'/'+$parents[0].id()+'/'+ id()+'/toggleNeed'}"
-                                      data-toggle="tooltip" title="need"
+                                      title="need"
                                       class="ml-1 mr-1 mt-3 mt-need fa fa-cart-plus fa-s"></a>
                               <i
                               data-bind="visible: ($root.selectedItem() ? ($root.selectedItem().id() === $data.id() ? true : false) : false),
                                          attr:{title: 'Delete ' + $root.itemLabel()},
                                          click: $root.beginDeleteItem"
-                              class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"
-                              data-toggle="tooltip"></i>
+                              class="fa fa-trash-alt fa-s ml-1 mr-1 mt-3 mt-trash"></i>
                               <i
                                 data-bind="visible: ($root.selectedItem() ? ($root.selectedItem().id() === $data.id() ? true : false) : false),
                                            attr:{title: 'Edit ' + $root.itemLabel()},
                                            click: $root.beginEditItem"
-                                class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"
-                                data-toggle="tooltip"></i>
+                                class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"></i>
                                 <a data-bind="attr: { href: '#/'+$root.type()+'/'+$parents[1].id()+'/'+$parents[0].id()+'/'+ id(),
                                                       'mt-data-id': id}"
                                   class="list-group-item mt-item-a text-truncate border-0 mb-1" >
                                   <span class="mt-item">
                                     <i data-bind="style: {opacity: (haveTried() ? '1.0': '0.2')}"
-                                          data-toggle="tooltip" title="tried"
+                                          title="tried"
                                           class="fa fa-check fa-xs"></i>
                                     <span class="fa-stack fa-fw"
                                           data-bind="style: {opacity: (rating() !== null && rating() !== '' ? '1.0': '0.5')}"
-                                          data-toggle="tooltip" title="rating">
+                                          title="rating">
                                       <i class="far fa-star fa-stack-2x pb-1"></i>
                                       <i class="fa fa-text fa-xs pl-1"
                                          data-bind="text: (rating() ? rating() : '')"></i>
@@ -542,9 +530,8 @@
                 <div class="col">
                   <button
                     data-bind="click: filter"
-                    data-toggle="tooltip"
                     class="form-control btn btn-secondary"
-                    data-original-title="Search">
+                    title="Search">
                     <i class="fas fa-search"></i>
                   </button>
                 </div>
@@ -585,7 +572,7 @@
                   <div>
                     <span class="fa-stack fa-fw mt-rating-list"
                           data-bind="style: {opacity: (averageRating() !== null ? '1.0': '0.5')}"
-                          data-toggle="tooltip" title="rating">
+                          title="rating">
                       <i class="far fa-star fa-stack-2x pb-1"></i>
                       <i class="fa fa-text fa-xs pl-1"
                          data-bind="text: averageRating()"></i>
