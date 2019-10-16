@@ -72,7 +72,7 @@ var Node = function(initialize=true, data={}, aspects={}) {
   var self = this;
   if(initialize) {
     self.children = ko.observableArray([]);
-    self.collapsed = ko.observable(true);
+self.collapsed = ko.observable(true);
     self.visible = ko.observable(true);
   }
   self.forgettableAspects = ['children', 'collapsed', 'forgettableAspects',

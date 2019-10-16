@@ -101,7 +101,6 @@
           <div class="btn-group btn-group-sm mt-add-buttons mb-1">
             <button
               data-bind="click: beginAddMain"
-              data-toggle="tooltip"
               class="btn btn-secondary mr-1">
               Add <span data-bind="text: mainLabel()">
               </span>
@@ -109,7 +108,6 @@
             <button
               data-bind="visible: ($root.selectedMainNode() ? true : false),
                          click: beginAddSub"
-              data-toggle="tooltip"
               class="btn btn-secondary mr-1">
               Add <span data-bind="text: subLabel()">
               </span>
@@ -117,7 +115,6 @@
             <button
               data-bind="visible: ($root.selectedSubNode() ? true : false),
                          click: beginAddItem"
-              data-toggle="tooltip"
               class="btn btn-secondary mr-1">
               Add <span data-bind="text: itemLabel()">
               </span>
@@ -153,8 +150,7 @@
                                        style:{'background-color': mainLeavesNeeded() ? 'red' : 'green'}"
                             title="need"></span>
                       <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
-                                        title: (collapsed() ? 'expand' : 'collapse')}"
-                            data-toggle="tooltip"></i>
+                                        title: (collapsed() ? 'expand' : 'collapse')}"></i>
                       <i data-bind="style: {opacity: (mainLeavesHaveTried() ? '1.0': '0.2'),
                                             color: (mainAllLeavesHaveTried() ? 'green' : 'black')},
                                             attr: {class: (mainAllLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')},
@@ -275,8 +271,7 @@
                                       (<span data-bind="text: sortIndex"
                                              class="mt-tooltip"></span>)
                                     </span>
-                                    <span data-toggle="tooltip"
-                                          data-bind="text: name,
+                                    <span data-bind="text: name,
                                                      attr:{title: name,
                                                            'data-original-title': name,
                                                            'mt-data-id': id }"
@@ -317,175 +312,175 @@
             </li>
           </ul>
           <div class="tab-content">
-            <div  id="itemDetails" class="card tab-pane fade show active"  style="height: 85vh;overflow-y: scroll;">
-              <div>
-                <div class="row">
-                  <div class="col-3">
-                    <div
-                      id="mainName"
-                      data-bind="attr: {'data-original-title':mainLabel()+': '+(selectedMainNode()?(selectedMainNode().name()?selectedMainNode().name():'&nbsp;'):'&nbsp;')},
-                                text: (selectedMainNode()?(selectedMainNode().name()?selectedMainNode().name():'&nbsp;'):'&nbsp;')"
-                      data-toggle="tooltip"
-                      class="form-control text-center text-truncate"
-                      readonly>
-
-                    </div>
-                  </div>
-                  <div class="col-3">
-                    <div
-                      id="subName"
-                      data-bind="attr: {'data-original-title':subLabel()+': '+(selectedSubNode()?selectedSubNode().name():'')},
-                                text: (selectedSubNode()?(selectedSubNode().name()?selectedSubNode().name():'&nbsp;'):'&nbsp;')"
-                      data-toggle="tooltip"
-                      class="form-control text-center text-truncate"
-                      readonly>
-                    </div>
-                  </div>
+            <div  id="itemDetails" class="col card tab-pane fade show active"  style="height: 85vh;overflow-y: scroll-y;">
+              <div class="row">
+                <div class="col-3">
                   <div
-                    id="itemSortIndex"
-                    data-bind="attr: {'data-original-title':sortIndexLabel()+': '+(selectedItem() ? (selectedItem().sortIndex()? selectedItem().sortIndex(): '&nbsp;') : '&nbsp;')},
-                              text: (selectedItem() ? (selectedItem().sortIndex()? selectedItem().sortIndex: '#') : ''),
-                              visible: $root.type() === 'books' || $root.type() === 'videos'"
-                    data-toggle="tooltip"
-                    class="col-1 form-control text-center mt-item-form"
+                    id="mainName"
+                    data-bind="attr: {title:mainLabel()+': '+(selectedMainNode()?(selectedMainNode().name()?selectedMainNode().name():'&nbsp;'):'&nbsp;')},
+                              text: (selectedMainNode()?(selectedMainNode().name()?selectedMainNode().name():'&nbsp;'):'&nbsp;')"
+                    class="form-control text-center text-truncate"
                     readonly>
                   </div>
-                  <div data-bind="class: $root.itemNameColClass">
-                    <div
-                      id="itemName"
-                      data-bind="attr: {'data-original-title': itemLabel() +  ': '+(selectedItem() ? selectedItem().name() : '')},
-                                text: (selectedItem()?(selectedItem().name()?selectedItem().name():'&nbsp;'):'&nbsp;')"
-                      data-toggle="tooltip"
-                      data-boundary="viewport"
-                      class="form-control text-center text-truncate"
-                      readonly>
-                    </div>
-                  </div>
-                  <div class="col-2 text-center mt-item-form">
-                    <input id="tried"
-                           data-bind="checked: (selectedItem() ? selectedItem().haveTried : false)"
-                           class="checkbox"
-                           type="checkbox"
-                           disabled></input>
-                    <label for="tried" class="label" data-bind="text: triedLabel"></label>
+                </div>
+                <div class="col-3">
+                  <div
+                    id="subName"
+                    data-bind="attr: {'title':subLabel()+': '+(selectedSubNode()?selectedSubNode().name():'')},
+                              text: (selectedSubNode()?(selectedSubNode().name()?selectedSubNode().name():'&nbsp;'):'&nbsp;')"
+                    class="form-control text-center text-truncate"
+                    readonly>
                   </div>
                 </div>
-                <div class="row  mt-item-form">
-                  <div class="col">
-                    <div class="row">
-                      <label for="nodeInfo1" class="col-2 label" data-bind="text: nodeInfo1Label()+':'"></label>
-                      <div id="nodeInfo1"
-                             data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo1Key()]()?selectedItem().nodeInfo()[nodeInfo1Key()]():'&nbsp;'):'&nbsp;')"
-                               class="col form-control"
-                               readonly></div>
-                    </div>
-                    <div class="row">
-                      <label for="nodeInfo2" class="col-2 label" data-bind="text: nodeInfo2Label()+':'"></label>
-                      <div id="nodeInfo2"
-                             data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo2Key()]()?selectedItem().nodeInfo()[nodeInfo2Key()]():'&nbsp;'):'&nbsp;')"
-                             class="col form-control"
-                             readonly></div>
-                    </div>
-                    <div class="row">
-                      <label for="nodeInfo3" class="col-2 label" data-bind="text: nodeInfo3Label()+':'"></label>
-                      <div id="nodeInfo3"
-                             data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo3Key()]()?selectedItem().nodeInfo()[nodeInfo3Key()]():'&nbsp;'):'&nbsp;')"
-                             class="col form-control"
-                             readonly></div>
-                    </div>
-                    <div class="row">
-                      <label for="nodeInfo4" class="col-2 label" data-bind="text: nodeInfo4Label()+':'"></label>
-                      <div id="nodeInfo4"
-                             data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo4Key()]()?selectedItem().nodeInfo()[nodeInfo4Key()]():'&nbsp;'):'&nbsp;')"
-                             class="col form-control"
-                             readonly></div>
-                    </div>
-                    <div class="row">
-                      <label for="nodeInfo5" class="col-2 label"
-                             data-bind="text: nodeInfo5Label()+':'"></label>
-                      <div id="nodeInfo5"
-                             data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo5Key()]()?selectedItem().nodeInfo()[nodeInfo5Key()]():'&nbsp;'):'&nbsp;')"
-                             class="col form-control"
-                             readonly></div>
-                    </div>
-                    <div class="row">
-                      <div class="col">
-                        <label for="nodeInfo6" class="col-2 label" data-bind="text: nodeInfo6Label()+':'"></label>
-                        <a id="nodeInfo6"
-                           data-bind="text: (selectedItem()?(selectedItem().name()?selectedItem().name():'&nbsp;'):'&nbsp;'),
-                                      attr: {href: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo6Key()]():'')}"
-                           target="_blank"
-                           class="col">
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-2">
-                    <div
-                      id="triedDate"
-                      data-bind="attr: {'data-original-title': 'Date '+triedLabel()},
-                                text: (selectedItem()?(selectedItem().dateTried()?selectedItem().dateTried() : '&nbsp;'):'&nbsp;')"
-                      data-toggle="tooltip"
-                      data-boundary="viewport"
-                      class="form-control text-center"
-                      readonly>
-                    </div>
-                    <img id="itemImage" class="img-fluid"
-                         data-bind="attr:{src: (selectedItem() ? selectedItem().image : '')}"></img>
+                <div
+                  id="itemSortIndex"
+                  data-bind="attr: {title:sortIndexLabel()+': '+(selectedItem() ? (selectedItem().sortIndex()? selectedItem().sortIndex(): '&nbsp;') : '&nbsp;')},
+                            text: (selectedItem() ? (selectedItem().sortIndex()? selectedItem().sortIndex: '#') : ''),
+                            visible: $root.type() === 'books' || $root.type() === 'videos'"
+                  class="col-1 form-control text-center mt-item-form mt-item-editable"
+                  readonly>
+                </div>
+                <div data-bind="class: $root.itemNameColClass">
+                  <div
+                    id="itemName"
+                    data-bind="attr: {title: itemLabel() +  ': '+(selectedItem() ? selectedItem().name() : '')},
+                              text: (selectedItem()?(selectedItem().name()?selectedItem().name():'&nbsp;'):'&nbsp;')"
+                    data-boundary="viewport"
+                    class="form-control text-center text-truncate mt-item-editable"
+                    readonly>
                   </div>
                 </div>
-                <div class="row  mt-item-form">
-                  <div class="col">
-                    <label for="itemDescription" class="label">Description:</label>
-                    <div
-                      id="itemDescription"
-                      data-bind="text: (selectedItem()?(selectedItem().description()?selectedItem().description():'&nbsp;'):'&nbsp;'),
-                                 click: viewDescription"
-                      type="textarea"
-                      data-boundary="viewport"
-                      class="form-control text-wrap mt-textarea"
-                      title="Click to view"
-                      ></div>
-                  </div>
+                <div class="col-2 text-center mt-item-form">
+                  <input id="tried"
+                         data-bind="checked: (selectedItem() ? selectedItem().haveTried : false)"
+                         class="checkbox mt-item-editable"
+                         type="checkbox"
+                         disabled></input>
+                  <label for="tried" class="label" data-bind="text: triedLabel"></label>
                 </div>
-                <div class="row  mt-item-form">
-                  <div class="col-1">
-                    <label for="reviewedDate" class="label">Reviewed:</label>
+                <div class="col-1 mt-item-form">
+                  <button
+                    data-bind="click: beginEditItem,
+                               attr: {title: 'Edit '+itemLabel()}"
+                    class="btn-xs btn-secondary">
+                    Edit
+                  </button>
+                </div>
+              </div>
+              <div class="row  mt-item-form">
+                <div class="col">
+                  <div class="row">
+                    <label for="nodeInfo1" class="col-2 label" data-bind="text: nodeInfo1Label()+':'"></label>
+                    <div id="nodeInfo1"
+                           data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo1Key()]()?selectedItem().nodeInfo()[nodeInfo1Key()]():'&nbsp;'):'&nbsp;')"
+                             class="col form-control  mt-item-editable"
+                             readonly></div>
                   </div>
-                  <div class="col-2">
-                    <div
-                      id="reviewedDate"
-                      data-bind="text: (selectedItem()?(selectedItem().dateReviewed()?selectedItem().dateReviewed():'&nbsp;'):'&nbsp;')"
-                      data-boundary="viewport"
-                      class="form-control text-center"
-                      readonly>
-                    </div>
+                  <div class="row">
+                    <label for="nodeInfo2" class="col-2 label" data-bind="text: nodeInfo2Label()+':'"></label>
+                    <div id="nodeInfo2"
+                           data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo2Key()]()?selectedItem().nodeInfo()[nodeInfo2Key()]():'&nbsp;'):'&nbsp;')"
+                           class="col form-control mt-item-editable"
+                           readonly></div>
                   </div>
-                  <div class="col-1 text-right">
-                    <label for="rating" class="label">Rating (0-10):</label>
+                  <div class="row">
+                    <label for="nodeInfo3" class="col-2 label" data-bind="text: nodeInfo3Label()+':'"></label>
+                    <div id="nodeInfo3"
+                           data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo3Key()]()?selectedItem().nodeInfo()[nodeInfo3Key()]():'&nbsp;'):'&nbsp;')"
+                           class="col form-control mt-item-editable"
+                           readonly></div>
                   </div>
-                  <div class="col-2">
-                    <div
-                      id="rating"
-                      data-bind="text: (selectedItem()?(selectedItem().rating()?selectedItem().rating():'&nbsp;'):'&nbsp;')"
-                      data-boundary="viewport"
-                      class="form-control text-center"
-                      readonly>
+                  <div class="row">
+                    <label for="nodeInfo4" class="col-2 label" data-bind="text: nodeInfo4Label()+':'"></label>
+                    <div id="nodeInfo4"
+                           data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo4Key()]()?selectedItem().nodeInfo()[nodeInfo4Key()]():'&nbsp;'):'&nbsp;')"
+                           class="col form-control mt-item-editable"
+                           readonly></div>
+                  </div>
+                  <div class="row">
+                    <label for="nodeInfo5" class="col-2 label"
+                           data-bind="text: nodeInfo5Label()+':'"></label>
+                    <div id="nodeInfo5"
+                           data-bind="text:(selectedItem()?(selectedItem().nodeInfo()[nodeInfo5Key()]()?selectedItem().nodeInfo()[nodeInfo5Key()]():'&nbsp;'):'&nbsp;')"
+                           class="col form-control mt-item-editable"
+                           readonly></div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <label for="nodeInfo6" class="col-2 label" data-bind="text: nodeInfo6Label()+':'"></label>
+                      <a id="nodeInfo6"
+                         data-bind="text: (selectedItem()?(selectedItem().name()?selectedItem().name():'&nbsp;'):'&nbsp;'),
+                                    attr: {href: (selectedItem() ? selectedItem().nodeInfo()[nodeInfo6Key()]():'')}"
+                         target="_blank"
+                         class="col mt-item-editable">
+                      </a>
                     </div>
                   </div>
                 </div>
-                <div class="row  mt-item-form">
-                  <div class="col">
-                    <label for="itemReview" class="label">Review:</label>
-                    <div
-                      id="itemReview"
-                      data-bind="text: (selectedItem()?(selectedItem().review()?selectedItem().review():'&nbsp;'):'&nbsp;'),
-                                 click: viewReview"
-                      type="textarea"
-                      data-boundary="viewport"
-                      class="form-control text-wrap mt-textarea"
-                      title="Click to view"></div>
+                <div class="col-2">
+                  <div
+                    id="triedDate"
+                    data-bind="attr: {title: 'Date '+triedLabel()},
+                              text: (selectedItem()?(selectedItem().dateTried()?selectedItem().dateTried() : '&nbsp;'):'&nbsp;')"
+                    data-boundary="viewport"
+                    class="form-control text-center mt-item-editable"
+                    readonly>
                   </div>
+                  <img id="itemImage" class="img-fluid"
+                       data-bind="attr:{src: (selectedItem() ? selectedItem().image : '')}"></img>
+                </div>
+              </div>
+              <div class="row  mt-item-form">
+                <div class="col">
+                  <label for="itemDescription" class="label">Description:</label>
+                  <div
+                    id="itemDescription"
+                    data-bind="text: (selectedItem()?(selectedItem().description()?selectedItem().description():'&nbsp;'):'&nbsp;'),
+                               click: viewDescription"
+                    type="textarea"
+                    data-boundary="viewport"
+                    class="form-control text-wrap mt-textarea mt-item-editable"
+                    title="Click to view"
+                    ></div>
+                </div>
+              </div>
+              <div class="row  mt-item-form">
+                <div class="col-1">
+                  <label for="reviewedDate" class="label">Reviewed:</label>
+                </div>
+                <div class="col-2">
+                  <div
+                    id="reviewedDate"
+                    data-bind="text: (selectedItem()?(selectedItem().dateReviewed()?selectedItem().dateReviewed():'&nbsp;'):'&nbsp;')"
+                    data-boundary="viewport"
+                    class="form-control text-center mt-item-editable"
+                    readonly>
+                  </div>
+                </div>
+                <div class="col-1 text-right">
+                  <label for="rating" class="label">Rating (0-10):</label>
+                </div>
+                <div class="col-2">
+                  <div
+                    id="rating"
+                    data-bind="text: (selectedItem()?(selectedItem().rating()?selectedItem().rating():'&nbsp;'):'&nbsp;')"
+                    data-boundary="viewport"
+                    class="form-control text-center mt-item-editable"
+                    readonly>
+                  </div>
+                </div>
+              </div>
+              <div class="row  mt-item-form">
+                <div class="col">
+                  <label for="itemReview" class="label">Review:</label>
+                  <div
+                    id="itemReview"
+                    data-bind="text: (selectedItem()?(selectedItem().review()?selectedItem().review():'&nbsp;'):'&nbsp;'),
+                               click: viewReview"
+                    type="textarea"
+                    data-boundary="viewport"
+                    class="form-control text-wrap mt-textarea mt-item-editable"
+                    title="Click to view"></div>
                 </div>
               </div>
             </div>
@@ -587,7 +582,7 @@
             </div>
           </div>
         </div>
-        <!-- end col-9 -->
+        <!-- end col-8 -->
       </div>
       <!-- end row -->
       <div id="confirmDeleteItem" class="modal hide fade" tabindex="-1" role="dialog">
@@ -717,7 +712,7 @@
           <div class="modal-header">
             <h5 class="modal-title">Edit <span data-bind="text: (itemNode()?itemNode().name():'')"></span></h5>
             <div class="mt-dialog-buttons">
-              <button type="button" class="btn btn-primary" data-bind="click: editItemNodeModel.saveItem">Save</button>
+              <button type="button" class="btn btn-primary" data-bind="click: editItemNodeModel.saveItem">Save&nbsp;&amp;&nbsp;Close</button>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
             </div>
           </div>
@@ -730,10 +725,9 @@
                 <div class="col">
                   <div
                     id="mainNodeName"
-                    data-bind="attr: {'data-original-title': nodesViewModel.mainLabel()+': '+(mainNode() ? mainNode().name():''),
+                    data-bind="attr: {title: nodesViewModel.mainLabel()+': '+(mainNode() ? mainNode().name():''),
                                       placeholder: nodesViewModel.mainLabel},
                               text: (mainNode()?mainNode().name():'&nbsp;')"
-                    data-toggle="tooltip"
                     data-boundary="viewport"
                     class="form-control text-center"
                     readonly>
@@ -742,10 +736,9 @@
                 <div class="col">
                   <div
                     id="subNodeName"
-                    data-bind="attr: {'data-original-title':nodesViewModel.subLabel()+': '+(subNode()?subNode().name():''),
+                    data-bind="attr: {title:nodesViewModel.subLabel()+': '+(subNode()?subNode().name():''),
                                       placeholder: nodesViewModel.subLabel},
                               text: (subNode()?subNode().name():'&nbsp;')"
-                    data-toggle="tooltip"
                     data-boundary="viewport"
                     class="form-control text-center"
                     readonly>
@@ -753,23 +746,21 @@
                 </div>
                 <input
                   id="itemNodeSortIndex"
-                  data-bind="attr: {'data-original-title':nodesViewModel.sortIndexLabel()+': '+(itemNode()?(itemNode().sortIndex()?itemNode().sortIndex():'') : ''),
+                  data-bind="attr: {title:nodesViewModel.sortIndexLabel()+': '+(itemNode()?(itemNode().sortIndex()?itemNode().sortIndex():'') : ''),
                                     placeholder: '#'},
                             textInput: (itemNode()?itemNode().sortIndex:'&nbsp;'),
                             visible: nodesViewModel.type() === 'books' || nodesViewModel.type() === 'videos'"
                   type="text"
-                  data-toggle="tooltip"
                   data-boundary="viewport"
                   class="col-1 form-control text-center">
                 </input>
                 <div class="col">
                   <input
                     id="itemNodeName"
-                    data-bind="attr: {'data-original-title':nodesViewModel.itemLabel()+': '+(itemNode()?itemNode().name():''),
+                    data-bind="attr: {title:nodesViewModel.itemLabel()+': '+(itemNode()?itemNode().name():''),
                                       placeholder: nodesViewModel.itemLabel()},
                               textInput: (itemNode()?itemNode().name:'&nbsp;')"
                     type="text"
-                    data-toggle="tooltip"
                     data-boundary="viewport"
                     class="form-control text-center text">
                   </input>
@@ -816,7 +807,6 @@
                            class="col form-control"
                            type="text"></input>
                     <button class="btn btn-secondary btn-sm col-1"
-                       data-toggle="tooltip"
                        data-bind="click: fillItemFromGoogle,
                                   visible: nodesViewModel.type() === 'books',
                                   attr: {title: 'Attempt to fill information from books.google.com'}">
@@ -844,11 +834,10 @@
                 <div class="col-2">
                   <input
                     id="itemNodeTriedDate"
-                    data-bind="attr: {'data-original-title': 'Date '+nodesViewModel.triedLabel(),
+                    data-bind="attr: {title: 'Date '+nodesViewModel.triedLabel(),
                                       placeholder: 'Date '+nodesViewModel.triedLabel()},
                               textInput: (itemNode()?itemNode().dateTried:'&nbsp;')"
                     type="text"
-                    data-toggle="tooltip"
                     data-boundary="viewport"
                     class="form-control text-center">
                   </input>
@@ -857,7 +846,6 @@
                          data-bind="attr:{src:(itemNode()?itemNode().image :'')}"></img>
                     <button class="btn btn-secondary btn-sm mt-edit-field-button"
                             title="Edit image"
-                            data-toggle="tooltip"
                             data-boundary="viewport"
                             data-bind="click:nodesViewModel.editItemImage,
                                        visible: false">
@@ -888,7 +876,6 @@
                     id="itemNodeReviewedDate"
                     data-bind="textInput:(itemNode()?itemNode().dateReviewed:'&nbsp;')"
                     type="text"
-                    data-toggle="tooltip"
                     data-boundary="viewport"
                     title="Review Date"
                     class="form-control text-center"
@@ -903,7 +890,6 @@
                     id="itemNodeRating"
                     data-bind="textInput:(itemNode()?itemNode().rating:'&nbsp;')"
                     type="text"
-                    data-toggle="tooltip"
                     data-boundary="viewport"
                     title="Rating"
                     class="form-control text-center"
