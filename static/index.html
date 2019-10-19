@@ -198,7 +198,7 @@
                                        attr:{title: 'Add ' + $root.itemLabel()},
                                        click: $root.beginAddItem"
                             class="fa fa-plus fa-s ml-1 mr-1 mt-3 mt-trash"></i>
-                        <a data-bind="attr: { href: '#/'+$root.type()+'/'+$parents[0].id()+'/'+ id(),
+                        <a data-bind="attr: { href: '#/'+$root.type()+'/'+id(),
                                               'mt-data-id': id,
                                               'data-target': '#accordianCollapse_'+id()}"
                           class="list-group-item mt-sub-a text-truncate border-0 mb-1">
@@ -240,7 +240,7 @@
                             <div data-bind="visible: visible">
                               <a data-bind="style: {opacity: ($root.selectedItem() && $root.selectedItem().id() === $data.id() ? '1.0': '0.2'),
                                                       color: (need() ? 'red': 'black')},
-                                            attr: {href: '#/'+$root.type()+'/'+$parents[1].id()+'/'+$parents[0].id()+'/'+ id()+'/toggleNeed'}"
+                                            attr: {href: '#/'+$root.type()+'/'+id()+'?toggleNeed'}"
                                       title="need"
                                       class="ml-1 mr-1 mt-3 mt-need fa fa-cart-plus fa-s"></a>
                               <i
@@ -253,7 +253,7 @@
                                            attr:{title: 'Edit ' + $root.itemLabel()},
                                            click: $root.beginEditItem"
                                 class="fa fa-edit fa-s ml-1 mr-1 mt-3 mt-trash"></i>
-                                <a data-bind="attr: { href: '#/'+$root.type()+'/'+$parents[1].id()+'/'+$parents[0].id()+'/'+ id(),
+                                <a data-bind="attr: { href: '#/'+$root.type()+'/'+id(),
                                                       'mt-data-id': id}"
                                   class="list-group-item mt-item-a text-truncate border-0 mb-1" >
                                   <span class="mt-item">
@@ -493,12 +493,6 @@
                   <input type="radio" class="form-check-input" name="filterOptions" value="mainNameFilter" id="filterOptMainName" checked></input>
                 </div>
                 <div class="form-check form-check-inline">
-                  <label class="form-check-label" for="filterOptSubName"
-                         data-bind="text: subLabel()">
-                  </label>
-                  <input type="radio" class="form-check-input" name="filterOptions" value="subNameFilter" id="filterOptSubName"></input>
-                </div>
-                <div class="form-check form-check-inline">
                   <label class="form-check-label" for="filterOptItemName"
                         data-bind="text: itemLabel()+' Name'">
                   </label>
@@ -509,6 +503,10 @@
                          data-bind="text: itemLabel()+' Description'">
                   </label>
                   <input type="radio" class="form-check-input" name="filterOptions" value="itemDescrFilter" id="filterOptItemDescr"></input>
+                </div>
+                <div class="form-check form-check-inline">
+                  <label class="form-check-label" for="filterOptReview">Review</label>
+                  <input type="radio" class="form-check-input" name="filterOptions" value="reviewFilter" id="filterOptReview"></input>
                 </div>
               </div>
               <div class="form-row">

@@ -105,11 +105,15 @@ self.collapsed = ko.observable(true);
       return needed;
     });
     self.mainLeavesNeeded = ko.pureComputed(function() {
-      if('leaves' in self.nodeInfo() && (self.nodeInfo()['needLeaves']() === null
-                                     || typeof self.nodeInfo()['needLeaves']() === 'undefined')) {
+      if(!('needLeaves' in self.nodeInfo()) || ('needLeaves' in self.nodeInfo() && (self.nodeInfo()['needLeaves']() === null
+                                     || typeof self.nodeInfo()['needLeaves']() === 'undefined'))) {
         needed = 0;
       } else {
-        needed = self.nodeInfo()['needLeaves']();
+        if(self.children().length > 0) {
+          needed = self.leavesNeeded();
+        } else {
+          needed = self.nodeInfo()['needLeaves']();
+        }
       }
       return needed;
     });
@@ -147,6 +151,7 @@ Node.prototype.slug = function() {
 Node.prototype.toggleNeed = function() {
   var self = this;
   self.need(!self.need());
+  return self.need();
 }
 
 Node.prototype.setDateTried = function() {
@@ -719,14 +724,14 @@ NodesViewModel.prototype.filter = function() {
       case 'mainNameFilter':
         tempList = self.filterMainName(filter);
         break;
-      case 'subNameFilter':
-        tempList = self.filterSubName(filter);
-        break;
       case 'itemNameFilter':
         tempList = self.filterItemName(filter);
         break;
       case 'itemDescrFilter':
         tempList = self.filterItemDescription(filter);
+        break;
+      case 'itemReviewFilter':
+        tempList = self.filterItemReview(filter);
         break;
     }
   }
@@ -1418,10 +1423,13 @@ NodesViewModel.prototype.beginAddItem = function() {
 }
 
 NodesViewModel.prototype.toggleItemNeed = function() {
-  var self = this;
+  var self = nodesViewModel;
   if(self.selectedItem() && self.selectedMainNode() && self.selectedSubNode()) {
     self.selectedItem().toggleNeed();
-    self.updateItem();
+    self.updateItem()
+    .then(function() {
+      self.context.redirect('#/'+self.type()+'/'+self.selectedItem().id());
+    })
   }
 }
 
@@ -1430,7 +1438,7 @@ NodesViewModel.prototype.updateItem = function() {
   var url = self.selectedItem().uri().replace('http://', 'https://');
   var saveData = self.selectedItem().sanitize();
   self.itemSaveIcon(self.defaultSpinnerIcon);
-  self.ajax('PUT', url, saveData, self.authHeader)
+  return self.ajax('PUT', url, saveData, self.authHeader)
   .then(function(response) {
     self.itemSaveIcon(self.defaultItemSaveIcon);
     $("html").removeClass("waiting");
@@ -1466,7 +1474,24 @@ NodesViewModel.prototype.getMainSubtree = function(id) {
   var url = secrets['MY_THINGS_SERVER'] + '/tree/depth/3/'+id+'?';
   url += 'ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, {}, self.authHeader)
+  .then(function(tree) {
+    var adjacencyList = {};
+    var tempRoot = new Node();
+    adjacencyList[null] = [nodesViewModel.rootNode.copy()];
+    tree.nodes.forEach(function(node) {
+      if(!(node.parentId in adjacencyList)) {
+        adjacencyList[node.parentId] = [];
+      }
+      var newNode = new Node(true, node, {'required':nodesViewModel.requiredAspects,
+                                          'nodeInfo': nodesViewModel.nodeInfoKeys()});
+      nodesViewModel.initNode(newNode);
+      adjacencyList[node.parentId].push(newNode);
+    });
+    var main = nodesViewModel.buildNodeHierarchy(node=null, parentId=null, adjacencyList=adjacencyList).children()[0];
+    main.children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
+    return main;
+  });
 }
 
 NodesViewModel.prototype.getNodes = function() {
@@ -1522,7 +1547,20 @@ NodesViewModel.prototype.initNode = function(node) {
 
 NodesViewModel.prototype.isMain = function(node) {
   var self = this;
-  return node.parentId() == self.rootNode.id();
+  if(node) {
+    return node.parentId() == self.rootNode.id();
+  }
+  return node;
+}
+
+NodesViewModel.prototype.getTree = function(node) {
+  // return the node tree that contains this node
+  var self = this;
+  var thisNode = node;
+  while(thisNode.parentId() !== self.rootNode.id()) {
+    thisNode = self.findNode(thisNode.parentId());
+  }
+  return thisNode;
 }
 
 NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null, adjacencyList=null) {
@@ -2044,32 +2082,23 @@ var hideSubCollapse = function() {
 }
 
 var handleMainClick =  function(mainNode, scroll=false) {
-  $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
-  mainNode.addClass('active');
-  var node = nodesViewModel.findNode(mainNode.attr('mt-data-id'));
-  if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() !== node.id()) {
-    // we clicked a new main node, when one was already selected
-    nodesViewModel.selectedMainNode().children([]);
+  if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() == mainNode.id() && !nodesViewModel.selectedMainNode().collapsed()) {
+    //if this is a re-click of an expanded main node
+    $('#accordianCollapse_' + mainNode.id()).collapse('show');
     nodesViewModel.selectedMainNode().collapsed(true);
-  }
-  nodesViewModel.selectedMainNode(node);
-  nodesViewModel.getMainSubtree(node.id())
-  .then(function (tree) {
-    var adjacencyList = {};
-    var tempRoot = new Node();
-    adjacencyList[null] = [nodesViewModel.rootNode.copy()];
-    tree.nodes.forEach(function(node) {
-      if(!(node.parentId in adjacencyList)) {
-        adjacencyList[node.parentId] = [];
-      }
-      var newNode = new Node(true, node, {'required':nodesViewModel.requiredAspects,
-                                          'nodeInfo': nodesViewModel.nodeInfoKeys()});
-      nodesViewModel.initNode(newNode);
-      adjacencyList[node.parentId].push(newNode);
-    });
-    var main = nodesViewModel.buildNodeHierarchy(node=null, parentId=null, adjacencyList=adjacencyList).children()[0];
-    main.children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-    Promise.resolve(nodesViewModel.selectedMainNode().children(main.children()))
+  } else {
+    // this is a first click of a main node
+    $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
+    $('a[mt-data-id='+ mainNode.id()+']').addClass('active');
+    if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() !== mainNode.id()) {
+      // we clicked a new main node, when a different one was already selected
+      nodesViewModel.selectedMainNode().children([]);
+      nodesViewModel.selectedMainNode().collapsed(true);
+    }
+    nodesViewModel.selectedMainNode(nodesViewModel.findNode(mainNode.id()));
+    nodesViewModel.selectedSubNode(null);
+    nodesViewModel.selectedItem(null);
+    return Promise.resolve(nodesViewModel.selectedMainNode().children(mainNode.children()))
     .then(function() {
       // the subnodes for this clicked main node have been populated and made visible
       var mainNodeId = nodesViewModel.selectedMainNode().id();
@@ -2093,50 +2122,86 @@ var handleMainClick =  function(mainNode, scroll=false) {
       $('#accordianCollapse_' + mainNodeId).collapse('show');
       nodesViewModel.filterItems([]);
       nodesViewModel.sortedItems([]);
+      nodesViewModel.unloadItem();
     });
-    nodesViewModel.selectedSubNode(null);
-    nodesViewModel.selectedItem(null);
-    nodesViewModel.unloadItem();
-  });
-}
-
-var handleSubClick = function(subNode, scroll=false) {
-  $('a.mt-sub-a, a.mt-item-a').removeClass('active');
-  subNode.addClass('active');
-  var node = nodesViewModel.findNode(subNode.attr('mt-data-id'));
-  var subNodeId = node.id();
-  nodesViewModel.selectedSubNode(node);
-  nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-  $("div#accordianCollapse_" + subNodeId + " i.fa, div#accordianCollapse_" + subNodeId + " i.far").css({'visibility':'visible'});
-  $('#accordianCollapse_' + subNodeId).off('hidden.bs.collapse');
-  $('#accordianCollapse_' + subNodeId).on('hidden.bs.collapse', function(e) {
-    if ($(this).is(e.target)) {
-      node.collapsed(true);
-    }
-  });
-  $('#accordianCollapse_' + subNodeId).off('shown.bs.collapse');
-  $('#accordianCollapse_' + subNodeId).on('shown.bs.collapse', function(e) {
-    if ($(this).is(e.target)) {
-      node.collapsed(false);
-    }
-  });
-  $("a[mt-data-id=" + subNodeId + "]").off('click', toggleCollapse);
-  $("a[mt-data-id=" + subNodeId + "]").on('click', toggleCollapse);
-  $('#accordianCollapse_' + subNodeId).collapse('show');
-  nodesViewModel.selectedItem(null);
-  nodesViewModel.unloadItem();
-  showSubCollapse();
-}
-
-var handleItemClick = function(itemNode, scroll=false) {
-  $('a.mt-item-a').removeClass('active');
-  itemNode.addClass('active');
-  var node = nodesViewModel.findNode(itemNode.attr('mt-data-id'));
-  nodesViewModel.selectedItem(node);
-  nodesViewModel.loadItem();
-  if(scroll) {
-    scrollToSelectedItem();
   }
+}
+
+var handleSubClick = function(mainNode, subNode, scroll=false) {
+  if(!nodesViewModel.selectedMainNode()) {
+    // no main node selected yet, select it and expand it
+    nodesViewModel.selectedMainNode(nodesViewModel.findNode(mainNode.id()));
+    $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
+    $('a[mt-data-id='+ mainNode.id()+']').addClass('active');
+    $('#accordianCollapse_' + mainNode.id()).collapse('show');
+    nodesViewModel.selectedMainNode().collapsed(false);
+  }
+  if(nodesViewModel.selectedMainNode().id() == mainNode.id()) {
+    // if the main node is already selected, make sure it is expanded
+    $('a[mt-data-id='+ mainNode.id()+']').addClass('active');
+    $('#accordianCollapse_' + mainNode.id()).collapse('show');
+    nodesViewModel.selectedMainNode().collapsed(false);
+  } else {
+    // if a different main node is selected, select it and expand it
+    nodesViewModel.selectedMainNode().children([]);
+    nodesViewModel.selectedMainNode(nodesViewModel.findNode(mainNode.id()));
+    $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
+    $('a[mt-data-id='+ mainNode.id()+']').addClass('active');
+    $('#accordianCollapse_' + mainNode.id()).collapse('show');
+  }
+  return Promise.resolve(nodesViewModel.selectedMainNode().children(mainNode.children()))
+  .then(function() {
+    // select the subnode and expand it
+    nodesViewModel.selectedSubNode(nodesViewModel.findNode(subNode.id()));
+    nodesViewModel.selectedSubNode().children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
+    $('a.mt-sub-a, a.mt-item-a').removeClass('active');
+    $('a[mt-data-id='+ subNode.id()+']').addClass('active');
+    $('#accordianCollapse_' + subNode.id()).collapse('show');
+    nodesViewModel.selectedSubNode().collapsed(false);
+    $("div#accordianCollapse_" + subNode.id() + " i.fa, div#accordianCollapse_" + subNode.id() + " i.far").css({'visibility':'visible'});
+    $('#accordianCollapse_' + subNode.id()).off('hidden.bs.collapse');
+    $('#accordianCollapse_' + subNode.id()).on('hidden.bs.collapse', function(e) {
+      if ($(this).is(e.target)) {
+        subNode.collapsed(true);
+      }
+    });
+    $('#accordianCollapse_' + subNode.id()).off('shown.bs.collapse');
+    $('#accordianCollapse_' + subNode.id()).on('shown.bs.collapse', function(e) {
+      if ($(this).is(e.target)) {
+        subNode.collapsed(false);
+      }
+    });
+    $("a[mt-data-id=" + subNode.id() + "]").off('click', toggleCollapse);
+    $("a[mt-data-id=" + subNode.id() + "]").on('click', toggleCollapse);
+    $('#accordianCollapse_' + subNode.id()).collapse('show');
+    var foundItem = undefined;
+    if(nodesViewModel.selectedItem()) {
+      foundItem = nodesViewModel.selectedSubNode().children().find(function(item) {
+        return item.id() === nodesViewModel.selectedItem().id();
+      });
+    }
+    if(foundItem === undefined) {
+      nodesViewModel.selectedItem(null);
+      nodesViewModel.unloadItem();
+    } else {
+      $('a[mt-data-id='+ foundItem.id()+']').addClass('active');
+      nodesViewModel.loadItem();
+    }
+  });
+}
+
+var handleItemClick = function(mainNode, subNode, itemNode, scroll=false) {
+  return handleSubClick(mainNode, subNode)
+  .then(function() {
+    $('a.mt-item-a').removeClass('active');
+    $('a[mt-data-id='+ itemNode.id()+']').addClass('active');
+    var node = nodesViewModel.findNode(itemNode.id());
+    nodesViewModel.selectedItem(node);
+    nodesViewModel.loadItem();
+    if(scroll) {
+      scrollToSelectedItem();
+    }
+  })
 }
 
 var initType = function() {
@@ -2180,13 +2245,81 @@ var setType = function(context) {
   $('#itemDetailsTab').tab('show');
 }
 
-var selectMain = function(context) {
+var selectNode = function(context) {
   nodesViewModel.context = context;
   var type = context.params['type'];
-  var mainNodeId = context.params['main'];
-  var mainNodeLink = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  handleMainClick(mainNodeLink);
-  $('#itemDetailsTab').tab('show');
+  var nodeId = context.params['nodeid'];
+  node = nodesViewModel.findNode(nodeId);
+  var nodeTreePresent = node !== null;
+  if(nodesViewModel.isMain(node)) {
+    // This is a main node. Check to see if the node tree is present. if so, don't hit the database
+    nodeTreePresent = node.children().length > 0;
+  }
+  if(!nodeTreePresent) {
+    nodesViewModel.getMainSubtree(nodeId)
+    .then(handleNode)
+    .catch(function(err) {
+      $("html").removeClass("waiting");
+      if('responseJSON' in err && 'error' in err.responseJSON) {
+        errorMessage = err.responseJSON['error'];
+      } else if('state' in err) {
+        var errorMessage = err.state();
+        if(errorMessage === 'rejected') {
+          errorMessage = 'Possible network issue. Please try again later.';
+        }
+        errorMessage = 'error in selectMain ajax call: ' + errorMessage
+      } else if('message' in err) {
+        errorMessage = err.message;
+      }
+      setAlert(errorMessage, 'alert-danger')
+    });
+  } else {
+    // get the node tree associated with this node
+    var mainNode = nodesViewModel.getTree(node);
+    handleNode(mainNode);
+  }
+
+}
+
+var handleNode = function(mainNode) {
+  var type = nodesViewModel.context.params['type'];
+  var nodeId = nodesViewModel.context.params['nodeid'];
+  var toggleNeed = false;
+  if('toggleNeed' in nodesViewModel.context.params) {
+    toggleNeed = true;
+  }
+  $("html").removeClass("waiting");
+  // the node tree has been populated
+  if(mainNode.id() == nodeId) {
+    // this was a main node
+    handleMainClick(mainNode);
+  } else {
+    mainNode.children().some(function(subNode) {
+      if(subNode.id() == nodeId) {
+        // this was a sub node
+        // if it is a subnode of the currently selecte mainNode, just select it and show it
+        handleSubClick(mainNode,subNode);
+        return true;
+      } else {
+        subNode.children().some(function(itemNode) {
+          if(itemNode.id() == nodeId) {
+            // this was an item node
+            // if it is an item node of the currently selected main and sub nodes, just select it and show it
+            handleItemClick(mainNode,subNode,itemNode)
+            .then(function() {
+              if(toggleNeed) {
+                nodesViewModel.toggleItemNeed();
+              }
+            });
+            return true;
+          }
+          return false; // check the next item
+        });
+      }
+      return false // check the next sub
+    });
+    $('#itemDetailsTab').tab('show');
+  }
 }
 
 var toggleCollapse = function(e) {
@@ -2194,57 +2327,6 @@ var toggleCollapse = function(e) {
     targetNode = nodesViewModel.findNode($(this).attr('mt-data-id'));
     $('#accordianCollapse_' + $(this).attr('mt-data-id')).collapse('toggle');
   }
-}
-
-var selectSub = function(context) {
-  nodesViewModel.context = context;
-  var type = context.params['type'];
-  var mainNodeId = context.params['main'];
-  var subNodeId = context.params['sub'];
-  var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
-  var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
-  subNode.off('click', toggleCollapse);
-  subNode.on('click', toggleCollapse);
-  //handleMainClick(mainNode);
-  handleSubClick(subNode);
-  $('#itemDetailsTab').tab('show');
-}
-
-var selectItem = function(context) {
-  nodesViewModel.context = context;
-  var type = context.params['type'];
-  var mainNodeId = context.params['main'];
-  var subNodeId = context.params['sub'];
-  var itemNodeId = context.params['item'];
-  var itemNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId+'"]');
-  var subNodeId = nodesViewModel.findNode(itemNode.attr('mt-data-id')).parentId();
-  var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
-  var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
-  var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  //handleMainClick(mainNode);
-  //handleSubClick(subNode);
-  handleItemClick(itemNode);
-  $('#itemDetailsTab').tab('show');
-}
-
-var toggleItemNeed = function(context) {
-  nodesViewModel.context = context;
-  var type = context.params['type'];
-  var mainNodeId = context.params['main'];
-  var subNodeId = context.params['sub'];
-  var itemNodeId = context.params['item'];
-  var itemNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId+'"]');
-  var subNodeId = nodesViewModel.findNode(itemNode.attr('mt-data-id')).parentId();
-  var subNode = $('a[href="#/'+type+'/'+mainNodeId+'/'+subNodeId+'"]');
-  var mainNodeId = nodesViewModel.findNode(subNodeId).parentId();
-  var mainNode = $('a[href="#/'+type+'/'+mainNodeId+'"]');
-  //handleMainClick(mainNode);
-  //handleSubClick(subNode);
-  handleItemClick(itemNode);
-  $('#itemDetailsTab').tab('show');
-  nodesViewModel.toggleItemNeed();
-  nodesViewModel.context.redirect('/#/'+nodesViewModel.type()+'/'+mainNodeId+'/'+subNodeId+'/'+itemNodeId);
 }
 
 setAlert('');
@@ -2277,10 +2359,7 @@ var app = $.sammy('#mainBody', function() {
   self.get('#/login', login);
   self.get('#/logout', logout);
   self.get('#/:type', setType);
-  self.get('#/:type/:main', selectMain);
-  self.get('#/:type/:main/:sub', selectSub);
-  self.get('#/:type/:main/:sub/:item', selectItem);
-  self.get('#/:type/:main/:sub/:item/toggleNeed', toggleItemNeed);
+  self.get('#/:type/:nodeid', selectNode);
 });
 
 $('#typesSelect').on('keyup mouseup', initType);
