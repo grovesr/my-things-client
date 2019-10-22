@@ -94,29 +94,6 @@ self.collapsed = ko.observable(true);
     self.nodeReviewTooltip = ko.pureComputed(function() {
       return (self.review() ? self.review() : '');
     });
-    self.leavesNeeded = ko.pureComputed(function() {
-      var needed = 0;
-      var leaves = self.leaves();
-      for(var indx=0; indx<leaves.length; indx++) {
-        if(leaves[indx].need()) {
-          needed++;
-        }
-      }
-      return needed;
-    });
-    self.mainLeavesNeeded = ko.pureComputed(function() {
-      if(!('needLeaves' in self.nodeInfo()) || ('needLeaves' in self.nodeInfo() && (self.nodeInfo()['needLeaves']() === null
-                                     || typeof self.nodeInfo()['needLeaves']() === 'undefined'))) {
-        needed = 0;
-      } else {
-        if(self.children().length > 0) {
-          needed = self.leavesNeeded();
-        } else {
-          needed = self.nodeInfo()['needLeaves']();
-        }
-      }
-      return needed;
-    });
     self.image = ko.computed(function() {
       var image = '';
       if(nodesViewModel.type() === 'books') {
@@ -171,153 +148,6 @@ Node.prototype.setDateReviewed = function() {
     var date = new Date();
     self.dateReviewed((date.getMonth()+1)+'/'+date.getDate()+'/'+date.getFullYear());
   }
-}
-
-Node.prototype.leaves = function(leaves = []) {
-  var self = this;
-  if(self.children().length === 0) {
-    leaves.push(self);
-  }
-  self.children().forEach(function(child) {
-    leaves.concat(child.leaves(leaves));
-  })
-  return leaves;
-}
-
-Node.prototype.numLeavesHaveTried = function() {
-  var self = this;
-  var leaves = self.leaves();
-  var count = 0;
-  for(var indx=0; indx<leaves.length; indx++) {
-    if(leaves[indx].haveTried()) {
-      count++;
-    }
-  }
-  return count;
-}
-
-Node.prototype.mainNumLeavesHaveTried = function() {
-  var self = this;
-  haveTried = self.nodeInfo()['haveTriedLeaves']();
-  if(!haveTried) {
-    haveTried = 0;
-  }
-  return haveTried;
-}
-
-Node.prototype.mainNumberSubs = function() {
-  var self = this;
-  numSubs = self.nodeInfo()['numberSubs']();
-  if(!numSubs) {
-    numSubs = 0;
-  }
-  return numSubs;
-}
-
-Node.prototype.mainNumberLeaves = function() {
-  var self = this;
-  numLeaves = self.nodeInfo()['numberLeaves']();
-  if(!numLeaves) {
-    numLeaves = 0;
-  }
-  return numLeaves;
-}
-
-Node.prototype.leavesHaveTried = function() {
-  var self = this;
-  var leaves = self.leaves();
-  for(var indx=0; indx<leaves.length; indx++) {
-    if(leaves[indx].haveTried()) {
-      return true;
-    }
-  }
-  return false;
-}
-
-Node.prototype.mainLeavesHaveTried = function() {
-  var self = this;
-  haveTried = self.nodeInfo()['haveTriedLeaves']();
-  if(!haveTried) {
-    haveTried = 0;
-  }
-  return haveTried;
-}
-
-Node.prototype.allLeavesHaveTried = function() {
-  var self = this;
-  var leaves = self.leaves();
-  for(var indx=0; indx<leaves.length; indx++) {
-    if(!leaves[indx].haveTried()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-Node.prototype.mainAllLeavesHaveTried = function() {
-  var self = this;
-  if(self.mainLeavesHaveTried() == self.mainNumberLeaves()) {
-    return true;
-  }
-  return false;
-}
-
-Node.prototype.leavesHaveReviewed = function() {
-  var self = this;
-  var leaves = self.leaves();
-  for(var indx=0; indx<leaves.length; indx++) {
-    if(leaves[indx].review()) {
-      return true;
-    }
-  }
-  return false;
-}
-
-Node.prototype.leavesHaveRating = function() {
-  var self = this;
-  var leaves = self.leaves();
-  for(var indx=0; indx<leaves.length; indx++) {
-    if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
-      return true;
-    }
-  }
-  return false;
-}
-
-Node.prototype.mainLeavesHaveRating = function() {
-  var self = this;
-  averageRating = self.nodeInfo()['averageLeafRating']();
-  if(averageRating === null) {
-    return false;
-  }
-  return true;
-}
-
-Node.prototype.averageRating = function() {
-  var self = this;
-  var numRated = 0;
-  var sumRating = 0;
-  var leaves = self.leaves();
-  for(var indx=0; indx<leaves.length; indx++) {
-    if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
-      numRated++;
-      sumRating += Math.floor(leaves[indx].rating());
-    }
-  }
-  if(numRated === 0) {
-    return null;
-  } else {
-    return Math.round(sumRating / numRated);
-  }
-}
-
-Node.prototype.mainAverageRating = function() {
-  var self = this;
-  averageRating = self.nodeInfo()['averageLeafRating']();
-  if(!averageRating) {
-    averageRating = null;
-  }
-  return averageRating;
 }
 
 Node.prototype.loadData = function(data) {
@@ -1365,13 +1195,7 @@ NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
     $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
     self.filterItems([]);
     self.sortedItems([]);
-    if(main) {
-      self.context.redirect('#/'+self.type()+'/'+addedNode.id());
-    } else if(sub) {
-      self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+addedNode.id());
-    } else {
-      self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id()+'/'+addedNode.id());
-    }
+    self.context.redirect('#/'+self.type()+'/'+addedNode.id());
   })
   .catch(function(err) {
     $("html").removeClass("waiting");
@@ -1530,16 +1354,16 @@ NodesViewModel.prototype.initNode = function(node) {
     if(self.isMain(node)) {
       var tooltipText = '<h5>' + node.name() + ':</h5>' +
                         (node.description() ? '<p>' + node.description() + '</p><br>' : '') +
-                        '<b>' + self.subLabel() + ':</b><span> ' + node.mainNumberSubs() + '</span><br>' +
-                        '<b>' + self.itemLabel() + 's:</b><span> ' + node.mainNumberLeaves() + '</span><br>' +
-                        '<b>Have ' + self.triedLabel() + ':</b><span> ' + node.mainNumLeavesHaveTried() + '</span><br>' +
-                        '<b>Need:</b><span> ' + node.mainLeavesNeeded() + '</span><br>';
+                        '<b>' + self.subLabel() + ':</b><span> ' + self.mainNumberSubs(node) + '</span><br>' +
+                        '<b>' + self.itemLabel() + 's:</b><span> ' + self.mainNumberLeaves(node) + '</span><br>' +
+                        '<b>Have ' + self.triedLabel() + ':</b><span> ' + self.mainNumLeavesHaveTried(node) + '</span><br>' +
+                        '<b>Need:</b><span> ' + self.mainLeavesNeeded(node) + '</span><br>';
     } else {
       var tooltipText = '<h5>' + node.name() + ':</h5>' +
                         (node.description() ? '<p>' + node.description() + '</p><br>' : '') +
                         '<b>' + self.itemLabel() + 's:</b><span> ' + node.children().length + '</span><br>' +
-                        '<b>Have ' + self.triedLabel() + ':</b><span> ' + node.numLeavesHaveTried() + '</span><br>' +
-                        '<b>Need:</b><span> ' + node.leavesNeeded() + '</span><br>';
+                        '<b>Have ' + self.triedLabel() + ':</b><span> ' + self.numLeavesHaveTried(node) + '</span><br>' +
+                        '<b>Need:</b><span> ' + self.leavesNeeded(node) + '</span><br>';
     }
     return tooltipText;
   });
@@ -1551,6 +1375,250 @@ NodesViewModel.prototype.isMain = function(node) {
     return node.parentId() == self.rootNode.id();
   }
   return node;
+}
+
+NodesViewModel.prototype.leaves = function(node, leaves = []) {
+  var self = nodesViewModel;
+  if(node) {
+    var parent = self.findNode(node.parentId());
+    if(node.children().length === 0 && !self.isMain(parent) && !self.isMain(node)) {
+      leaves.push(node);
+    }
+    node.children().forEach(function(child) {
+      leaves.concat(self.leaves(child, leaves));
+    })
+  }
+  return leaves;
+}
+
+NodesViewModel.prototype.leavesNeeded = function(node) {
+  self = nodesViewModel;
+  var needed = 0;
+  if(node) {
+    var leaves = self.leaves(node);
+    for(var indx=0; indx<leaves.length; indx++) {
+      if(leaves[indx].need()) {
+        needed++;
+      }
+    }
+  }
+  return needed;
+}
+
+NodesViewModel.prototype.mainLeavesNeeded = function(node) {
+  self = nodesViewModel;
+  var needed = 0;
+  if(node) {
+    if(!('needLeaves' in node.nodeInfo()) || ('needLeaves' in node.nodeInfo() && (node.nodeInfo()['needLeaves']() === null
+                                   || typeof node.nodeInfo()['needLeaves']() === 'undefined'))) {
+      needed = 0;
+    } else {
+      if(node.children().length > 0) {
+        needed = self.leavesNeeded(node);
+      } else {
+        needed = node.nodeInfo()['needLeaves']();
+      }
+    }
+  }
+  return needed;
+}
+
+NodesViewModel.prototype.numLeavesHaveTried = function(node) {
+  var self = nodesViewModel;
+  var count = 0;
+  if(node) {
+    var leaves = self.leaves(node);
+    for(var indx=0; indx<leaves.length; indx++) {
+      if(leaves[indx].haveTried()) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+NodesViewModel.prototype.mainNumLeavesHaveTried = function(node) {
+  var self = nodesViewModel;
+  var haveTried = 0;
+  if(node) {
+    if(node.children().length > 0) {
+      haveTried = self.numLeavesHaveTried(node);
+    } else {
+      haveTried = node.nodeInfo()['haveTriedLeaves']();
+      if(!haveTried) {
+        haveTried = 0;
+      }
+    }
+  }
+  return haveTried;
+}
+
+NodesViewModel.prototype.mainNumberSubs = function(node) {
+  var self = nodesViewModel;
+  var numSubs = 0;
+  if(node) {
+    if(node.children().length > 0) {
+      numSubs = node.children().length;
+    } else {
+      numSubs = node.nodeInfo()['numberSubs']();
+      if(!numSubs) {
+        numSubs = 0;
+      }
+    }
+  }
+  return numSubs;
+}
+
+NodesViewModel.prototype.mainNumberLeaves = function(node) {
+  var self = nodesViewModel;
+  var numLeaves = 0;
+  if(node) {
+    if(node.children().length > 0) {
+      numLeaves = self.leaves(node).length;
+    } else {
+      numLeaves = node.nodeInfo()['numberLeaves']();
+      if(!numLeaves) {
+        numLeaves = 0;
+      }
+    }
+  }
+  return numLeaves;
+}
+
+NodesViewModel.prototype.leavesHaveTried = function(node) {
+  var self = nodesViewModel;
+  if(node) {
+    var leaves = self.leaves(node);
+    for(var indx=0; indx<leaves.length; indx++) {
+      if(leaves[indx].haveTried()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+NodesViewModel.prototype.mainLeavesHaveTried = function(node) {
+  var self = nodesViewModel;
+  var haveTried = 0;
+  if(node) {
+    if(node.children().length > 0) {
+      numTried = self.leavesHaveTried(node);
+    } else {
+      numTried = node.nodeInfo()['haveTriedLeaves']();
+      if(!numTried) {
+        numTried = 0;
+      }
+    }
+  }
+  return haveTried;
+}
+
+NodesViewModel.prototype.allLeavesHaveTried = function(node) {
+  var self = nodesViewModel;
+  if(node) {
+    var leaves = self.leaves(node);
+    for(var indx=0; indx<leaves.length; indx++) {
+      if(!leaves[indx].haveTried()) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+NodesViewModel.prototype.mainAllLeavesHaveTried = function(node) {
+  var self = nodesViewModel;
+  var allTried = false;
+  if(node) {
+    if(node.children().length > 0) {
+      allTried = self.allLeavesHaveTried(node);
+    } else {
+      if(self.mainLeavesHaveTried(node) == self.mainNumberLeaves(node)) {
+        allTried = true;
+      }
+    }
+  }
+  return allTried;
+}
+
+NodesViewModel.prototype.leavesHaveReviewed = function(node) {
+  var self = nodesViewModel;
+  if(node) {
+    var leaves = self.leaves(node);
+    for(var indx=0; indx<leaves.length; indx++) {
+      if(leaves[indx].review()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+NodesViewModel.prototype.leavesHaveRating = function(node) {
+  var self = nodesViewModel;
+  if(node) {
+    var leaves = self.leaves(node);
+    for(var indx=0; indx<leaves.length; indx++) {
+      if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+NodesViewModel.prototype.mainLeavesHaveRating = function(node) {
+  var self = nodesViewModel;
+  var haveRating = false;
+  if(node) {
+    if(node.children().length > 0) {
+      haveRating = self.leavesHaveRating(node);
+    } else {
+      averageRating = node.nodeInfo()['averageLeafRating']();
+      if(averageRating === null) {
+        haveRating = false;
+      }
+    }
+  }
+  return haveRating;
+}
+
+NodesViewModel.prototype.averageRating = function(node) {
+  var self = nodesViewModel;
+  var numRated = 0;
+  var sumRating = 0;
+  if(node) {
+    var leaves = self.leaves(node);
+    var node = self.findNode(node);
+    for(var indx=0; indx<leaves.length; indx++) {
+      if(leaves[indx].rating() !== null && leaves[indx].rating() !== '') {
+        numRated++;
+        sumRating += Math.floor(leaves[indx].rating());
+      }
+    }
+  }
+  if(numRated === 0) {
+    return null;
+  } else {
+    return Math.round(sumRating / numRated);
+  }
+}
+
+NodesViewModel.prototype.mainAverageRating = function(node) {
+  var self = nodesViewModel;
+  var averageRating = null;
+  if(node) {
+    if (node.children().length > 0) {
+      averageRating = self.averageRating(node);
+    } else {
+      averageRating = node.nodeInfo()['averageLeafRating']();
+      if(!averageRating) {
+        averageRating = null;
+      }
+    }
+  }
+  return averageRating;
 }
 
 NodesViewModel.prototype.getTree = function(node) {

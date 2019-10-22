@@ -146,21 +146,21 @@
                     class="list-group-item mt-main-a text-truncate border-0 mb-1">
                     <span>
                       <span class="badge badge-secondary"
-                            data-bind="text: mainLeavesNeeded,
-                                       style:{'background-color': mainLeavesNeeded() ? 'red' : 'green'}"
+                            data-bind="text: $root.mainLeavesNeeded($data),
+                                       style:{'background-color': $root.mainLeavesNeeded($data) ? 'red' : 'green'}"
                             title="need"></span>
                       <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
                                         title: (collapsed() ? 'expand' : 'collapse')}"></i>
-                      <i data-bind="style: {opacity: (mainLeavesHaveTried() ? '1.0': '0.2'),
-                                            color: (mainAllLeavesHaveTried() ? 'green' : 'black')},
-                                            attr: {class: (mainAllLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')},
+                      <i data-bind="style: {opacity: ($root.mainLeavesHaveTried($data) ? '1.0': '0.2'),
+                                            color: ($root.mainAllLeavesHaveTried($data) ? 'green' : 'black')},
+                                            attr: {class: ($root.mainAllLeavesHaveTried($data) ? 'fa fa-times fa-s' : 'fa fa-check fa-xs')},
                                     attr: {title: $root.triedLabel}"></i>
                       <span class="fa-stack fa-fw"
-                            data-bind="style: {opacity: (mainLeavesHaveRating() ? '1.0': '0.5')}"
+                            data-bind="style: {opacity: ($root.mainLeavesHaveRating($data) ? '1.0': '0.5')}"
                             title="rating">
                         <i class="far fa-star fa-stack-2x pb-1"></i>
                         <i class="fa fa-text fa-xs pl-1"
-                           data-bind="text: mainAverageRating()"></i>
+                           data-bind="text: $root.mainAverageRating($data)"></i>
                       </span>
                       <span data-toggle="tooltip"
                             data-html="true"
@@ -204,21 +204,21 @@
                           class="list-group-item mt-sub-a text-truncate border-0 mb-1">
                           <span>
                             <span class="badge badge-secondary"
-                                  data-bind="text: leavesNeeded,
-                                             style:{'background-color': leavesNeeded() ? 'red' : 'green'}"
+                                  data-bind="text: $root.leavesNeeded($data),
+                                             style:{'background-color': $root.leavesNeeded($data) ? 'red' : 'green'}"
                                   title="need"></span>
                             <i data-bind="attr: {class: 'fa ' + (collapsed() ? 'fa-plus' : 'fa-minus') + ' fa-xs',
                                               title: (collapsed() ? 'expand' : 'collapse')}"></i>
-                            <i data-bind="style: {opacity: (leavesHaveTried() ? '1.0': '0.2'),
-                                                  color: (allLeavesHaveTried() ? 'green' : 'black')},
-                                                  attr: {class: (allLeavesHaveTried() ? 'fa fa-times fa-s' : 'fa fa-check fa-xs'),
+                            <i data-bind="style: {opacity: ($root.leavesHaveTried($data) ? '1.0': '0.2'),
+                                                  color: ($root.allLeavesHaveTried($data) ? 'green' : 'black')},
+                                                  attr: {class: ($root.allLeavesHaveTried($data) ? 'fa fa-times fa-s' : 'fa fa-check fa-xs'),
                                                          title: $root.triedLabel}"></i>
                             <span class="fa-stack fa-fw"
-                                  data-bind="style: {opacity: (leavesHaveRating() ? '1.0': '0.5')}"
+                                  data-bind="style: {opacity: ($root.leavesHaveRating($data) ? '1.0': '0.5')}"
                                   title="rating">
                               <i class="far fa-star fa-stack-2x pb-1"></i>
                               <i class="fa fa-text fa-xs pl-1"
-                                 data-bind="text: averageRating()"></i>
+                                 data-bind="text: $root.averageRating($data)"></i>
                             </span>
                             <span data-toggle="tooltip"
                                   data-html="true"
