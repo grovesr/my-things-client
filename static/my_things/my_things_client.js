@@ -2153,7 +2153,14 @@ var handleMainClick =  function(mainNode, scroll=false) {
   if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() == mainNode.id() && !nodesViewModel.selectedMainNode().collapsed()) {
     //if this is a re-click of an expanded main node
     $('#accordianCollapse_' + mainNode.id()).collapse('show');
+    $('a.mt-sub-a, a.mt-item-a').removeClass('active');
     nodesViewModel.selectedMainNode().collapsed(true);
+    if(nodesViewModel.selectedSubNode()) {
+      $('#accordianCollapse_' + nodesViewModel.selectedSubNode().id()).collapse('hide');
+    }
+    nodesViewModel.selectedSubNode(null);
+    nodesViewModel.selectedItem(null);
+    nodesViewModel.unloadItem();
   } else {
     // this is a first click of a main node
     $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
@@ -2242,19 +2249,9 @@ var handleSubClick = function(mainNode, subNode, scroll=false) {
     $("a[mt-data-id=" + subNode.id() + "]").off('click', toggleCollapse);
     $("a[mt-data-id=" + subNode.id() + "]").on('click', toggleCollapse);
     $('#accordianCollapse_' + subNode.id()).collapse('show');
-    var foundItem = undefined;
-    if(nodesViewModel.selectedItem()) {
-      foundItem = nodesViewModel.selectedSubNode().children().find(function(item) {
-        return item.id() === nodesViewModel.selectedItem().id();
-      });
-    }
-    if(foundItem === undefined) {
-      nodesViewModel.selectedItem(null);
-      nodesViewModel.unloadItem();
-    } else {
-      $('a[mt-data-id='+ foundItem.id()+']').addClass('active');
-      nodesViewModel.loadItem();
-    }
+    $('a.mt-item-a').removeClass('active');
+    nodesViewModel.selectedItem(null);
+    nodesViewModel.unloadItem();
   });
 }
 
