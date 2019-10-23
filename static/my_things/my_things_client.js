@@ -116,12 +116,7 @@ self.collapsed = ko.observable(true);
 
 Node.prototype.slug = function() {
   var self = this;
-  var slug = '';
   var trimmed = $.trim(self.name());
-  //slug = trimmed.replace(/[^a-z0-9-]/gi, '-').
-  //replace(/-+/g, '-').
-  //replace(/^-|-$/g, '');
-  //return slug.toLowerCase();
   return trimmed;
 }
 
@@ -552,20 +547,50 @@ NodesViewModel.prototype.filter = function() {
   if(self.rootNode && filter !== '') {
     switch($('#filterControls input:radio:checked').val()) {
       case 'mainNameFilter':
-        tempList = self.filterMainName(filter);
+        self.filterMainName(filter)
+        .then(function(data) {
+          $("html").removeClass("waiting");
+          var nonRootNodes = data.nodes.filter(function(node) {
+            return node.id != self.rootNode.id();
+          })
+          tempList = tempList.concat(nonRootNodes.map(function(node) {
+            return new Node(initialize=true, data=node);
+          }));
+          self.filterItems(tempList);
+        });
         break;
       case 'itemNameFilter':
-        tempList = self.filterItemName(filter);
+        self.filterItemName(filter)
+        .then(function(data) {
+          $("html").removeClass("waiting");
+          tempList = tempList.concat(data.nodes.map(function(node) {
+            return new Node(initialize=true, data=node);
+          }));
+          self.filterItems(tempList);
+        });
         break;
       case 'itemDescrFilter':
-        tempList = self.filterItemDescription(filter);
+        self.filterItemDescription(filter)
+        .then(function(data) {
+          $("html").removeClass("waiting");
+          tempList = tempList.concat(data.nodes.map(function(node) {
+            return new Node(initialize=true, data=node);
+          }));
+          self.filterItems(tempList);
+        });
         break;
       case 'itemReviewFilter':
-        tempList = self.filterItemReview(filter);
-        break;
+      self.filterItemReview(filter)
+      .then(function(data) {
+        $("html").removeClass("waiting");
+        tempList = tempList.concat(data.nodes.map(function(node) {
+          return new Node(initialize=true, data=node);
+        }));
+        self.filterItems(tempList);
+      });
+      break;
     }
   }
-  self.filterItems(tempList);
 }
 
 NodesViewModel.prototype.sortList = function() {
@@ -651,86 +676,54 @@ NodesViewModel.prototype.sortAdded = function(filter) {
 
 NodesViewModel.prototype.filterMainName = function(filter) {
   var self = this;
-  //var tempList = self.rootNode.children().slice();
-  var tempList = self.rootNode.children().map(function(node) {
-    return new ListNode(node);
-  });
-  return tempList.filter(function(node) {
-    return node.name().match(new RegExp(filter,'ig')) !== null;
-  });
-}
-
-NodesViewModel.prototype.filterSubName = function(filter) {
-  var self = this;
-  var tempList = [];
-  self.rootNode.children().forEach(function(nodeType) {
-    //tempList = tempList.concat(nodeType.leaves().slice());
-    tempList = tempList.concat(nodeType.leaves().map(function(node) {
-      return new ListNode(node);
-    }));
-  });
-  return tempList.filter(function(node) {
-    return self.findNode(node.parentId()).name().match(new RegExp(filter,'ig')) !== null;
-  });
+  var url = secrets['MY_THINGS_SERVER'] + '/main/nodes?name='+filter+'&parentId='+self.rootNode.id();
+  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
 }
 
 NodesViewModel.prototype.filterItemName = function(filter) {
   var self = this;
   var tempList = [];
-  self.rootNode.children().forEach(function(nodeType) {
-    //tempList = tempList.concat(nodeType.leaves().slice());
-    tempList = tempList.concat(nodeType.leaves().map(function(node) {
-      return new ListNode(node);
-    }));
-  });
-  return tempList.filter(function(node) {
-    return node.name().match(new RegExp(filter,'ig')) !== null;
-  });
+  var self = this;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes/depth/3?name='+filter;
+  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
 }
 
 NodesViewModel.prototype.filterItemDescription = function(filter) {
   var self = this;
   var tempList = [];
-  self.rootNode.children().forEach(function(nodeType) {
-    //tempList = tempList.concat(nodeType.leaves().slice());
-    tempList = tempList.concat(nodeType.leaves().map(function(node) {
-      return new ListNode(node);
-    }));
-  });
-  return tempList.filter(function(node) {
-    return node.description() !== null && node.description().match(new RegExp(filter,'ig')) !== null;
-  });
+  var self = this;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes/depth/3?description='+filter;
+  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
+}
+
+NodesViewModel.prototype.filterItemReview = function(filter) {
+  var self = this;
+  var tempList = [];
+  var self = this;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes/depth/3?review='+filter;
+  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
 }
 
 NodesViewModel.prototype.nodeHref = function(nodeId) {
   var self = this;
-  var href = ''
-  var node = self.findNode(nodeId);
-  if(node !== null) {
-    var href = node.id();
-    var parentNode = self.findNode(node.parentId());
-    while(parentNode) {
-      href = parentNode.id() + '/' + href;
-      var parentNode = self.findNode(parentNode.parentId());
-    }
-  }
-  return '#/'+self.type()+'/'+href;
+  return '#/'+self.type()+'/'+nodeId;
 }
 
 NodesViewModel.prototype.nodeSlug = function(nodeId) {
   var self = this;
   var slug = ''
-  var node = self.findNode(nodeId);
-  if(node !== null) {
-    var href = node.id();
-    var slug = node.slug();
-    var parentNode = self.findNode(node.parentId());
-    while(parentNode) {
-      slug = parentNode.slug() + '/' + slug;
-      var parentNode = self.findNode(parentNode.parentId());
-    }
-  }
-  return slug;
+  var node = self.filterItems().find(function(item) {
+    return item.id() == nodeId;
+  });
+  return node.slug();
 }
 
 NodesViewModel.prototype.cancelLogin = function() {
