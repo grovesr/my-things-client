@@ -550,7 +550,7 @@ NodesViewModel.prototype.filter = function() {
         self.filterMainName(filter)
         .then(function(data) {
           $("html").removeClass("waiting");
-          tempList = tempList.concat(nonRootNodes.map(function(node) {
+          tempList = tempList.concat(data.nodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
           self.filterItems(tempList);
@@ -683,7 +683,7 @@ NodesViewModel.prototype.filterItemName = function(filter) {
   var self = this;
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes/?level=3&excludeRoot&name='+filter;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&name='+filter;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -1278,7 +1278,7 @@ NodesViewModel.prototype.updateItem = function() {
 NodesViewModel.prototype.getMainNodes = function() {
   var self = this;
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3';
-  url += 'ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
 }
