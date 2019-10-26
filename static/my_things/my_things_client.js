@@ -550,9 +550,6 @@ NodesViewModel.prototype.filter = function() {
         self.filterMainName(filter)
         .then(function(data) {
           $("html").removeClass("waiting");
-          var nonRootNodes = data.nodes.filter(function(node) {
-            return node.id != self.rootNode.id();
-          })
           tempList = tempList.concat(nonRootNodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
@@ -676,7 +673,7 @@ NodesViewModel.prototype.sortAdded = function(filter) {
 
 NodesViewModel.prototype.filterMainName = function(filter) {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/main/nodes?name='+filter+'&parentId='+self.rootNode.id();
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&excludeRoot&name='+filter+'&parentId='+self.rootNode.id();
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -686,7 +683,7 @@ NodesViewModel.prototype.filterItemName = function(filter) {
   var self = this;
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes/depth/3?name='+filter;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes/?level=3&excludeRoot&name='+filter;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -696,7 +693,7 @@ NodesViewModel.prototype.filterItemDescription = function(filter) {
   var self = this;
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes/depth/3?description='+filter;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&description='+filter;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -706,7 +703,7 @@ NodesViewModel.prototype.filterItemReview = function(filter) {
   var self = this;
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes/depth/3?review='+filter;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&review='+filter;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -717,7 +714,7 @@ NodesViewModel.prototype.nodeHref = function(nodeId) {
   return '#/'+self.type()+'/'+nodeId;
 }
 
-NodesViewModel.prototype.nodeSlug = function(nodeId) {
+NodesViewModel.prototype.filteredNodeSlug = function(nodeId) {
   var self = this;
   var slug = ''
   var node = self.filterItems().find(function(item) {
@@ -1280,7 +1277,7 @@ NodesViewModel.prototype.updateItem = function() {
 
 NodesViewModel.prototype.getMainNodes = function() {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/main/nodes/info/depth/3?';
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3';
   url += 'ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -1288,14 +1285,14 @@ NodesViewModel.prototype.getMainNodes = function() {
 
 NodesViewModel.prototype.getMainSubtree = function(id) {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/tree/depth/3/'+id+'?';
+  var url = secrets['MY_THINGS_SERVER'] + '/tree?depth=3&id='+id;
   url += 'ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader)
   .then(function(tree) {
     var adjacencyList = {};
-    var tempRoot = new Node();
-    adjacencyList[null] = [nodesViewModel.rootNode.copy()];
+    //var tempRoot = new Node();
+    //adjacencyList[null] = [nodesViewModel.rootNode.copy()];
     tree.nodes.forEach(function(node) {
       if(!(node.parentId in adjacencyList)) {
         adjacencyList[node.parentId] = [];

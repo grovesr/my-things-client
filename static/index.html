@@ -533,7 +533,7 @@
                 <!-- ko foreach: filterItems -->
                   <div>
                     <a data-bind="attr:{href: $root.nodeHref(id())},
-                                  text: $root.nodeSlug(id())">
+                                  text: $root.filteredNodeSlug(id())">
                     </a>
                   </div>
                 <!-- /ko -->
