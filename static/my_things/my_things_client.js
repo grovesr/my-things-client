@@ -302,6 +302,18 @@ var NodesViewModel = function() {
   var self = this;
   self.context = null;
   self.visible = ko.observable(false);
+  self.filterPage = ko.observable(null);
+  self.filterPages = ko.observable(null);
+  self.filterPerPage = ko.observable(20);
+  self.filterNextPage  = ko.observable(null);
+  self.filterPrevPage = ko.observable(null);
+  self.filterTotalItems = ko.observable(0);
+  self.sortPage = ko.observable(null);
+  self.sortPages = ko.observable(null);
+  self.sortPerPage = ko.observable(20);
+  self.sortNextPage  = ko.observable(null);
+  self.sortPrevPage = ko.observable(null);
+  self.sortTotalItems = ko.observable(null);
   self.mainLabels = {'books':'Author',
                     'wine':'Winery',
                     'beer':'Brewery',
@@ -540,16 +552,21 @@ var NodesViewModel = function() {
   });
 }
 
-NodesViewModel.prototype.filter = function() {
+NodesViewModel.prototype.filter = function(page=null) {
   var self = nodesViewModel;
   var tempList = [];
   var filter = self.filterText();
   if(self.rootNode && filter !== '') {
     switch($('#filterControls input:radio:checked').val()) {
       case 'mainNameFilter':
-        self.filterMainName(filter)
+        self.filterMainName(filter, page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
+          self.filterNextPage(data.nextPage);
+          self.filterPrevPage(data.prevPage);
+          self.filterTotalItems(data.totalNodes);
+          self.filterPage(data.page);
+          self.filterPages(data.pages);
           tempList = tempList.concat(data.nodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
@@ -557,9 +574,14 @@ NodesViewModel.prototype.filter = function() {
         });
         break;
       case 'itemNameFilter':
-        self.filterItemName(filter)
+        self.filterItemName(filter, page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
+          self.filterNextPage(data.nextPage);
+          self.filterPrevPage(data.prevPage);
+          self.filterTotalItems(data.totalNodes);
+          self.filterPage(data.page);
+          self.filterPages(data.pages);
           tempList = tempList.concat(data.nodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
@@ -567,9 +589,14 @@ NodesViewModel.prototype.filter = function() {
         });
         break;
       case 'itemDescrFilter':
-        self.filterItemDescription(filter)
+        self.filterItemDescription(filter, page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
+          self.filterNextPage(data.nextPage);
+          self.filterPrevPage(data.prevPage);
+          self.filterTotalItems(data.totalNodes);
+          self.filterPage(data.page);
+          self.filterPages(data.pages);
           tempList = tempList.concat(data.nodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
@@ -577,133 +604,183 @@ NodesViewModel.prototype.filter = function() {
         });
         break;
       case 'itemReviewFilter':
-      self.filterItemReview(filter)
-      .then(function(data) {
-        $("html").removeClass("waiting");
-        tempList = tempList.concat(data.nodes.map(function(node) {
-          return new Node(initialize=true, data=node);
-        }));
-        self.filterItems(tempList);
-      });
+        self.filterItemReview(filter, page=page)
+        .then(function(data) {
+          $("html").removeClass("waiting");
+          self.filterNextPage(data.nextPage);
+          self.filterPrevPage(data.prevPage);
+          self.filterTotalItems(data.totalNodes);
+          self.filterPage(data.page);
+          self.filterPages(data.pages);
+          tempList = tempList.concat(data.nodes.map(function(node) {
+            return new Node(initialize=true, data=node);
+          }));
+          self.filterItems(tempList);
+        });
       break;
     }
+  } else {
+    self.filterNextPage(null);
+    self.filterPrevPage(null);
+    self.filterTotalItems(null);
+    self.filterPage(null);
+    self.filterPages(null);
+    self.filterItems([]);
   }
 }
 
-NodesViewModel.prototype.sortList = function() {
+NodesViewModel.prototype.sortList = function(page=null) {
   var self = nodesViewModel;
   var tempList = [];
   //$('#sortedList i.fa, #sortedList i.far').css({'visibility':'hidden'});
   if(self.rootNode) {
     switch($('#sortControls input:radio:checked').val()) {
       case 'mainRatingSort':
-        tempList = self.sortMainRating();
+        self.sortMainRating(page=page)
+        .then(function(data) {
+          $("html").removeClass("waiting");
+          self.sortNextPage(data.nextPage);
+          self.sortPrevPage(data.prevPage);
+          self.sortTotalItems(data.totalNodes);
+          self.sortPage(data.page);
+          self.sortPages(data.pages);
+          tempList = tempList.concat(data.nodes.map(function(node) {
+            return new Node(initialize=true, data=node);
+          }));
+          Promise.resolve(self.sortedItems(tempList))
+          .then(function() {
+            $('.mt-date-list').hide('fast');
+            $('.mt-rating-list').show('fast');
+          });
+        });
         break;
       case 'itemRatingSort':
-        tempList = self.sortItemRating();
+        self.sortItemRating(page=page)
+        .then(function(data) {
+          $("html").removeClass("waiting");
+          self.sortNextPage(data.nextPage);
+          self.sortPrevPage(data.prevPage);
+          self.sortTotalItems(data.totalNodes);
+          self.sortPage(data.page);
+          self.sortPages(data.pages);
+          tempList = tempList.concat(data.nodes.map(function(node) {
+            return new Node(initialize=true, data=node);
+          }));
+          Promise.resolve(self.sortedItems(tempList))
+          .then(function() {
+            $('.mt-date-list').hide('fast');
+            $('.mt-rating-list').show('fast');
+          });
+        });
         break;
       case 'addedSort':
-        tempList = self.sortAdded();
+        self.sortAdded(page=page)
+        .then(function(data) {
+          $("html").removeClass("waiting");
+          self.sortNextPage(data.nextPage);
+          self.sortPrevPage(data.prevPage);
+          self.sortTotalItems(data.totalNodes);
+          self.sortPage(data.page);
+          self.sortPages(data.pages);
+          tempList = tempList.concat(data.nodes.map(function(node) {
+            return new Node(initialize=true, data=node);
+          }));
+          Promise.resolve(self.sortedItems(tempList))
+          .then(function() {
+            $('.mt-rating-list').hide('fast');
+            $('.mt-date-list').show('fast');
+          });
+        });
         break;
     }
   }
-  self.sortedItems(tempList);
-  if(self.rootNode) {
-    switch($('#sortControls input:radio:checked').val()) {
-      case 'mainRatingSort':
-        $('.mt-date-list').hide('fast');
-        $('.mt-rating-list').show('fast');
-        break;
-      case 'itemRatingSort':
-        $('.mt-date-list').hide('fast');
-        $('.mt-rating-list').show('fast');
-        break;
-      case 'addedSort':
-        $('.mt-rating-list').hide('fast');
-        $('.mt-date-list').show('fast');
-        break;
-    }
+}
+
+NodesViewModel.prototype.sortMainRating = function(page=null) {
+  var self = this;
+  var pageStr = '';
+  if(page) {
+    pageStr = '&page='+page;
   }
-}
-
-NodesViewModel.prototype.sortMainRating = function(filter) {
-  var self = this;
-  var tempList = self.rootNode.children().filter(function(node) {
-    return node.averageRating() !== null;
-  });
-  //var tempList = self.rootNode.children().map(function(node) {
-  //  return new ListNode(node);
-  //});
-  return tempList.sort(function(nodeA, nodeB) {
-    return nodeB.averageRating() - nodeA.averageRating();
-  });
-}
-
-NodesViewModel.prototype.sortItemRating = function(filter) {
-  var self = this;
-  var tempList = [];
-  self.rootNode.children().forEach(function(nodeType) {
-    tempList = tempList.concat(nodeType.leaves().filter(function(node) {
-      return node.dateTried();
-    }));
-    //tempList = tempList.concat(nodeType.leaves().map(function(node) {
-    //  return new ListNode(node);
-    //}));
-  });
-  return tempList.sort(function(nodeA, nodeB) {
-    return nodeB.averageRating() - nodeA.averageRating();
-  });
-}
-
-NodesViewModel.prototype.sortAdded = function(filter) {
-  var self = this;
-  var tempList = [];
-  self.rootNode.children().forEach(function(nodeType) {
-    tempList = tempList.concat(nodeType.leaves().filter(function(node) {
-      return node.dateTried();
-    }));
-    //tempList = tempList.concat(nodeType.leaves().map(function(node) {
-    //  return new ListNode(node);
-    //}));
-  });
-  return tempList.sort(function(nodeA, nodeB) {
-    return new Date(nodeB.dateTried()) - new Date(nodeA.dateTried());
-  });
-}
-
-NodesViewModel.prototype.filterMainName = function(filter) {
-  var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&excludeRoot&name='+filter+'&parentId='+self.rootNode.id();
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3&excludeRoot&orderField=averageLeafRating&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
 }
 
-NodesViewModel.prototype.filterItemName = function(filter) {
+NodesViewModel.prototype.sortItemRating = function(page=null) {
   var self = this;
-  var tempList = [];
-  var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&name='+filter;
+  var pageStr = '';
+  if(page) {
+    pageStr = '&page='+page;
+  }
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=rating&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
 }
 
-NodesViewModel.prototype.filterItemDescription = function(filter) {
+NodesViewModel.prototype.sortAdded = function(page=null) {
   var self = this;
-  var tempList = [];
-  var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&description='+filter;
+  var pageStr = '';
+  if(page) {
+    pageStr = '&page='+page;
+  }
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=dateTried&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
 }
 
-NodesViewModel.prototype.filterItemReview = function(filter) {
+NodesViewModel.prototype.filterMainName = function(filter, page=null) {
   var self = this;
+  var pageStr = '';
+  if(page) {
+    pageStr = '&page='+page;
+  }
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&excludeRoot&orderField=name&name='+filter+'&parentId='+self.rootNode.id()+'&perPage='+self.filterPerPage()+pageStr;
+  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
+}
+
+NodesViewModel.prototype.filterItemName = function(filter, page=null) {
+  var self = this;
+  var pageStr = '';
+  if(page) {
+    pageStr = '&page='+page;
+  }
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&review='+filter;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&name='+filter+'&perPage='+self.filterPerPage()+pageStr;
+  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
+}
+
+NodesViewModel.prototype.filterItemDescription = function(filter, page=null) {
+  var self = this;
+  var pageStr = '';
+  if(page) {
+    pageStr = '&page='+page;
+  }
+  var tempList = [];
+  var self = this;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&description='+filter+'&perPage='+self.filterPerPage()+pageStr;
+  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+  url += '&type=' + encodeURIComponent(self.type());
+  return self.ajax('GET', url, {}, self.authHeader);
+}
+
+NodesViewModel.prototype.filterItemReview = function(filter, page=null) {
+  var self = this;
+  var pageStr = '';
+  if(page) {
+    pageStr = '&page='+page;
+  }
+  var tempList = [];
+  var self = this;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&&orderField=name&review='+filter+'&perPage='+self.filterPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, {}, self.authHeader);
@@ -718,6 +795,15 @@ NodesViewModel.prototype.filteredNodeSlug = function(nodeId) {
   var self = this;
   var slug = ''
   var node = self.filterItems().find(function(item) {
+    return item.id() == nodeId;
+  });
+  return node.slug();
+}
+
+NodesViewModel.prototype.sortedNodeSlug = function(nodeId) {
+  var self = this;
+  var slug = ''
+  var node = self.sortedItems().find(function(item) {
     return item.id() == nodeId;
   });
   return node.slug();
@@ -1599,7 +1685,7 @@ NodesViewModel.prototype.mainAverageRating = function(node) {
   var self = nodesViewModel;
   var averageRating = null;
   if(node) {
-    if (node.children().length > 0) {
+    if (node.children().length > 0 || !('averageLeafRating' in node.nodeInfo()) || ('averageLeafRating' in node.nodeInfo() && node.nodeInfo()['averageLeafRating'] == null)) {
       averageRating = self.averageRating(node);
     } else {
       averageRating = node.nodeInfo()['averageLeafRating']();
@@ -2419,7 +2505,9 @@ var app = $.sammy('#mainBody', function() {
 
 $('#typesSelect').on('keyup mouseup', initType);
 $('#itemNodeTried').on('change', editItemNodeModel.setDateTriedItem.bind(editItemNodeModel));
-$('#sortControls input').on('change', nodesViewModel.sortList.bind(nodesViewModel));
+$('#sortControls input').on('change', function(e)
+  {nodesViewModel.sortList()}
+);
 $(document).keypress(function(e) {
   if(e.which == 13) {
     if(document.activeElement.id === 'itemNodeInfo4' && nodesViewModel.nodeInfo4Key() === 'ISBN') {
@@ -2434,6 +2522,50 @@ $(document).keypress(function(e) {
         $('.modal.show').find('button.btn-primary').click();
       }
     }
+  }
+});
+$('#filterPerPage a').on('click', function(e) {
+  var filterPerPage = $(this).text();
+  if(filterPerPage == "All") {
+    filterPerPage = '-1';
+  }
+  $('#filterPerPage a').removeClass('font-weight-bold');
+  Promise.resolve(nodesViewModel.filterPerPage(filterPerPage))
+  .then(function() {
+    nodesViewModel.filter();
+  });
+});
+$('#filterNavArrows i').on('click', function(e) {
+  if(e.target.id == 'filterNavPrevPage' && nodesViewModel.filterPrevPage()) {
+    nodesViewModel.filter(page=nodesViewModel.filterPrevPage());
+  } else if(e.target.id == 'filterNavFirstPage') {
+    nodesViewModel.filter(page=1);
+  } else if(e.target.id == 'filterNavNextPage' && nodesViewModel.filterNextPage()) {
+    nodesViewModel.filter(page=nodesViewModel.filterNextPage());
+  } else if(e.target.id == 'filterNavLastPage' && nodesViewModel.filterPages()) {
+    nodesViewModel.filter(page=nodesViewModel.filterPages());
+  }
+});
+$('#sortPerPage a').on('click', function(e) {
+  var sortPerPage = $(this).text();
+  if(sortPerPage == "All") {
+    sortPerPage = '-1';
+  }
+  $('#sortPerPage a').removeClass('font-weight-bold');
+  Promise.resolve(nodesViewModel.sortPerPage(sortPerPage))
+  .then(function() {
+    nodesViewModel.sortList();
+  });
+});
+$('#sortNavArrows i').on('click', function(e) {
+  if(e.target.id == 'sortNavPrevPage' && nodesViewModel.sortPrevPage()) {
+    nodesViewModel.sortList(page=nodesViewModel.sortPrevPage());
+  } else if(e.target.id == 'sortNavFirstPage') {
+    nodesViewModel.sortList(page=1);
+  } else if(e.target.id == 'sortNavNextPage' && nodesViewModel.sortNextPage()) {
+    nodesViewModel.sortList(page=nodesViewModel.sortNextPage());
+  } else if(e.target.id == 'sortNavLastPage' && nodesViewModel.sortPages()) {
+    nodesViewModel.sortList(page=nodesViewModel.sortPages());
   }
 });
 $('#login').on('shown.bs.modal', function () {

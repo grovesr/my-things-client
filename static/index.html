@@ -60,6 +60,9 @@
     div [readonly] {
       background-color: white !important;
     }
+    .mt-page-controls {
+      cursor: pointer;
+    }
     </style>
   </head>
   <body>
@@ -485,31 +488,7 @@
               </div>
             </div>
             <div  id="search" class="tab-pane fade">
-              <div id="filterControls">
-                <div class="form-check form-check-inline">
-                  <label class="form-check-label" for="filterOptMainName"
-                         data-bind="text: mainLabel()">
-                  </label>
-                  <input type="radio" class="form-check-input" name="filterOptions" value="mainNameFilter" id="filterOptMainName" checked></input>
-                </div>
-                <div class="form-check form-check-inline">
-                  <label class="form-check-label" for="filterOptItemName"
-                        data-bind="text: itemLabel()+' Name'">
-                  </label>
-                  <input type="radio" class="form-check-input" name="filterOptions" value="itemNameFilter" id="filterOptItemName"></input>
-                </div>
-                <div class="form-check form-check-inline">
-                  <label class="form-check-label" for="filterOptItemDescr"
-                         data-bind="text: itemLabel()+' Description'">
-                  </label>
-                  <input type="radio" class="form-check-input" name="filterOptions" value="itemDescrFilter" id="filterOptItemDescr"></input>
-                </div>
-                <div class="form-check form-check-inline">
-                  <label class="form-check-label" for="filterOptReview">Review</label>
-                  <input type="radio" class="form-check-input" name="filterOptions" value="reviewFilter" id="filterOptReview"></input>
-                </div>
-              </div>
-              <div class="form-row">
+              <div class="form-row mb-1 mt-1">
                 <div class="col-md-11">
                   <input
                     id="filterText"
@@ -522,11 +501,64 @@
                 </div>
                 <div class="col">
                   <button
-                    data-bind="click: filter"
+                    data-bind="click: function(data, event) {filter(page=null)}"
                     class="form-control btn btn-secondary"
                     title="Search">
                     <i class="fas fa-search"></i>
                   </button>
+                </div>
+              </div>
+              <div id="filterControls" class="form-row mb-1">
+                <div class="col">
+                  <div class="form-check form-check-inline">
+                    <label class="form-check-label" for="filterOptMainName"
+                           data-bind="text: mainLabel()">
+                    </label>
+                    <input type="radio" class="form-check-input" name="filterOptions" value="mainNameFilter" id="filterOptMainName" checked></input>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <label class="form-check-label" for="filterOptItemName"
+                          data-bind="text: itemLabel()+' Name'">
+                    </label>
+                    <input type="radio" class="form-check-input" name="filterOptions" value="itemNameFilter" id="filterOptItemName"></input>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <label class="form-check-label" for="filterOptItemDescr"
+                           data-bind="text: itemLabel()+' Description'">
+                    </label>
+                    <input type="radio" class="form-check-input" name="filterOptions" value="itemDescrFilter" id="filterOptItemDescr"></input>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <label class="form-check-label" for="filterOptReview">Review</label>
+                    <input type="radio" class="form-check-input" name="filterOptions" value="itemReviewFilter" id="filterOptReview"></input>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-row float-right">
+                    <div id="filterPerPage">
+                      Results per page:
+                      <a data-bind="attr:{class: 'mt-page-controls '+($root.filterPerPage()==10?'font-weight-bold':'mt-page-controls')},
+                                    style:{'text-decoration':($root.filterPerPage()==10?'underline':'')}">10</a>
+                      <a data-bind="attr:{class: 'mt-page-controls '+($root.filterPerPage()==20?'font-weight-bold':'mt-page-controls')},
+                                    style:{'text-decoration':($root.filterPerPage()==20?'underline':'')}">20</a>
+                      <a data-bind="attr:{class: 'mt-page-controls '+($root.filterPerPage()==50?'font-weight-bold':'mt-page-controls')},
+                                    style:{'text-decoration':($root.filterPerPage()==50?'underline':'')}">50</a>
+                      <a data-bind="attr:{class: 'mt-page-controls '+($root.filterPerPage()==-1?'font-weight-bold':'mt-page-controls')},
+                                    style:{'text-decoration':($root.filterPerPage()==$root.filterTotalItems?'underline':'')},
+                                    text: ($root.filterTotalItems()?'('+($root.filterTotalItems())+')':'All')"></a>
+                    </div>
+                  </div>
+                  <div id="filterNavArrows" class="form-row float-right" data-bind="visible:$root.filterPage() && $root.filterPages()">
+                    <i id="filterNavFirstPage" class="fa fa-angle-double-left mt-page-controls" title="first page"
+                       data-bind="style:{visibility:($root.filterPage()?($root.filterPage()>2?'visible':'hidden'):'hidden')}"></i>&nbsp;
+                    <i id="filterNavPrevPage"class="fa fa-angle-left mt-page-controls" title="previous page"
+                       data-bind="style:{visibility:($root.filterPrevPage()?($root.filterPrevPage()?'visible':'hidden'):'hidden')}"></i>&nbsp;
+                    <span data-bind="text: ($root.filterPage() && $root.filterPages()?('Page '+$root.filterPage()+' of '+$root.filterPages()):'')"></span>&nbsp;
+                    <i id="filterNavNextPage"class="fa fa-angle-right mt-page-controls" title="next page"
+                       data-bind="style:{visibility:($root.filterNextPage()?($root.filterNextPage()?'visible':'hidden'):'hidden')}"></i>&nbsp;
+                    <i id="filterNavLastPage"class="fa fa-angle-double-right mt-page-controls" title="last page"
+                       data-bind="style:{visibility:($root.filterNextPage()&&$root.filterPages()?($root.filterNextPage()<$root.filterPages()?'visible':'hidden'):'hidden')}"></i>
+                  </div>
                 </div>
               </div>
               <div class="card" style="height: 72vh;overflow-y: scroll;">
@@ -540,39 +572,68 @@
               </div>
             </div>
             <div  id="sortedList" class="tab-pane fade">
-              <div id="sortControls">
-                <div class="form-check form-check-inline">
-                  <label class="form-check-label" for="sortedOptMainRating"
-                        data-bind="text: mainLabel()+' Rating'">
-                  </label>
-                  <input type="radio" class="form-check-input" name="sortedListOptions" value="mainRatingSort" id="sortedOptMainRating"></input>
+              <div id="sortControls" class="form-row mb-1">
+                <div class="col">
+                  <div class="form-check form-check-inline">
+                    <label class="form-check-label" for="sortedOptMainRating"
+                          data-bind="text: mainLabel()+' Rating'">
+                    </label>
+                    <input type="radio" class="form-check-input" name="sortedListOptions" value="mainRatingSort" id="sortedOptMainRating"></input>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <label class="form-check-label" for="sortedOptItemRating"
+                          data-bind="text: itemLabel()+' Rating'">
+                    </label>
+                    <input type="radio" class="form-check-input" name="sortedListOptions" value="itemRatingSort" id="sortedOptItemRating"></input>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <label class="form-check-label" for="sortedOptAdded"
+                           data-bind="text: 'Date '+triedLabel()">
+                    </label>
+                    <input type="radio" class="form-check-input" name="sortedListOptions" value="addedSort" id="sortedOptAdded"></input>
+                  </div>
                 </div>
-                <div class="form-check form-check-inline">
-                  <label class="form-check-label" for="sortedOptItemRating"
-                        data-bind="text: itemLabel()+' Rating'">
-                  </label>
-                  <input type="radio" class="form-check-input" name="sortedListOptions" value="itemRatingSort" id="sortedOptItemRating"></input>
-                </div>
-                <div class="form-check form-check-inline">
-                  <label class="form-check-label" for="sortedOptAdded"
-                         data-bind="text: 'Date '+triedLabel()">
-                  </label>
-                  <input type="radio" class="form-check-input" name="sortedListOptions" value="addedSort" id="sortedOptAdded"></input>
+                <div class="col-md-4">
+                  <div class="form-row float-right">
+                    <div id="sortPerPage">
+                      Results per page:
+                      <a data-bind="attr:{class: 'mt-page-controls '+($root.sortPerPage()==10?'font-weight-bold':'mt-page-controls')},
+                                    style:{'text-decoration':($root.sortPerPage()==10?'underline':'')}">10</a>
+                      <a data-bind="attr:{class: 'mt-page-controls '+($root.sortPerPage()==20?'font-weight-bold':'mt-page-controls')},
+                                    style:{'text-decoration':($root.sortPerPage()==20?'underline':'')}">20</a>
+                      <a data-bind="attr:{class: 'mt-page-controls '+($root.sortPerPage()==50?'font-weight-bold':'mt-page-controls')},
+                                    style:{'text-decoration':($root.sortPerPage()==50?'underline':'')}">50</a>
+                      <a data-bind="attr:{class: 'mt-page-controls '+($root.sortPerPage()==-1?'font-weight-bold':'mt-page-controls')},
+                                    style:{'text-decoration':($root.sortPerPage()==$root.sortTotalItems?'underline':'')},
+                                    text: ($root.sortTotalItems()?'('+($root.sortTotalItems())+')':'All')"></a>
+                    </div>
+                  </div>
+                  <div id="sortNavArrows" class="form-row float-right" data-bind="visible:$root.sortPage() && $root.sortPages()">
+                    <i id="sortNavFirstPage" class="fa fa-angle-double-left mt-page-controls" title="first page"
+                       data-bind="style:{visibility:($root.sortPage()?($root.sortPage()>2?'visible':'hidden'):'hidden')}"></i>&nbsp;
+                    <i id="sortNavPrevPage"class="fa fa-angle-left mt-page-controls" title="previous page"
+                       data-bind="style:{visibility:($root.sortPrevPage()?($root.sortPrevPage()?'visible':'hidden'):'hidden')}"></i>&nbsp;
+                    <span data-bind="text: ($root.sortPage() && $root.sortPages()?('Page '+$root.sortPage()+' of '+$root.sortPages()):'')"></span>&nbsp;
+                    <i id="sortNavNextPage"class="fa fa-angle-right mt-page-controls" title="next page"
+                       data-bind="style:{visibility:($root.sortNextPage()?($root.sortNextPage()?'visible':'hidden'):'hidden')}"></i>&nbsp;
+                    <i id="sortNavLastPage"class="fa fa-angle-double-right mt-page-controls" title="last page"
+                       data-bind="style:{visibility:($root.sortNextPage()&&$root.sortPages()?($root.sortNextPage()<$root.sortPages()?'visible':'hidden'):'hidden')}"></i>
+                  </div>
                 </div>
               </div>
               <div class="card" style="height: 72vh;overflow-y: scroll;">
                 <!-- ko foreach: sortedItems -->
                   <div>
                     <span class="fa-stack fa-fw mt-rating-list"
-                          data-bind="style: {opacity: (averageRating() !== null ? '1.0': '0.5')}"
+                          data-bind="style: {opacity: ($root.mainAverageRating($data) !== null ? '1.0': '0.5')}"
                           title="rating">
                       <i class="far fa-star fa-stack-2x pb-1"></i>
                       <i class="fa fa-text fa-xs pl-1"
-                         data-bind="text: averageRating()"></i>
+                         data-bind="text: $root.mainAverageRating($data)"></i>
                     </span>
                     <span class="mt-date-list" data-bind="text: ('0'+((new Date(dateTried())).getMonth()+1)).substr(-2,2)+'/'+('0'+(new Date(dateTried()).getDate())).substr(-2,2)+'/'+('0'+(new Date(dateTried())).getFullYear()).substr(-2,2)"> </span>
                     <a data-bind="attr:{href: $root.nodeHref(id())},
-                                  text: $root.nodeSlug(id())">
+                                  text: $root.sortedNodeSlug(id())">
                     </a>
                   </div>
                 <!-- /ko -->
