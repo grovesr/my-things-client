@@ -865,13 +865,22 @@ NodesViewModel.prototype.sortByIndexOrPubDateOrName = function (left, right) {
 
   if(left.sortIndex() !== null && right.sortIndex() !== null &&
      left.sortIndex() !== undefined && right.sortIndex() !== undefined) {
+       if(left.sortIndex() == right.sortIndex()) {
+         return (left.name().toLowerCase() == right.name().toLowerCase() ? 0 : (left.name().toLowerCase() < right.name().toLowerCase() ? -1 : 1));
+       } else {
+         return (parseInt(left.sortIndex()) < parseInt(right.sortIndex()) ? -1 : 1)
+       }
     return (left.sortIndex() == right.sortIndex() ? 0 : (parseInt(left.sortIndex()) < parseInt(right.sortIndex()) ? -1 : 1));
   } else if('publishedDate' in left.nodeInfo() && 'publishedDate' in right.nodeInfo() &&
             left.nodeInfo()['publishedDate']() !== null && right.nodeInfo()['publishedDate']() !== null &&
             left.nodeInfo()['publishedDate']() !== undefined && right.nodeInfo()['publishedDate']() !== undefined) {
     var dleft = new Date(left.nodeInfo()['publishedDate']());
     var dright = new Date(right.nodeInfo()['publishedDate']());
-    return (dleft == dright ? 0 : (dleft < dright ? -1 : 1));
+    if(dleft.getTime() == dright.getTime()) {
+      return (left.name().toLowerCase() == right.name().toLowerCase() ? 0 : (left.name().toLowerCase() < right.name().toLowerCase() ? -1 : 1));
+    } else {
+      return (dleft < dright ? -1 : 1);
+    }
   } else {
     return (left.name().toLowerCase() == right.name().toLowerCase() ? 0 : (left.name().toLowerCase() < right.name().toLowerCase() ? -1 : 1));
   }
@@ -1338,10 +1347,7 @@ NodesViewModel.prototype.toggleItemNeed = function() {
   var self = nodesViewModel;
   if(self.selectedItem() && self.selectedMainNode() && self.selectedSubNode()) {
     self.selectedItem().toggleNeed();
-    self.updateItem()
-    .then(function() {
-      self.context.redirect('#/'+self.type()+'/'+self.selectedItem().id());
-    })
+    return self.updateItem()
   }
 }
 
@@ -2257,11 +2263,11 @@ var hideSubCollapse = function() {
 }
 
 var handleMainClick =  function(mainNode) {
-  if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() == mainNode.id() && !nodesViewModel.selectedMainNode().collapsed()) {
-    //if this is a re-click of an expanded main node
-    $('#accordianCollapse_' + mainNode.id()).collapse('show');
+  if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() == mainNode.id()) {
+    //if this is a re-click of a main node
+    $('#accordianCollapse_' + mainNode.id()).collapse('toggle');
     $('a.mt-sub-a, a.mt-item-a').removeClass('active');
-    nodesViewModel.selectedMainNode().collapsed(true);
+    nodesViewModel.selectedMainNode().collapsed(!nodesViewModel.selectedMainNode().collapsed());
     if(nodesViewModel.selectedSubNode()) {
       $('#accordianCollapse_' + nodesViewModel.selectedSubNode().id()).collapse('hide');
     }
@@ -2347,9 +2353,7 @@ var handleSubClick = function(mainNode, subNode, scroll=true) {
     $('#accordianCollapse_' + subNode.id()).off('hidden.bs.collapse');
     $('#accordianCollapse_' + subNode.id()).on('hidden.bs.collapse', function(e) {
       if ($(this).is(e.target)) {
-        if(scroll) {
-          subNode.collapsed(true);
-        }
+        subNode.collapsed(true);
       }
     });
     $('#accordianCollapse_' + subNode.id()).off('shown.bs.collapse');
@@ -2366,7 +2370,9 @@ var handleSubClick = function(mainNode, subNode, scroll=true) {
     nodesViewModel.unloadItem();
   })
   .then(function() {
-    scrollToNode(subNode);
+    if(scroll) {
+      scrollToNode(subNode);
+    }
   });
 }
 
@@ -2488,9 +2494,12 @@ var handleNode = function(mainNode) {
             handleItemClick(mainNode,subNode,itemNode)
             .then(function() {
               if(toggleNeed) {
-                nodesViewModel.toggleItemNeed();
+                nodesViewModel.toggleItemNeed()
+                .then(function() {
+                  self.context.redirect('#/'+self.type()+'/'+self.selectedItem().id());
+                })
               }
-            });
+            })
             return true;
           }
           return false; // check the next item
