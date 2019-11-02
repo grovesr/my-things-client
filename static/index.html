@@ -587,10 +587,10 @@
                     <input type="radio" class="form-check-input" name="sortedListOptions" value="itemRatingSort" id="sortedOptItemRating"></input>
                   </div>
                   <div class="form-check form-check-inline">
-                    <label class="form-check-label" for="sortedOptAdded"
+                    <label class="form-check-label" for="sortedOptTried"
                            data-bind="text: 'Date '+triedLabel()">
                     </label>
-                    <input type="radio" class="form-check-input" name="sortedListOptions" value="addedSort" id="sortedOptAdded"></input>
+                    <input type="radio" class="form-check-input" name="sortedListOptions" value="triedSort" id="sortedOptTried"></input>
                   </div>
                 </div>
                 <div class="col-md-4">
@@ -631,7 +631,7 @@
                       <i class="fa fa-text fa-xs pl-1"
                          data-bind="text: $root.mainAverageRating($data)"></i>
                     </span>
-                    <span class="mt-date-list" data-bind="text: ('0'+((new Date(dateTried())).getMonth()+1)).substr(-2,2)+'/'+('0'+(new Date(dateTried()).getDate())).substr(-2,2)+'/'+('0'+(new Date(dateTried())).getFullYear()).substr(-2,2)"> </span>
+                    <span class="mt-date-list" data-bind="text: displayDate(dateTried())"> </span>
                     <a data-bind="attr:{href: $root.nodeHref(id())},
                                   text: $root.sortedNodeSlug(id())">
                     </a>

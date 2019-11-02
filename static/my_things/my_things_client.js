@@ -649,8 +649,8 @@ NodesViewModel.prototype.sortList = function(page=null) {
           }));
           Promise.resolve(self.sortedItems(tempList))
           .then(function() {
-            $('.mt-date-list').hide('fast');
-            $('.mt-rating-list').show('fast');
+            $('.mt-date-list').hide();
+            $('.mt-rating-list').show();
           });
         });
         break;
@@ -668,13 +668,13 @@ NodesViewModel.prototype.sortList = function(page=null) {
           }));
           Promise.resolve(self.sortedItems(tempList))
           .then(function() {
-            $('.mt-date-list').hide('fast');
-            $('.mt-rating-list').show('fast');
+            $('.mt-date-list').hide();
+            $('.mt-rating-list').show();
           });
         });
         break;
-      case 'addedSort':
-        self.sortAdded(page=page)
+      case 'triedSort':
+        self.sortTried(page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
           self.sortNextPage(data.nextPage);
@@ -687,8 +687,8 @@ NodesViewModel.prototype.sortList = function(page=null) {
           }));
           Promise.resolve(self.sortedItems(tempList))
           .then(function() {
-            $('.mt-rating-list').hide('fast');
-            $('.mt-date-list').show('fast');
+            $('.mt-rating-list').hide();
+            $('.mt-date-list').show();
           });
         });
         break;
@@ -720,7 +720,7 @@ NodesViewModel.prototype.sortItemRating = function(page=null) {
   return self.ajax('GET', url, {}, self.authHeader);
 }
 
-NodesViewModel.prototype.sortAdded = function(page=null) {
+NodesViewModel.prototype.sortTried = function(page=null) {
   var self = this;
   var pageStr = '';
   if(page) {
@@ -2191,10 +2191,29 @@ var scrollToSelectedItem = function() {
   var accordianMain = $('#accordianMain');
   var containerScrollTop = accordianMain.scrollTop();
   var containerOffsetTop = accordianMain.offset().top;
+  var containerHeight = accordianMain.height();
   var itemNode = $('a[mt-data-id="' + nodesViewModel.selectedItem().id() + '"]');
   var selectionOffsetTop = itemNode.offset().top;
-  accordianMain.animate({
-     scrollTop: containerScrollTop+selectionOffsetTop-containerOffsetTop});
+  if(selectionOffsetTop > containerOffsetTop + containerHeight || selectionOffsetTop < containerOffsetTop) {
+    accordianMain.animate({
+       scrollTop: containerScrollTop+selectionOffsetTop-containerOffsetTop-containerHeight/2});
+  }
+}
+
+var scrollToNode = function(node) {
+  if(node) {
+    var accordianMain = $('#accordianMain');
+    var containerScrollTop = accordianMain.scrollTop();
+    var containerOffsetTop = accordianMain.offset().top;
+    var containerHeight = accordianMain.height();
+    var itemNode = $('a[mt-data-id="' + node.id() + '"]');
+    var selectionOffsetTop = itemNode.offset().top;
+    var selectionHeight = itemNode.height();
+    if(selectionOffsetTop > containerOffsetTop + containerHeight || selectionOffsetTop < containerOffsetTop) {
+      accordianMain.animate({
+         scrollTop: selectionOffsetTop + selectionHeight/2 - containerOffsetTop + containerScrollTop - containerHeight/2});
+    }
+  }
 }
 
 var showMainCollapse = function() {
@@ -2225,7 +2244,7 @@ var hideSubCollapse = function() {
   }
 }
 
-var handleMainClick =  function(mainNode, scroll=false) {
+var handleMainClick =  function(mainNode) {
   if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() == mainNode.id() && !nodesViewModel.selectedMainNode().collapsed()) {
     //if this is a re-click of an expanded main node
     $('#accordianCollapse_' + mainNode.id()).collapse('show');
@@ -2274,11 +2293,14 @@ var handleMainClick =  function(mainNode, scroll=false) {
       nodesViewModel.filterItems([]);
       nodesViewModel.sortedItems([]);
       nodesViewModel.unloadItem();
-    });
+    })
+    .then(function() {
+      scrollToNode(nodesViewModel.selectedMainNode());
+    })
   }
 }
 
-var handleSubClick = function(mainNode, subNode, scroll=false) {
+var handleSubClick = function(mainNode, subNode, scroll=true) {
   if(!nodesViewModel.selectedMainNode()) {
     // no main node selected yet, select it and expand it
     nodesViewModel.selectedMainNode(nodesViewModel.findNode(mainNode.id()));
@@ -2313,7 +2335,9 @@ var handleSubClick = function(mainNode, subNode, scroll=false) {
     $('#accordianCollapse_' + subNode.id()).off('hidden.bs.collapse');
     $('#accordianCollapse_' + subNode.id()).on('hidden.bs.collapse', function(e) {
       if ($(this).is(e.target)) {
-        subNode.collapsed(true);
+        if(scroll) {
+          subNode.collapsed(true);
+        }
       }
     });
     $('#accordianCollapse_' + subNode.id()).off('shown.bs.collapse');
@@ -2328,20 +2352,23 @@ var handleSubClick = function(mainNode, subNode, scroll=false) {
     $('a.mt-item-a').removeClass('active');
     nodesViewModel.selectedItem(null);
     nodesViewModel.unloadItem();
+  })
+  .then(function() {
+    scrollToNode(subNode);
   });
 }
 
-var handleItemClick = function(mainNode, subNode, itemNode, scroll=false) {
-  return handleSubClick(mainNode, subNode)
+var handleItemClick = function(mainNode, subNode, itemNode) {
+  return handleSubClick(mainNode, subNode, scroll=false)
   .then(function() {
     $('a.mt-item-a').removeClass('active');
     $('a[mt-data-id='+ itemNode.id()+']').addClass('active');
     var node = nodesViewModel.findNode(itemNode.id());
     nodesViewModel.selectedItem(node);
     nodesViewModel.loadItem();
-    if(scroll) {
-      scrollToSelectedItem();
-    }
+  })
+  .then(function() {
+    scrollToNode(itemNode);
   })
 }
 
@@ -2468,6 +2495,15 @@ var toggleCollapse = function(e) {
     targetNode = nodesViewModel.findNode($(this).attr('mt-data-id'));
     $('#accordianCollapse_' + $(this).attr('mt-data-id')).collapse('toggle');
   }
+}
+
+var displayDate = function(date=null) {
+  var dateString = '';
+  if(date) {
+    dateObject = new Date(date);
+    dateString = ('0'+((dateObject.getMonth()+1))).substr(-2,2)+'/'+('0'+dateObject.getDate()).substr(-2,2)+'/'+('0'+dateObject.getFullYear()).substr(-2,2);
+  }
+  return dateString;
 }
 
 setAlert('');
