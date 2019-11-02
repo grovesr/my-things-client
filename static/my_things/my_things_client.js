@@ -570,7 +570,10 @@ NodesViewModel.prototype.filter = function(page=null) {
           tempList = tempList.concat(data.nodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
-          self.filterItems(tempList);
+          Promise.resolve(self.filterItems(tempList))
+          .then(function() {
+            $('.mt-rating-list').show();
+          });
         });
         break;
       case 'itemNameFilter':
@@ -585,7 +588,10 @@ NodesViewModel.prototype.filter = function(page=null) {
           tempList = tempList.concat(data.nodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
-          self.filterItems(tempList);
+          Promise.resolve(self.filterItems(tempList))
+          .then(function() {
+            $('.mt-rating-list').show();
+          });
         });
         break;
       case 'itemDescrFilter':
@@ -600,7 +606,10 @@ NodesViewModel.prototype.filter = function(page=null) {
           tempList = tempList.concat(data.nodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
-          self.filterItems(tempList);
+          Promise.resolve(self.filterItems(tempList))
+          .then(function() {
+            $('.mt-rating-list').show();
+          });
         });
         break;
       case 'itemReviewFilter':
@@ -615,7 +624,10 @@ NodesViewModel.prototype.filter = function(page=null) {
           tempList = tempList.concat(data.nodes.map(function(node) {
             return new Node(initialize=true, data=node);
           }));
-          self.filterItems(tempList);
+          Promise.resolve(self.filterItems(tempList))
+          .then(function() {
+            $('.mt-rating-list').show();
+          });
         });
       break;
     }

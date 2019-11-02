@@ -564,6 +564,13 @@
               <div class="card" style="height: 72vh;overflow-y: scroll;">
                 <!-- ko foreach: filterItems -->
                   <div>
+                    <span class="fa-stack fa-fw mt-rating-list"
+                          data-bind="style: {opacity: (rating() !== null ? '1.0': '0.5')}"
+                          title="rating">
+                      <i class="far fa-star fa-stack-2x pb-1"></i>
+                      <i class="fa fa-text fa-xs pl-1"
+                         data-bind="text: ($root.isMain($data)? $root.mainAverageRating($data):rating())"></i>
+                    </span>
                     <a data-bind="attr:{href: $root.nodeHref(id())},
                                   text: $root.filteredNodeSlug(id())">
                     </a>
