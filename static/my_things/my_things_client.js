@@ -2223,13 +2223,21 @@ var scrollToNode = function(node) {
     var accordianMain = $('#accordianMain');
     var containerScrollTop = accordianMain.scrollTop();
     var containerOffsetTop = accordianMain.offset().top;
-    var containerHeight = accordianMain.height();
+    var containerHeight = parseInt(accordianMain.css('height').replace('px',''));
     var itemNode = $('a[mt-data-id="' + node.id() + '"]');
     var selectionOffsetTop = itemNode.offset().top;
-    var selectionHeight = itemNode.height();
-    if(selectionOffsetTop > containerOffsetTop + containerHeight || selectionOffsetTop < containerOffsetTop) {
+    var selectionHeight = parseInt(itemNode.css('height').replace('px',''));
+    // Place top of selection at top of scroll container
+    // scrollTop = containerScrollTop + selectionOffsetTop - containerOffsetTop
+    // Place bottom of selection at top of scroll container
+    // scrollTop = containerScrollTop + selectionOffsetTop + selectionHeight - containerOffsetTop
+    // Place bottom of selection at bottom of scroll container
+    // scrollTop = containerScrollTop + selectionOffsetTop + selectionHeight - containerOffsetTop - containerHeight
+    // Place middle of selection in middle of scroll container
+    // scrollTop = containerScrollTop + selectionOffsetTop + selectionHeight/2 - containerOffsetTop - containerHeight/2
+    if(selectionOffsetTop < containerOffsetTop || selectionOffsetTop > containerHeight + containerOffsetTop - selectionHeight)  {
       accordianMain.animate({
-         scrollTop: selectionOffsetTop + selectionHeight/2 - containerOffsetTop + containerScrollTop - containerHeight/2});
+         scrollTop: containerScrollTop + selectionOffsetTop + selectionHeight/2 - containerOffsetTop - containerHeight/2});
     }
   }
 }
@@ -2278,15 +2286,28 @@ var handleMainClick =  function(mainNode) {
     // this is a first click of a main node
     $('a.mt-main-a, a.mt-sub-a, a.mt-item-a').removeClass('active');
     $('a[mt-data-id='+ mainNode.id()+']').addClass('active');
-    if(nodesViewModel.selectedMainNode() && nodesViewModel.selectedMainNode().id() !== mainNode.id()) {
-      // we clicked a new main node, when a different one was already selected
-      nodesViewModel.selectedMainNode().children([]);
-      nodesViewModel.selectedMainNode().collapsed(true);
-    }
+    var oldMainNode = nodesViewModel.selectedMainNode();
     nodesViewModel.selectedMainNode(nodesViewModel.findNode(mainNode.id()));
-    nodesViewModel.selectedSubNode(null);
-    nodesViewModel.selectedItem(null);
-    return Promise.resolve(nodesViewModel.selectedMainNode().children(mainNode.children()))
+    if(oldMainNode && oldMainNode.id() !== mainNode.id()) {
+      oldMainNode.collapsed(true);
+    }
+    // let any previously selected main node rid itself of children before proceeding
+    var promise;
+    if(oldMainNode && oldMainNode.id() !== mainNode.id()) {
+      promise = new Promise(function(resolve, reject) {
+        resolve(oldMainNode.children([]));
+      });
+    } else {
+      promise = new Promise(function(resolve, reject) {
+        resolve(true);
+      });
+    }
+    return promise
+    .then(function() {
+      nodesViewModel.selectedSubNode(null);
+      nodesViewModel.selectedItem(null)
+      Promise.resolve(nodesViewModel.selectedMainNode().children(mainNode.children()))
+    })
     .then(function() {
       // the subnodes for this clicked main node have been populated and made visible
       var mainNodeId = nodesViewModel.selectedMainNode().id();
@@ -2297,12 +2318,14 @@ var handleMainClick =  function(mainNode) {
       $('#accordianCollapse_' + mainNodeId).on('hidden.bs.collapse', function(e) {
         if ($(this).is(e.target)) {
           nodesViewModel.selectedMainNode().collapsed(true);
+          scrollToNode(nodesViewModel.selectedMainNode());
         }
       });
       $('#accordianCollapse_' + mainNodeId).off('shown.bs.collapse');
       $('#accordianCollapse_' + mainNodeId).on('shown.bs.collapse', function(e) {
         if ($(this).is(e.target)) {
           nodesViewModel.selectedMainNode().collapsed(false);
+          scrollToNode(nodesViewModel.selectedMainNode());
         }
       });
       $("a[mt-data-id=" + mainNodeId + "]").off('click', toggleCollapse);
@@ -2311,9 +2334,6 @@ var handleMainClick =  function(mainNode) {
       nodesViewModel.filterItems([]);
       nodesViewModel.sortedItems([]);
       nodesViewModel.unloadItem();
-    })
-    .then(function() {
-      scrollToNode(nodesViewModel.selectedMainNode());
     })
   }
 }

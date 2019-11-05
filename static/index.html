@@ -43,10 +43,6 @@
     html.waiting * {
       cursor: wait;
     }
-
-    #itemDescription, #itemReview {
-      height: 10vh;
-    }
     #itemImage {
       width: 100%;
     }
@@ -54,7 +50,6 @@
       max-width: 350px;
     }
     .mt-textarea {
-      overflow: auto;
       cursor: default;
     }
     div [readonly] {
@@ -124,7 +119,7 @@
             </button>
           </div>
           <!-- begin accordian main -->
-          <div id="accordianMain" style="height: 75vh;overflow-y: scroll;">
+          <div id="accordianMain" style="height: 73vh;overflow-y: scroll;">
             <!-- ko foreach: mainNodes -->
               <!-- begin card main -->
               <div class="card border-0" data-bind="attr:{visible: visible}">
@@ -302,7 +297,7 @@
         </div>
         <!-- end col-3 -->
         <!-- begin col-8 for item details/search/sort -->
-        <div class="col d-none d-sm-block">
+        <div class="col-8 d-none d-sm-block">
           <ul class="nav nav-tabs" id="tabs" role="tablist">
             <li class="nav-item">
               <a class="nav-link active" id="itemDetailsTab" data-toggle="tab" href="#itemDetails" role="tab">Item Details</a>
@@ -315,7 +310,7 @@
             </li>
           </ul>
           <div class="tab-content">
-            <div  id="itemDetails" class="col card tab-pane fade show active"  style="height: 85vh;overflow-y: scroll-y;">
+            <div  id="itemDetails" class="col card tab-pane fade show active">
               <div class="row">
                 <div class="col-3">
                   <div
@@ -425,7 +420,6 @@
                     id="triedDate"
                     data-bind="attr: {title: 'Date '+triedLabel()},
                               text: (selectedItem()?(selectedItem().dateTried()?selectedItem().dateTried() : '&nbsp;'):'&nbsp;')"
-                    data-boundary="viewport"
                     class="form-control text-center mt-item-editable"
                     readonly>
                   </div>
@@ -440,11 +434,8 @@
                     id="itemDescription"
                     data-bind="text: (selectedItem()?(selectedItem().description()?selectedItem().description():'&nbsp;'):'&nbsp;'),
                                click: viewDescription"
-                    type="textarea"
-                    data-boundary="viewport"
-                    class="form-control text-wrap mt-textarea mt-item-editable"
-                    title="Click to view"
-                    ></div>
+                    class="form-control d-inline-block text-truncate mt-textarea mt-item-editable"
+                    title="Click to view"></div>
                 </div>
               </div>
               <div class="row  mt-item-form">
@@ -455,7 +446,6 @@
                   <div
                     id="reviewedDate"
                     data-bind="text: (selectedItem()?(selectedItem().dateReviewed()?selectedItem().dateReviewed():'&nbsp;'):'&nbsp;')"
-                    data-boundary="viewport"
                     class="form-control text-center mt-item-editable"
                     readonly>
                   </div>
@@ -480,9 +470,7 @@
                     id="itemReview"
                     data-bind="text: (selectedItem()?(selectedItem().review()?selectedItem().review():'&nbsp;'):'&nbsp;'),
                                click: viewReview"
-                    type="textarea"
-                    data-boundary="viewport"
-                    class="form-control text-wrap mt-textarea mt-item-editable"
+                    class="form-control d-inline-block text-truncate mt-textarea mt-item-editable"
                     title="Click to view"></div>
                 </div>
               </div>
@@ -561,7 +549,7 @@
                   </div>
                 </div>
               </div>
-              <div class="card" style="height: 72vh;overflow-y: scroll;">
+              <div class="card" style="height: 55vh;overflow-y: scroll;">
                 <!-- ko foreach: filterItems -->
                   <div>
                     <span class="fa-stack fa-fw mt-rating-list"
@@ -628,7 +616,7 @@
                   </div>
                 </div>
               </div>
-              <div class="card" style="height: 72vh;overflow-y: scroll;">
+              <div class="card" style="height: 62vh;overflow-y: scroll;">
                 <!-- ko foreach: sortedItems -->
                   <div>
                     <span class="fa-stack fa-fw mt-rating-list"
