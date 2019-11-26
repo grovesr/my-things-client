@@ -520,6 +520,12 @@ var NodesViewModel = function() {
             'numberLeaves',
             'haveTriedLeaves']
   });
+  self.sortPerPageString = ko.pureComputed(function() {
+    return self.sortPerPage().toString().replace('(','').replace(')','');
+  });
+  self.filterPerPageString = ko.pureComputed(function() {
+    return self.filterPerPage().toString().replace('(','').replace(')','');
+  });
   self.addMainLabel = ko.pureComputed(function() {
     return 'Add ' + self.mainLabel();
   });
@@ -734,7 +740,7 @@ NodesViewModel.prototype.sortMainRating = function(page=null) {
   if(page) {
     pageStr = '&page='+page;
   }
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3&excludeRoot&orderField=averageLeafRating&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3&excludeRoot&orderField=averageLeafRating&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, alertIds.main, self.authHeader);
@@ -746,7 +752,7 @@ NodesViewModel.prototype.sortItemRating = function(page=null) {
   if(page) {
     pageStr = '&page='+page;
   }
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=rating&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=rating&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, alertIds.main, self.authHeader);
@@ -758,7 +764,7 @@ NodesViewModel.prototype.sortTried = function(page=null) {
   if(page) {
     pageStr = '&page='+page;
   }
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=dateTried&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=dateTried&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, alertIds.main, self.authHeader);
@@ -770,7 +776,7 @@ NodesViewModel.prototype.filterMainName = function(filter, page=null) {
   if(page) {
     pageStr = '&page='+page;
   }
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&excludeRoot&orderField=name&name='+filter+'&parentId='+self.rootNode.id()+'&perPage='+self.filterPerPage()+pageStr;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&excludeRoot&orderField=name&name='+filter+'&parentId='+self.rootNode.id()+'&perPage='+self.filterPerPageString()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, alertIds.main, self.authHeader);
@@ -784,7 +790,7 @@ NodesViewModel.prototype.filterItemName = function(filter, page=null) {
   }
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&name='+filter+'&perPage='+self.filterPerPage()+pageStr;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&name='+filter+'&perPage='+self.filterPerPageString()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, alertIds.main, self.authHeader);
@@ -798,7 +804,7 @@ NodesViewModel.prototype.filterItemDescription = function(filter, page=null) {
   }
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&description='+filter+'&perPage='+self.filterPerPage()+pageStr;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&description='+filter+'&perPage='+self.filterPerPageString()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, alertIds.main, self.authHeader);
@@ -812,7 +818,7 @@ NodesViewModel.prototype.filterItemReview = function(filter, page=null) {
   }
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&&orderField=name&review='+filter+'&perPage='+self.filterPerPage()+pageStr;
+  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&&orderField=name&review='+filter+'&perPage='+self.filterPerPageString()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
   return self.ajax('GET', url, alertIds.main, self.authHeader);
