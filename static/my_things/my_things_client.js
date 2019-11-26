@@ -9,7 +9,11 @@ var addTypeModel = null;
 var loginModel = null;
 var secrets = null;
 var app = null;
-
+var defaultAlert = '';
+var defaultRequestTimeout = 12000;
+var alertIds = {'main':'#alertBox',
+                'login':'#loginAlertBox',
+                'editItemNode':'#editItemNodeAlertBox'}
 $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'hidden'});
 $('.mt-add-buttons, .mt-edit-buttons, .mt-item-form, .nav-item, .nav-link').css({'visibility':'hidden'});
 $('#itemSortIndex').addClass("d-none");
@@ -21,13 +25,16 @@ function setDefaultAlert() {
   });
 }
 
-function setAlert(alertText='', alertClass = '', alertId='#alertBox') {
+function setAlert(alertText='', alertClass = '', alertId=alertIds.main) {
   $('html').off('click', setDefaultAlert);
   if(alertClass !== '') {
     $('html').on('click', setDefaultAlert);
   }
   if(alertText === '') {
     alertText = '&nbsp;';
+    $(alertId).css({'visibility':'hidden'});
+  } else {
+    $(alertId).css({'visibility':'visible'});
   }
    $(alertId).empty();
    $(alertId).removeClass (function (index, className) {
@@ -456,7 +463,7 @@ var NodesViewModel = function() {
   self.itemSaveIcon = ko.observable(self.defaultItemSaveIcon);
   self.itemDeleteIcon = ko.observable(self.defaultItemDeleteIcon);
   self.itemEditIcon = ko.observable(self.defaultItemEditIcon);
-  self.defaultAlert = ko.observable();
+  self.defaultAlert = ko.observable(defaultAlert);
   self.currentUser = ko.observable();
   self.currentUserId = null;
   self.loggedIn = ko.observable(false);
@@ -490,7 +497,6 @@ var NodesViewModel = function() {
   self.nodeInfo4Label = ko.observable();
   self.nodeInfo5Label = ko.observable();
   self.nodeInfo6Label = ko.observable();
-  self.defaultAlert = ko.observable();
   self.mainNodes = ko.observableArray();
   self.selectedMainNode = ko.observable(null);
   self.selectedSubNode = ko.observable(null);
@@ -562,72 +568,80 @@ NodesViewModel.prototype.filter = function(page=null) {
         self.filterMainName(filter, page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
-          self.filterNextPage(data.nextPage);
-          self.filterPrevPage(data.prevPage);
-          self.filterTotalItems(data.totalNodes);
-          self.filterPage(data.page);
-          self.filterPages(data.pages);
-          tempList = tempList.concat(data.nodes.map(function(node) {
-            return new Node(initialize=true, data=node);
-          }));
-          Promise.resolve(self.filterItems(tempList))
-          .then(function() {
-            $('.mt-rating-list').show();
-          });
+          if(data) {
+            self.filterNextPage(data.nextPage);
+            self.filterPrevPage(data.prevPage);
+            self.filterTotalItems(data.totalNodes);
+            self.filterPage(data.page);
+            self.filterPages(data.pages);
+            tempList = tempList.concat(data.nodes.map(function(node) {
+              return new Node(initialize=true, data=node);
+            }));
+            Promise.resolve(self.filterItems(tempList))
+            .then(function() {
+              $('.mt-rating-list').show();
+            });
+          }
         });
         break;
       case 'itemNameFilter':
         self.filterItemName(filter, page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
-          self.filterNextPage(data.nextPage);
-          self.filterPrevPage(data.prevPage);
-          self.filterTotalItems(data.totalNodes);
-          self.filterPage(data.page);
-          self.filterPages(data.pages);
-          tempList = tempList.concat(data.nodes.map(function(node) {
-            return new Node(initialize=true, data=node);
-          }));
-          Promise.resolve(self.filterItems(tempList))
-          .then(function() {
-            $('.mt-rating-list').show();
-          });
+          if(data) {
+            self.filterNextPage(data.nextPage);
+            self.filterPrevPage(data.prevPage);
+            self.filterTotalItems(data.totalNodes);
+            self.filterPage(data.page);
+            self.filterPages(data.pages);
+            tempList = tempList.concat(data.nodes.map(function(node) {
+              return new Node(initialize=true, data=node);
+            }));
+            Promise.resolve(self.filterItems(tempList))
+            .then(function() {
+              $('.mt-rating-list').show();
+            });
+          }
         });
         break;
       case 'itemDescrFilter':
         self.filterItemDescription(filter, page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
-          self.filterNextPage(data.nextPage);
-          self.filterPrevPage(data.prevPage);
-          self.filterTotalItems(data.totalNodes);
-          self.filterPage(data.page);
-          self.filterPages(data.pages);
-          tempList = tempList.concat(data.nodes.map(function(node) {
-            return new Node(initialize=true, data=node);
-          }));
-          Promise.resolve(self.filterItems(tempList))
-          .then(function() {
-            $('.mt-rating-list').show();
-          });
+          if(data) {
+            self.filterNextPage(data.nextPage);
+            self.filterPrevPage(data.prevPage);
+            self.filterTotalItems(data.totalNodes);
+            self.filterPage(data.page);
+            self.filterPages(data.pages);
+            tempList = tempList.concat(data.nodes.map(function(node) {
+              return new Node(initialize=true, data=node);
+            }));
+            Promise.resolve(self.filterItems(tempList))
+            .then(function() {
+              $('.mt-rating-list').show();
+            });
+          }
         });
         break;
       case 'itemReviewFilter':
         self.filterItemReview(filter, page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
-          self.filterNextPage(data.nextPage);
-          self.filterPrevPage(data.prevPage);
-          self.filterTotalItems(data.totalNodes);
-          self.filterPage(data.page);
-          self.filterPages(data.pages);
-          tempList = tempList.concat(data.nodes.map(function(node) {
-            return new Node(initialize=true, data=node);
-          }));
-          Promise.resolve(self.filterItems(tempList))
-          .then(function() {
-            $('.mt-rating-list').show();
-          });
+          if(data) {
+            self.filterNextPage(data.nextPage);
+            self.filterPrevPage(data.prevPage);
+            self.filterTotalItems(data.totalNodes);
+            self.filterPage(data.page);
+            self.filterPages(data.pages);
+            tempList = tempList.concat(data.nodes.map(function(node) {
+              return new Node(initialize=true, data=node);
+            }));
+            Promise.resolve(self.filterItems(tempList))
+            .then(function() {
+              $('.mt-rating-list').show();
+            });
+          }
         });
       break;
     }
@@ -651,57 +665,63 @@ NodesViewModel.prototype.sortList = function(page=null) {
         self.sortMainRating(page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
-          self.sortNextPage(data.nextPage);
-          self.sortPrevPage(data.prevPage);
-          self.sortTotalItems(data.totalNodes);
-          self.sortPage(data.page);
-          self.sortPages(data.pages);
-          tempList = tempList.concat(data.nodes.map(function(node) {
-            return new Node(initialize=true, data=node);
-          }));
-          Promise.resolve(self.sortedItems(tempList))
-          .then(function() {
-            $('.mt-date-list').hide();
-            $('.mt-rating-list').show();
-          });
+          if(data) {
+            self.sortNextPage(data.nextPage);
+            self.sortPrevPage(data.prevPage);
+            self.sortTotalItems(data.totalNodes);
+            self.sortPage(data.page);
+            self.sortPages(data.pages);
+            tempList = tempList.concat(data.nodes.map(function(node) {
+              return new Node(initialize=true, data=node);
+            }));
+            Promise.resolve(self.sortedItems(tempList))
+            .then(function() {
+              $('.mt-date-list').hide();
+              $('.mt-rating-list').show();
+            });
+          }
         });
         break;
       case 'itemRatingSort':
         self.sortItemRating(page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
-          self.sortNextPage(data.nextPage);
-          self.sortPrevPage(data.prevPage);
-          self.sortTotalItems(data.totalNodes);
-          self.sortPage(data.page);
-          self.sortPages(data.pages);
-          tempList = tempList.concat(data.nodes.map(function(node) {
-            return new Node(initialize=true, data=node);
-          }));
-          Promise.resolve(self.sortedItems(tempList))
-          .then(function() {
-            $('.mt-date-list').hide();
-            $('.mt-rating-list').show();
-          });
+          if(data) {
+            self.sortNextPage(data.nextPage);
+            self.sortPrevPage(data.prevPage);
+            self.sortTotalItems(data.totalNodes);
+            self.sortPage(data.page);
+            self.sortPages(data.pages);
+            tempList = tempList.concat(data.nodes.map(function(node) {
+              return new Node(initialize=true, data=node);
+            }));
+            Promise.resolve(self.sortedItems(tempList))
+            .then(function() {
+              $('.mt-date-list').hide();
+              $('.mt-rating-list').show();
+            });
+          }
         });
         break;
       case 'triedSort':
         self.sortTried(page=page)
         .then(function(data) {
           $("html").removeClass("waiting");
-          self.sortNextPage(data.nextPage);
-          self.sortPrevPage(data.prevPage);
-          self.sortTotalItems(data.totalNodes);
-          self.sortPage(data.page);
-          self.sortPages(data.pages);
-          tempList = tempList.concat(data.nodes.map(function(node) {
-            return new Node(initialize=true, data=node);
-          }));
-          Promise.resolve(self.sortedItems(tempList))
-          .then(function() {
-            $('.mt-rating-list').hide();
-            $('.mt-date-list').show();
-          });
+          if(data) {
+            self.sortNextPage(data.nextPage);
+            self.sortPrevPage(data.prevPage);
+            self.sortTotalItems(data.totalNodes);
+            self.sortPage(data.page);
+            self.sortPages(data.pages);
+            tempList = tempList.concat(data.nodes.map(function(node) {
+              return new Node(initialize=true, data=node);
+            }));
+            Promise.resolve(self.sortedItems(tempList))
+            .then(function() {
+              $('.mt-rating-list').hide();
+              $('.mt-date-list').show();
+            });
+          }
         });
         break;
     }
@@ -717,7 +737,7 @@ NodesViewModel.prototype.sortMainRating = function(page=null) {
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3&excludeRoot&orderField=averageLeafRating&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, alertIds.main, self.authHeader);
 }
 
 NodesViewModel.prototype.sortItemRating = function(page=null) {
@@ -729,7 +749,7 @@ NodesViewModel.prototype.sortItemRating = function(page=null) {
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=rating&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, alertIds.main, self.authHeader);
 }
 
 NodesViewModel.prototype.sortTried = function(page=null) {
@@ -741,7 +761,7 @@ NodesViewModel.prototype.sortTried = function(page=null) {
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=dateTried&orderDir=desc&perPage='+self.sortPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, alertIds.main, self.authHeader);
 }
 
 NodesViewModel.prototype.filterMainName = function(filter, page=null) {
@@ -753,7 +773,7 @@ NodesViewModel.prototype.filterMainName = function(filter, page=null) {
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&excludeRoot&orderField=name&name='+filter+'&parentId='+self.rootNode.id()+'&perPage='+self.filterPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, alertIds.main, self.authHeader);
 }
 
 NodesViewModel.prototype.filterItemName = function(filter, page=null) {
@@ -767,7 +787,7 @@ NodesViewModel.prototype.filterItemName = function(filter, page=null) {
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&name='+filter+'&perPage='+self.filterPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, alertIds.main, self.authHeader);
 }
 
 NodesViewModel.prototype.filterItemDescription = function(filter, page=null) {
@@ -781,7 +801,7 @@ NodesViewModel.prototype.filterItemDescription = function(filter, page=null) {
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&description='+filter+'&perPage='+self.filterPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, alertIds.main, self.authHeader);
 }
 
 NodesViewModel.prototype.filterItemReview = function(filter, page=null) {
@@ -795,7 +815,7 @@ NodesViewModel.prototype.filterItemReview = function(filter, page=null) {
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&&orderField=name&review='+filter+'&perPage='+self.filterPerPage()+pageStr;
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, alertIds.main, self.authHeader);
 }
 
 NodesViewModel.prototype.nodeHref = function(nodeId) {
@@ -834,12 +854,20 @@ NodesViewModel.prototype.cancelLogin = function() {
 
 NodesViewModel.prototype.login = function(username, password, type) {
   var self = this;
-  setAlert('');
+  setAlert('','', alertIds.login);
   var url = secrets['MY_THINGS_SERVER'] + '/admin/check/user/';
   url += encodeURIComponent(username);
-  var authHeader = {'Authorization':'Basic ' + btoa(username + ':' + password)};
-  self.loggedIn(true);
-  return self.ajax('GET', url, {}, authHeader);
+  self.loggedIn(false);
+  return self.ajax('GET', url, alertIds.login, self.authHeader,null ,5000)
+  .then(function(data) {
+    if(data) {
+      self.authHeader = {'Authorization':'Basic ' + btoa(username + ':' + password)};
+      var url = secrets['MY_THINGS_SERVER'] + '/admin/user/' + username;
+      return self.ajax('GET', url, alertIds.login, self.authHeader)
+    } else {
+      return data
+    }
+  })
 }
 
 NodesViewModel.prototype.logout = function() {
@@ -930,45 +958,35 @@ NodesViewModel.prototype.setType = function() {
   return nodesViewModel.getMainNodes()
   .then(function(response) {
     $("html").removeClass("waiting");
-    // build adjacencyList structure
-    self.adjacencyList = {};
-    response.nodes.forEach(function(node) {
-      if(!(node.parentId in self.adjacencyList)) {
-        self.adjacencyList[node.parentId] = [];
-      }
-      var newNode = new Node(true, node, {'required':self.requiredAspects,
-                                          'nodeInfo': self.nodeInfoKeys()});
-      self.initNode(newNode);
-      self.adjacencyList[node.parentId].push(newNode);
-    });
-    self.rootNode = self.buildNodeHierarchy(nodeId=null, parentId=null, adjacencyList =self.adjacencyList);
-    self.rootNode.children().sort(self.sortByIndexOrPubDateOrName)
-    self.mainNodes(self.rootNode.children());
-    self.filterItems([]);
-    self.sortedItems([]);
+    if(response) {
+      // build adjacencyList structure
+      self.adjacencyList = {};
+      response.nodes.forEach(function(node) {
+        if(!(node.parentId in self.adjacencyList)) {
+          self.adjacencyList[node.parentId] = [];
+        }
+        var newNode = new Node(true, node, {'required':self.requiredAspects,
+                                            'nodeInfo': self.nodeInfoKeys()});
+        self.initNode(newNode);
+        self.adjacencyList[node.parentId].push(newNode);
+      });
+      self.rootNode = self.buildNodeHierarchy(nodeId=null, parentId=null, adjacencyList =self.adjacencyList);
+      self.rootNode.children().sort(self.sortByIndexOrPubDateOrName)
+      self.mainNodes(self.rootNode.children());
+      self.filterItems([]);
+      self.sortedItems([]);
+    }
+    return response;
   })
-  .then(function() {
-    setDefaultAlert();
-    $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
-    $('.mt-add-buttons, .nav-item, .nav-link').css({'visibility':'visible'});
-    self.updateItemListTooltips();
-    self.updateControlsTooltips();
-    $('#loadingDialog').modal('hide');
-    nodesViewModel.visible(true);
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    $('#loadingDialog').modal('hide');
-    nodesViewModel.visible(true);
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      console.log(err);
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
-      }
-      setAlert('error in NodesViewModel.setType ajax call: ' + errorMessage, 'alert-danger')
+  .then(function(response) {
+    if(response) {
+      setDefaultAlert();
+      $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
+      $('.mt-add-buttons, .nav-item, .nav-link').css({'visibility':'visible'});
+      self.updateItemListTooltips();
+      self.updateControlsTooltips();
+      $('#loadingDialog').modal('hide');
+      nodesViewModel.visible(true);
     }
   })
 }
@@ -1024,34 +1042,24 @@ NodesViewModel.prototype.proceedWithMainNodeDelete = function() {
   var self = this;
   var url = secrets['MY_THINGS_SERVER'] + '/node/';
   url += encodeURIComponent(self.selectedMainNode().id());
-  self.ajax('DELETE', url, {}, self.authHeader)
+  self.ajax('DELETE', url, alertIds.main, self.authHeader)
   .then(function(response) {
     $("html").removeClass("waiting");
-    $('a.mt-main-a').removeClass('active');
-    var nodeName = self.selectedMainNode().name();
-    var indexToRemove = self.adjacencyList[self.selectedMainNode().parentId()].indexOf(self.selectedMainNode());
-    if(indexToRemove !== -1) {
-      self.adjacencyList[self.rootNode.id()].splice(indexToRemove, 1);
-    }
-    self.rootNode.children.remove(self.selectedMainNode());
-    self.mainNodes(self.rootNode.children());
-    self.selectedMainNode(null);
-    self.unloadItem();
-    $('mt-main-collapse').collapse('hide');
-    setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
-    self.filterItems([]);
-    self.sortedItems([]);
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
+    if(response) {
+      $('a.mt-main-a').removeClass('active');
+      var nodeName = self.selectedMainNode().name();
+      var indexToRemove = self.adjacencyList[self.selectedMainNode().parentId()].indexOf(self.selectedMainNode());
+      if(indexToRemove !== -1) {
+        self.adjacencyList[self.rootNode.id()].splice(indexToRemove, 1);
       }
-      setAlert('error in NodesViewModel.proceedWithMainNodeDelete ajax call: ' + errorMessage, 'alert-danger')
+      self.rootNode.children.remove(self.selectedMainNode());
+      self.mainNodes(self.rootNode.children());
+      self.selectedMainNode(null);
+      self.unloadItem();
+      $('mt-main-collapse').collapse('hide');
+      setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+      self.filterItems([]);
+      self.sortedItems([]);
     }
   });
 }
@@ -1083,33 +1091,23 @@ NodesViewModel.prototype.proceedWithSubNodeDelete = function() {
   var self = this;
   var url = secrets['MY_THINGS_SERVER'] + '/node/';
   url += encodeURIComponent(self.selectedSubNode().id());
-  self.ajax('DELETE', url, {}, self.authHeader)
+  self.ajax('DELETE', url, alertIds.main, self.authHeader)
   .then(function(response) {
     $("html").removeClass("waiting");
-    $('a.mt-sub-a').removeClass('active');
-    var nodeName = self.selectedSubNode().name();
-    var indexToRemove = self.adjacencyList[self.selectedSubNode().parentId()].indexOf(self.selectedSubNode());
-    if(indexToRemove !== -1) {
-      self.adjacencyList[self.selectedMainNode().id()].splice(indexToRemove, 1);
-    }
-    self.selectedMainNode().children.remove(self.selectedSubNode());
-    self.selectedSubNode(null);
-    self.unloadItem();
-    $('mt-sub-collapse').collapse('hide');
-    setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
-    self.filterItems([]);
-    self.sortedItems([]);
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
+    if(response) {
+      $('a.mt-sub-a').removeClass('active');
+      var nodeName = self.selectedSubNode().name();
+      var indexToRemove = self.adjacencyList[self.selectedSubNode().parentId()].indexOf(self.selectedSubNode());
+      if(indexToRemove !== -1) {
+        self.adjacencyList[self.selectedMainNode().id()].splice(indexToRemove, 1);
       }
-      setAlert('error in NodesViewModel.proceedWithSubNodeDelete ajax call: ' + errorMessage, 'alert-danger')
+      self.selectedMainNode().children.remove(self.selectedSubNode());
+      self.selectedSubNode(null);
+      self.unloadItem();
+      $('mt-sub-collapse').collapse('hide');
+      setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+      self.filterItems([]);
+      self.sortedItems([]);
     }
   });
 }
@@ -1119,34 +1117,23 @@ NodesViewModel.prototype.proceedWithItemDelete = function() {
   var url = secrets['MY_THINGS_SERVER'] + '/node/';
   url += encodeURIComponent(self.selectedItem().id());
   self.itemDeleteIcon(self.defaultSpinnerIcon);
-  self.ajax('DELETE', url, {}, self.authHeader)
+  self.ajax('DELETE', url, alertIds.main, self.authHeader)
   .then(function(response) {
     self.itemDeleteIcon(self.defaultItemDeleteIcon);
     $("html").removeClass("waiting");
-    $('a.mt-item-a').removeClass('active');
-    var nodeName = self.selectedItem().name();
-    var indexToRemove = self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem());
-    if(indexToRemove !== -1) {
-      self.adjacencyList[self.selectedSubNode().id()].splice(indexToRemove, 1);
-    }
-    self.selectedSubNode().children.remove(self.selectedItem());
-    self.selectedItem(null);
-    self.unloadItem();
-    setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
-    self.filterItems([]);
-    self.sortedItems([]);
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    self.itemDeleteIcon(self.defaultItemDeleteIcon);
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
+    if(response) {
+      $('a.mt-item-a').removeClass('active');
+      var nodeName = self.selectedItem().name();
+      var indexToRemove = self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem());
+      if(indexToRemove !== -1) {
+        self.adjacencyList[self.selectedSubNode().id()].splice(indexToRemove, 1);
       }
-      setAlert('error in NodesViewModel.proceedWithItemDelete ajax call: ' + errorMessage, 'alert-danger')
+      self.selectedSubNode().children.remove(self.selectedItem());
+      self.selectedItem(null);
+      self.unloadItem();
+      setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+      self.filterItems([]);
+      self.sortedItems([]);
     }
   });
 }
@@ -1162,29 +1149,20 @@ NodesViewModel.prototype.proceedWithMainNodeEdit = function(nodeData = {}) {
   // add a main or sub node
   var self = this;
   var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedMainNode().id();
-  self.ajax('PUT', url, nodeData, self.authHeader)
+  $('html').addClass('waitng');
+  self.ajax('PUT', url, alertIds.main, self.authHeader,nodeData)
   .then(function(node) {
     $("html").removeClass("waiting");
-    self.selectedMainNode().name(node.name);
+    if(node) {
+      self.selectedMainNode().name(node.name);
     self.selectedMainNode().description(node.description);
     $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('dispose');
     $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
     setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
     self.mainNodes.sort(self.sortByIndexOrPubDateOrName);
     self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id());
-    self.filterItems([]);
-    self.sortedItems([]);
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
-      }
-      setAlert('error in NodesViewModel.proceedWithMainNodeEdit ajax call: ' + errorMessage, 'alert-danger')
+      self.filterItems([]);
+      self.sortedItems([]);
     }
   });
 }
@@ -1200,29 +1178,20 @@ NodesViewModel.prototype.proceedWithSubNodeEdit = function(nodeData = {}) {
   // add a main or sub node
   var self = this;
   var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedSubNode().id();
-  self.ajax('PUT', url, nodeData, self.authHeader)
+  $("html").addClass("waiting");
+  self.ajax('PUT', url, alertIds.main, self.authHeader, nodeDate)
   .then(function(node) {
     $("html").removeClass("waiting");
-    self.selectedSubNode().name(node.name);
-    self.selectedSubNode().description(node.description);
-    $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
-    $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
-    setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
-    self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
-    self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id());
-    self.filterItems([]);
-    self.sortedItems([]);
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
-      }
-      setAlert('error in NodesViewModel.proceedWithSubNodeEdit ajax call: ' + errorMessage, 'alert-danger')
+    if(node) {
+      self.selectedSubNode().name(node.name);
+      self.selectedSubNode().description(node.description);
+      $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+      $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
+      setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+      self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
+      self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id());
+      self.filterItems([]);
+      self.sortedItems([]);
     }
   });
 }
@@ -1231,83 +1200,74 @@ NodesViewModel.prototype.beginAddMain = function() {
   $('#addMainNode').modal({show: true, backdrop: 'static'});
 }
 
-NodesViewModel.prototype.addNode = function(nodeData={}, alertId='#alertBox') {
+NodesViewModel.prototype.addNode = function(nodeData={}, alertId=alertIds.main) {
   // add a node
   var self = this;
   var url = secrets['MY_THINGS_SERVER'] + '/add/node';
   var addedNode = null;
-  return self.ajax('POST', url, nodeData, self.authHeader)
+  $("html").addClass("waiting");
+  return self.ajax('POST', url, alertId, self.authHeader, nodeData)
   .then(function(node) {
     $("html").removeClass("waiting");
-    // build adjacencyList structure
-    addedNode = new Node(true, node, {'required':self.requiredAspects,
-                                      'nodeInfo': self.nodeInfoKeys()});
-    self.initNode(addedNode);
-    if(!(node.parentId in self.adjacencyList)) {
-      self.adjacencyList[node.parentId] = [];
-    }
-    self.adjacencyList[node.parentId].push(addedNode);
-    var mainParent = self.findNode(node.parentId);
-    if(mainParent) {
-      mainParent.children.push(addedNode);
-      mainParent.children.sort(self.sortByIndexOrPubDateOrName);
-    } else {
-      self.rootNode.children.push(addedNode);
-      self.rootNode.children.sort(self.sortByIndexOrPubDateOrName);
-      self.mainNodes(self.rootNode.children());
-    }
-  })
-  .then(function() {
-    var main = false;
-    var sub = false;
-    var item = false;
-    if(addedNode.parentId() === self.rootNode.id()) {
-      main = true;
-      addedNode.nodeInfo()['needLeaves'](0);
-      addedNode.nodeInfo()['numberSubs'](0);
-      addedNode.nodeInfo()['numberLeaves'](0);
-      addedNode.nodeInfo()['averageLeafRating'](null);
-      $('a.mt-main-a').removeClass('active');
-      $('.mt-main-collapse').collapse('hide');
-      self.selectedMainNode(addedNode);
-      $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
-    } else if(addedNode.parentId() === self.selectedMainNode().id()){
-      sub = true;
-      $('a.mt-sub-a').removeClass('active');
-      $('.mt-sub-collapse').collapse('hide');
-      $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
-      self.selectedSubNode(addedNode);
-      $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
-    } else {
-      item = true;;
-      $('a.mt-item-a').removeClass('active');
-      $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
-      self.selectedItem(addedNode);
-      self.loadItem();
-      $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
-      $('#editItemNode').modal("hide");
-    }
-    self.updateItemListTooltips();
-    setAlert('Successfully Added "' + addedNode.name() +'"', 'alert-success');
-    $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
-    self.filterItems([]);
-    self.sortedItems([]);
-    self.context.redirect('#/'+self.type()+'/'+addedNode.id());
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    if('responseJSON' in err && 'error' in err.responseJSON) {
-      errorMessage = err.responseJSON['error'];
-    } else if('state' in err) {
-      var errorMessage = err.state();
-      if(errorMessage === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
+    if(node){
+      // build adjacencyList structure
+      addedNode = new Node(true, node, {'required':self.requiredAspects,
+                                        'nodeInfo': self.nodeInfoKeys()});
+      self.initNode(addedNode);
+      if(!(node.parentId in self.adjacencyList)) {
+        self.adjacencyList[node.parentId] = [];
       }
-      errorMessage = 'error in NodesViewModel.addNode ajax call: ' + errorMessage
-    } else if('message' in err) {
-      errorMessage = err.message;
+      self.adjacencyList[node.parentId].push(addedNode);
+      var mainParent = self.findNode(node.parentId);
+      if(mainParent) {
+        mainParent.children.push(addedNode);
+        mainParent.children.sort(self.sortByIndexOrPubDateOrName);
+      } else {
+        self.rootNode.children.push(addedNode);
+        self.rootNode.children.sort(self.sortByIndexOrPubDateOrName);
+        self.mainNodes(self.rootNode.children());
+      }
+      return node;
     }
-    setAlert(errorMessage, 'alert-danger', alertId)
+  })
+  .then(function(data) {
+    if(data) {
+      var main = false;
+      var sub = false;
+      var item = false;
+      if(addedNode.parentId() === self.rootNode.id()) {
+        main = true;
+        addedNode.nodeInfo()['needLeaves'](0);
+        addedNode.nodeInfo()['numberSubs'](0);
+        addedNode.nodeInfo()['numberLeaves'](0);
+        addedNode.nodeInfo()['averageLeafRating'](null);
+        $('a.mt-main-a').removeClass('active');
+        $('.mt-main-collapse').collapse('hide');
+        self.selectedMainNode(addedNode);
+        $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
+      } else if(addedNode.parentId() === self.selectedMainNode().id()){
+        sub = true;
+        $('a.mt-sub-a').removeClass('active');
+        $('.mt-sub-collapse').collapse('hide');
+        $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
+        self.selectedSubNode(addedNode);
+        $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
+      } else {
+        item = true;;
+        $('a.mt-item-a').removeClass('active');
+        $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
+        self.selectedItem(addedNode);
+        self.loadItem();
+        $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
+        $('#editItemNode').modal("hide");
+      }
+      self.updateItemListTooltips();
+      setAlert('Successfully Added "' + addedNode.name() +'"', 'alert-success');
+      $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
+      self.filterItems([]);
+      self.sortedItems([]);
+      self.context.redirect('#/'+self.type()+'/'+addedNode.id());
+    }
   });
 }
 
@@ -1356,25 +1316,15 @@ NodesViewModel.prototype.updateItem = function() {
   var url = self.selectedItem().uri().replace('http://', 'https://');
   var saveData = self.selectedItem().sanitize();
   self.itemSaveIcon(self.defaultSpinnerIcon);
-  return self.ajax('PUT', url, saveData, self.authHeader)
+  $("html").addClass("waiting");
+  return self.ajax('PUT', url, alertIds.editItemNode, self.authHeader, saveData)
   .then(function(response) {
     self.itemSaveIcon(self.defaultItemSaveIcon);
     $("html").removeClass("waiting");
-    setAlert('Successfully updated "' + response.name +'"', 'alert-success');
-    self.filterItems([]);
-    self.sortedItems([]);
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    self.itemSaveIcon(self.defaultItemSaveIcon);
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
-      }
-      setAlert('error in NodesViewModel ajax call: ' + errorMessage, 'alert-danger')
+    if(response) {
+      setAlert('Successfully updated "' + response.name +'"', 'alert-success');
+      self.filterItems([]);
+      self.sortedItems([]);
     }
   });
 }
@@ -1384,7 +1334,7 @@ NodesViewModel.prototype.getMainNodes = function() {
   var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3';
   url += '&ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
+  return self.ajax('GET', url, alertIds.main, self.authHeader);
 }
 
 NodesViewModel.prototype.getMainSubtree = function(id) {
@@ -1392,32 +1342,26 @@ NodesViewModel.prototype.getMainSubtree = function(id) {
   var url = secrets['MY_THINGS_SERVER'] + '/tree?depth=3&id='+id;
   url += 'ownerId=' + encodeURIComponent(self.currentUserId);
   url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader)
+  $("html").addClass("waiting");
+  return self.ajax('GET', url, alertIds.main, self.authHeader)
   .then(function(tree) {
-    var adjacencyList = {};
-    //var tempRoot = new Node();
-    //adjacencyList[null] = [nodesViewModel.rootNode.copy()];
-    tree.nodes.forEach(function(node) {
-      if(!(node.parentId in adjacencyList)) {
-        adjacencyList[node.parentId] = [];
-      }
-      var newNode = new Node(true, node, {'required':nodesViewModel.requiredAspects,
-                                          'nodeInfo': nodesViewModel.nodeInfoKeys()});
-      nodesViewModel.initNode(newNode);
-      adjacencyList[node.parentId].push(newNode);
-    });
-    var main = nodesViewModel.buildNodeHierarchy(node=null, parentId=null, adjacencyList=adjacencyList).children()[0];
-    main.children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-    return main;
+    $("html").removeClass("waiting");
+    if(tree) {
+      var adjacencyList = {};
+      tree.nodes.forEach(function(node) {
+        if(!(node.parentId in adjacencyList)) {
+          adjacencyList[node.parentId] = [];
+        }
+        var newNode = new Node(true, node, {'required':nodesViewModel.requiredAspects,
+                                            'nodeInfo': nodesViewModel.nodeInfoKeys()});
+        nodesViewModel.initNode(newNode);
+        adjacencyList[node.parentId].push(newNode);
+      });
+      var main = nodesViewModel.buildNodeHierarchy(node=null, parentId=null, adjacencyList=adjacencyList).children()[0];
+      main.children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
+      return main;
+    }
   });
-}
-
-NodesViewModel.prototype.getNodes = function() {
-  var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?';
-  url += 'ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, {}, self.authHeader);
 }
 
 NodesViewModel.prototype.initNode = function(node) {
@@ -1748,9 +1692,10 @@ NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null,
   return node;
 }
 
-NodesViewModel.prototype.ajax = function(method, uri, data, authHeader = {}) {
+NodesViewModel.prototype.ajax = function(method, uri, alertId=alertIds.main, authHeader=null, data=null, timeout=defaultRequestTimeout) {
   var self = this;
   setAlert('');
+  var errorMessage = '';
   $("html").addClass("waiting");
   var request = {
     url: uri,
@@ -1758,11 +1703,34 @@ NodesViewModel.prototype.ajax = function(method, uri, data, authHeader = {}) {
     contentType: "application/json",
     accepts: "application/json",
     cache: false,
-    dataType: 'json',
-    data: ko.toJSON(data),
-    headers: authHeader
+    timeout: timeout
   };
+  if(data !== null) {
+    request.dataType = 'json';
+    request.data = JSON.stringify(data);
+  }
+  if(authHeader !== null) {
+    request.headers = authHeader;
+  }
   return Promise.resolve($.ajax(request))
+  .catch(function(err) {
+    $("html").removeClass("waiting");
+    if('responseJSON' in err && 'error' in err.responseJSON) {
+      errorMessage = err.responseJSON['error'];
+    } else if ('statusText' in err) {
+      errorMessage = err.statusText;
+    } else if('state' in err) {
+      errorMessage = err.state();
+    }
+    if('message' in err) {
+      errorMessage = errorMessage + ': ' + err.message;
+    }
+    if(errorMessage === 'rejected' || errorMessage ==='timeout') {
+      errorMessage = 'Possible network issue. Please try again later.';
+    }
+    setAlert(errorMessage, 'alert-danger', alertId);
+    return false;
+  })
 }
 
 NodesViewModel.prototype.viewDescription = function() {
@@ -1921,66 +1889,56 @@ EditItemNodeModel.prototype.fillItemFromGoogle = function() {
   url += encodeURIComponent('ISBN=' + self.itemNode().nodeInfo()['ISBN']());
   url += '&' + encodeURIComponent('key=' + secrets['MY_BOOKS_KEY']);
   nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultSpinnerIcon);
-  nodesViewModel.ajax('GET', url)
+  $("html").addClass("waiting");
+  nodesViewModel.ajax('GET', url, alertIds.editItemNode, nodesViewModel.authHeader)
   .then(function(data) {
     $("html").removeClass("waiting");
     nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultGoogleIcon);
-    var parsedData = {};
-    if(data.totalItems === 0) {
-      setAlert('No books found with ISBN = ' + self.itemNode().nodeInfo()['ISBN'](), 'alert-danger');
-    } else {
-      if('title' in data.items[0].volumeInfo) {
-        parsedData['name'] = data.items[0].volumeInfo.title;
-      }
-      if('description' in data.items[0].volumeInfo) {
-        parsedData['description'] = data.items[0].volumeInfo.description;
-      }
-      if('publisher' in data.items[0].volumeInfo) {
-        parsedData['publisher'] = data.items[0].volumeInfo.publisher;
-      }
-      if('publishedDate' in data.items[0].volumeInfo) {
-        parsedData['publishedDate'] = data.items[0].volumeInfo.publishedDate;
-      }
-      if('pageCount' in data.items[0].volumeInfo) {
-        parsedData['pageCount'] = data.items[0].volumeInfo.pageCount;
-      }
-      if('industryIdentifiers' in data.items[0].volumeInfo) {
-        parsedIsbn = null
-        if(data.items[0].volumeInfo.industryIdentifiers.length >= 1) {
-          if(data.items[0].volumeInfo.industryIdentifiers.length >= 2) {
-            data.items[0].volumeInfo.industryIdentifiers.forEach(function(ident) {
-              if(ident.type === 'ISBN_13') {
-                parsedIsbn = ident.identifier;
-              } else if(!parsedIsbn && ident.type === 'ISBN_10') {
-                parsedIsbn = ident.identifier;
-              }
-            })
-          } else {
-            parsedIsbn = data.items[0].volumeInfo.industryIdentifiers[0].identifier;
+    if(data) {
+      var parsedData = {};
+      if(data.totalItems === 0) {
+        setAlert('No books found with ISBN = ' + self.itemNode().nodeInfo()['ISBN'](), 'alert-danger');
+      } else {
+        if('title' in data.items[0].volumeInfo) {
+          parsedData['name'] = data.items[0].volumeInfo.title;
+        }
+        if('description' in data.items[0].volumeInfo) {
+          parsedData['description'] = data.items[0].volumeInfo.description;
+        }
+        if('publisher' in data.items[0].volumeInfo) {
+          parsedData['publisher'] = data.items[0].volumeInfo.publisher;
+        }
+        if('publishedDate' in data.items[0].volumeInfo) {
+          parsedData['publishedDate'] = data.items[0].volumeInfo.publishedDate;
+        }
+        if('pageCount' in data.items[0].volumeInfo) {
+          parsedData['pageCount'] = data.items[0].volumeInfo.pageCount;
+        }
+        if('industryIdentifiers' in data.items[0].volumeInfo) {
+          parsedIsbn = null
+          if(data.items[0].volumeInfo.industryIdentifiers.length >= 1) {
+            if(data.items[0].volumeInfo.industryIdentifiers.length >= 2) {
+              data.items[0].volumeInfo.industryIdentifiers.forEach(function(ident) {
+                if(ident.type === 'ISBN_13') {
+                  parsedIsbn = ident.identifier;
+                } else if(!parsedIsbn && ident.type === 'ISBN_10') {
+                  parsedIsbn = ident.identifier;
+                }
+              })
+            } else {
+              parsedIsbn = data.items[0].volumeInfo.industryIdentifiers[0].identifier;
+            }
+          }
+          if(parsedIsbn) {
+            parsedData['ISBN'] = parsedIsbn;
           }
         }
-        if(parsedIsbn) {
-          parsedData['ISBN'] = parsedIsbn;
+        if('infoLink' in data.items[0].volumeInfo) {
+          parsedData['googleLink'] = data.items[0].volumeInfo.infoLink;
         }
+        self.itemNode().updateNodeInfoData(parsedData);
+        setAlert('Filled information from books.google.com', 'alert-success');
       }
-      if('infoLink' in data.items[0].volumeInfo) {
-        parsedData['googleLink'] = data.items[0].volumeInfo.infoLink;
-      }
-      self.itemNode().updateNodeInfoData(parsedData);
-      setAlert('Filled information from books.google.com', 'alert-success');
-    }
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultGoogleIcon);
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
-      }
-      setAlert('error in NodesViewModel.fillItemFromGoogle ajax call: ' + errorMessage, 'alert-danger')
     }
   })
 }
@@ -2022,26 +1980,16 @@ EditItemNodeModel.prototype.saveItem = function() {
   var saveData = self.itemNode().sanitize();
   nodesViewModel.itemSaveIcon(nodesViewModel.defaultSpinnerIcon);
   setAlert('','','#editItemNodeAlertBox');
-  nodesViewModel.ajax('PUT', url, saveData, nodesViewModel.authHeader)
+  $("html").addClass("waiting");
+  nodesViewModel.ajax('PUT', url, alertIds.editItemNode, nodesViewModel.authHeader, saveData)
   .then(function(response) {
     nodesViewModel.itemSaveIcon(nodesViewModel.defaultItemSaveIcon);
-    nodesViewModel.selectedItem().updateData(self.itemNode().data());
     $("html").removeClass("waiting");
-    setAlert('Successfully Updated "' + nodesViewModel.selectedItem().name() +'"', 'alert-success');
-    nodesViewModel.loadItem();
-    $("#editItemNode").modal("hide");
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    nodesViewModel.itemSaveIcon(nodesViewModel.defaultItemSaveIcon);
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger', '#editItemNodeAlertBox')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
-      }
-      setAlert('error in NodesViewModel ajax call: ' + errorMessage, 'alert-danger', '#editItemNodeAlertBox')
+    if(response) {
+      nodesViewModel.selectedItem().updateData(self.itemNode().data());;
+      setAlert('Successfully Updated "' + nodesViewModel.selectedItem().name() +'"', 'alert-success');
+      nodesViewModel.loadItem();
+      $("#editItemNode").modal("hide");
     }
   });
 }
@@ -2050,26 +1998,17 @@ EditItemNodeModel.prototype.proceedWithItemNodeEdit = function(nodeData = {}) {
   // add a main or sub node
   var self = this;
   var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.subNode().id();
-  nodesViewModel.ajax('PUT', url, nodeData, nodesViewModel.authHeader)
+  $("html").addClass("waiting");
+  nodesViewModel.ajax('PUT', url, alertIds.editItemNode, nodesViewModel.authHeader, nodeDate)
   .then(function(node) {
     $("html").removeClass("waiting");
-    self.selectedSubNode().name(node.name);
-    self.selectedSubNode().description(node.description);
-    $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
-    $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
-    setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
-    self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
-  })
-  .catch(function(err) {
-    $("html").removeClass("waiting");
-    if(typeof err.responseJSON !== 'undefined') {
-      setAlert(err.responseJSON['error'], 'alert-danger')
-    } else {
-      var errorMessage = err.state();
-      if(err.state() === 'rejected') {
-        errorMessage = 'Possible network issue. Please try again later.';
-      }
-      setAlert('error in NodesViewModel.proceedWithItemNodeEdit ajax call: ' + errorMessage, 'alert-danger')
+    if(node) {
+      self.selectedSubNode().name(node.name);
+      self.selectedSubNode().description(node.description);
+      $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+      $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
+      setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+      self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
     }
   });
 }
@@ -2096,35 +2035,33 @@ LoginModel.prototype.login = function() {
   var password = self.password();
   var type = $('#inputType').val();
   var context = self.context;
-  self.username('');
   self.password('');
-  self.types([]);
   self.context = null;
   nodesViewModel.login(username, password, type)
   .then(function(data) {
-    nodesViewModel.currentUser(username);
-    nodesViewModel.currentUserPassword = password;
-    nodesViewModel.currentUserId = data.id;
-    nodesViewModel.authHeader = {'Authorization':'Basic ' + btoa(nodesViewModel.currentUser() + ':' + nodesViewModel.currentUserPassword)};
-  })
-  .catch(function(err) {
-    $('html').removeClass('waiting');
-    if (err.status == 403){
-      $('#loginBtn').css({'visibility':'visible'});
-      setAlert('Incorrect username or password. Try again', 'alert-danger');
+    if(data) {
+      nodesViewModel.currentUser(username);
+      nodesViewModel.currentUserPassword = password;
+      nodesViewModel.currentUserId = data.id;
+      nodesViewModel.loggedIn(true);
+      nodesViewModel.authHeader = {'Authorization':'Basic ' + btoa(nodesViewModel.currentUser() + ':' + nodesViewModel.currentUserPassword)};
     }
-    nodesViewModel.loggedIn(false);
+    return data;
   })
   .then(function(data) {
-    $('html').removeClass('waiting');
-    if(nodesViewModel.loggedIn()) {
-      nodesViewModel.unloadItem();
-      nodesViewModel.type(type);
-      context.redirect('#/'+type)
+    if(data) {
+      if(nodesViewModel.loggedIn()) {
+        nodesViewModel.unloadItem();
+        nodesViewModel.type(type);
+        $('#login').modal('hide');
+        self.username('');
+        self.types([]);
+        nodesViewModel.context.redirect('#/'+type);
+      } else {
+        $('html').removeClass('waiting');
+        nodesViewModel.context.redirect('#/login');
+      }
     }
-  })
-  .catch(function(err) {
-    console.log(err.stack)
   });
 }
 
@@ -2426,6 +2363,24 @@ var login = function(context) {
   loginModel.context = context;
   $('#login').modal({show: true,
                      backdrop: 'static'});
+   Promise.resolve($.ajax({
+     cache: false,
+     url: "my_things/.secrets.json",
+     dataType: "json",
+     timeout: 5000
+   }))
+   .catch(function(err) {
+     $("html").removeClass("waiting");
+     var errorMessage = err.state();
+     if(err.state() === 'rejected') {
+       errorMessage = 'Possible network issue. Please try again later.';
+     }
+     setAlert('error getting secrets file: ' + errorMessage, 'alert-danger','#loginAlertBox');
+   })
+   .then(function(jsonSecrets) {
+     $("html").removeClass("waiting");
+     secrets = jsonSecrets;
+   })
 }
 
 var logout = function(context) {
@@ -2463,21 +2418,10 @@ var selectNode = function(context) {
   }
   if(!nodeTreePresent) {
     nodesViewModel.getMainSubtree(nodeId)
-    .then(handleNode)
-    .catch(function(err) {
-      $("html").removeClass("waiting");
-      if('responseJSON' in err && 'error' in err.responseJSON) {
-        errorMessage = err.responseJSON['error'];
-      } else if('state' in err) {
-        var errorMessage = err.state();
-        if(errorMessage === 'rejected') {
-          errorMessage = 'Possible network issue. Please try again later.';
-        }
-        errorMessage = 'error in selectMain ajax call: ' + errorMessage
-      } else if('message' in err) {
-        errorMessage = err.message;
+    .then(function(response) {
+      if(response) {
+        handleNode(response);
       }
-      setAlert(errorMessage, 'alert-danger')
     });
   } else {
     // get the node tree associated with this node
@@ -2547,7 +2491,6 @@ var displayDate = function(date=null) {
   return dateString;
 }
 
-setAlert('');
 nodesViewModel = new NodesViewModel();
 addMainNodeModel = new AddMainNodeModel();
 addSubNodeModel = new AddSubNodeModel();
@@ -2566,6 +2509,7 @@ ko.applyBindings(editItemNodeModel, $('#editItemNode')[0]);
 ko.applyBindings(viewTextModel, $('#viewText')[0]);
 ko.applyBindings(loginModel, $('#login')[0]);
 ko.applyBindings(nodesViewModel, $('#loadingDialog')[0]);
+setDefaultAlert('');
 
 var app = $.sammy('#mainBody', function() {
   var self = this;
@@ -2665,23 +2609,6 @@ $('#addSubNode').on('shown.bs.modal', function () {
   $('#inputSubNodeName').trigger('focus');
 });
 $("html").addClass("waiting");
-Promise.resolve($.ajax({
-  cache: false,
-  url: "my_things/.secrets.json",
-  dataType: "json"
-}))
-.catch(function(err) {
-  $("html").removeClass("waiting");
-  var errorMessage = err.state();
-  if(err.state() === 'rejected') {
-    errorMessage = 'Possible network issue. Please try again later.';
-  }
-  setAlert('error getting secrets file: ' + errorMessage, 'alert-danger');
-})
-.then(function(jsonSecrets) {
-  $("html").removeClass("waiting");
-  secrets = jsonSecrets;
-}) // .then after getting secrets
-.then(function() {
+$(document).ready(function() {
   app.run('#/login');
 })
