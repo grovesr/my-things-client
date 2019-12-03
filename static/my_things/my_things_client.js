@@ -9,8 +9,9 @@ var addTypeModel = null;
 var loginModel = null;
 var secrets = null;
 var app = null;
+var lastAjaxError = '';
 var defaultAlert = '';
-var defaultRequestTimeout = 12000;
+var defaultRequestTimeout = 15000;
 var alertIds = {'main':'#alertBox',
                 'login':'#loginAlertBox',
                 'editItemNode':'#editItemNodeAlertBox'}
@@ -955,7 +956,7 @@ NodesViewModel.prototype.updateControlsTooltips = function() {
   $('#controls [data-toggle="tooltip"]').tooltip('enable');
 }
 
-NodesViewModel.prototype.setType = function() {
+NodesViewModel.prototype.setType = function(errorMessage = '') {
   var self = this;
   self.setLabels();
   nodesViewModel.visible(false);
@@ -982,18 +983,21 @@ NodesViewModel.prototype.setType = function() {
       self.filterItems([]);
       self.sortedItems([]);
     }
+    $('#loadingDialog').modal('hide');
     return response;
   })
   .then(function(response) {
     if(response) {
-      setDefaultAlert();
       $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
       $('.mt-add-buttons, .nav-item, .nav-link').css({'visibility':'visible'});
       self.updateItemListTooltips();
       self.updateControlsTooltips();
-      $('#loadingDialog').modal('hide');
+      if(errorMessage !== '') {
+        setAlert(errorMessage, 'alert-danger', alertIds.main)
+      }
       nodesViewModel.visible(true);
     }
+    return response;
   })
 }
 
@@ -1701,6 +1705,7 @@ NodesViewModel.prototype.buildNodeHierarchy = function(node=null, parentId=null,
 NodesViewModel.prototype.ajax = function(method, uri, alertId=alertIds.main, authHeader=null, data=null, timeout=defaultRequestTimeout) {
   var self = this;
   setAlert('');
+  lastAjaxError = '';
   var errorMessage = '';
   $("html").addClass("waiting");
   var request = {
@@ -1732,9 +1737,10 @@ NodesViewModel.prototype.ajax = function(method, uri, alertId=alertIds.main, aut
       errorMessage = errorMessage + ': ' + err.message;
     }
     if(errorMessage === 'rejected' || errorMessage ==='timeout') {
-      errorMessage = 'Possible network issue. Please try again later.';
+      errorMessage = 'Possible network issue. Please try again later: ' + errorMessage;
     }
-    setAlert(errorMessage, 'alert-danger', alertId);
+    setAlert('Error contacting remote server ' + secrets['MY_THINGS_SERVER'] + ': ' + errorMessage, 'alert-danger', alertId);
+    lastAjaxError = errorMessage;
     return false;
   })
 }
@@ -2062,7 +2068,7 @@ LoginModel.prototype.login = function() {
         $('#login').modal('hide');
         self.username('');
         self.types([]);
-        nodesViewModel.context.redirect('#/'+type);
+        nodesViewModel.context.redirect('#/'+type+'?prev='+encodeURIComponent(nodesViewModel.context.path.split('?')[0]))
       } else {
         $('html').removeClass('waiting');
         nodesViewModel.context.redirect('#/login');
@@ -2357,7 +2363,7 @@ var initType = function() {
   var self = this;
   if(self.value !== nodesViewModel.type()) {
     nodesViewModel.unloadItem();
-    nodesViewModel.context.redirect('#/' + $('#typesSelect').val())
+    nodesViewModel.context.redirect('#/' + $('#typesSelect').val()+'?prev='+encodeURIComponent(nodesViewModel.context.path.split('?')[0]))
   }
 }
 
@@ -2369,24 +2375,34 @@ var login = function(context) {
   loginModel.context = context;
   $('#login').modal({show: true,
                      backdrop: 'static'});
-   Promise.resolve($.ajax({
-     cache: false,
-     url: "my_things/.secrets.json",
-     dataType: "json",
-     timeout: 5000
-   }))
-   .catch(function(err) {
-     $("html").removeClass("waiting");
-     var errorMessage = err.state();
-     if(err.state() === 'rejected') {
-       errorMessage = 'Possible network issue. Please try again later.';
-     }
-     setAlert('error getting secrets file: ' + errorMessage, 'alert-danger','#loginAlertBox');
-   })
-   .then(function(jsonSecrets) {
-     $("html").removeClass("waiting");
-     secrets = jsonSecrets;
-   })
+  Promise.resolve($.ajax({
+    cache: false,
+    url: "my_things/.secrets.json",
+    dataType: "json",
+    timeout: 5000
+  }))
+  .catch(function(err) {
+    $("html").removeClass("waiting");
+    var errorMessage = err.state();
+    if(errorMessage === 'rejected') {
+      errorMessage = 'Possible network issue. Please try again later.';
+    }
+    setAlert('error getting secrets file: ' + errorMessage, 'alert-danger','#loginAlertBox');
+  })
+  .then(function(jsonSecrets) {
+    $("html").removeClass("waiting");
+    secrets = jsonSecrets;
+  })
+ .then(function(response) {
+   return checkServer(secrets['MY_THINGS_SERVER']);
+ })
+ .catch(function(err) {
+   $("html").removeClass("waiting");
+   if(err.status === 0) {
+     errorMessage = 'Possible network issue. Please try again later.';
+   }
+   setAlert('Error contacting remote server ' + secrets['MY_THINGS_SERVER'] + ': ' + errorMessage, 'alert-danger','#loginAlertBox');
+ })
 }
 
 var logout = function(context) {
@@ -2397,8 +2413,12 @@ var logout = function(context) {
 }
 
 var setType = function(context) {
+  var prevPath = nodesViewModel.context.path.split('?')[0];
   nodesViewModel.context = context;
-  nodesViewModel.type(context.params['type']);
+  var errorMessage = '';
+  if('errorMessage' in nodesViewModel.context.params) {
+    errorMessage = nodesViewModel.context.params.errorMessage + ' attempting to redirect to ' + prevPath;
+  }
   if(!nodesViewModel.loggedIn()) {
     nodesViewModel.context.redirect('#/login');
   }
@@ -2408,8 +2428,20 @@ var setType = function(context) {
   nodesViewModel.unloadItem();
   nodesViewModel.selectedSubNode(null);
   nodesViewModel.selectedMainNode(null);
-  nodesViewModel.setType();
-  $('#itemDetailsTab').tab('show');
+  nodesViewModel.setType(errorMessage)
+  .then(function(data) {
+    if(!data && 'prev' in nodesViewModel.context.params && nodesViewModel.context.params.prev.includes('login')) {
+      // error encountered
+      setAlert(lastAjaxError,'alert-danger',alertIds.login);
+      nodesViewModel.context.redirect('#/login');
+    } else if(!data && 'prev' in nodesViewModel.context.params) {
+      setAlert(lastAjaxError,'alert-danger',alertIds.main);
+
+      nodesViewModel.context.redirect(nodesViewModel.context.params.prev+'?errorMessage='+encodeURIComponent(lastAjaxError));
+    } else {
+      $('#itemDetailsTab').tab('show');
+    }
+  });
 }
 
 var selectNode = function(context) {
@@ -2495,6 +2527,14 @@ var displayDate = function(date=null) {
     dateString = ('0'+((dateObject.getMonth()+1))).substr(-2,2)+'/'+('0'+dateObject.getDate()).substr(-2,2)+'/'+('0'+dateObject.getFullYear()).substr(-2,2);
   }
   return dateString;
+}
+
+var checkServer = function(url) {
+  return Promise.resolve($.ajax({url: url,
+          type: "HEAD",
+          timeout:1000
+   })
+ )
 }
 
 nodesViewModel = new NodesViewModel();
