@@ -11,7 +11,7 @@ var secrets = null;
 var app = null;
 var lastAjaxError = '';
 var defaultAlert = '';
-var defaultRequestTimeout = 15000;
+var defaultRequestTimeout = 12000;
 var alertIds = {'main':'#alertBox',
                 'login':'#loginAlertBox',
                 'editItemNode':'#editItemNodeAlertBox'}
@@ -2368,6 +2368,7 @@ var initType = function() {
 }
 
 var login = function(context) {
+  var errorMessage = '';
   nodesViewModel.context = context;
   nodesViewModel.previousUser = nodesViewModel.currentUser();
   nodesViewModel.previousUserPassword = nodesViewModel.currentUserPassword;
@@ -2383,7 +2384,7 @@ var login = function(context) {
   }))
   .catch(function(err) {
     $("html").removeClass("waiting");
-    var errorMessage = err.state();
+    errorMessage = err.state();
     if(errorMessage === 'rejected') {
       errorMessage = 'Possible network issue. Please try again later.';
     }
@@ -2400,8 +2401,8 @@ var login = function(context) {
    $("html").removeClass("waiting");
    if(err.status === 0) {
      errorMessage = 'Possible network issue. Please try again later.';
+     setAlert('Error contacting remote server ' + secrets['MY_THINGS_SERVER'] + ': ' + errorMessage, 'alert-danger','#loginAlertBox');
    }
-   setAlert('Error contacting remote server ' + secrets['MY_THINGS_SERVER'] + ': ' + errorMessage, 'alert-danger','#loginAlertBox');
  })
 }
 
@@ -2439,6 +2440,13 @@ var setType = function(context) {
 
       nodesViewModel.context.redirect(nodesViewModel.context.params.prev+'?errorMessage='+encodeURIComponent(lastAjaxError));
     } else {
+      if('next' in nodesViewModel.context.params) {
+        url += '?next=' + encodeURIComponent(context.params.next);
+        if('errorMessage' in context.params) {
+          url += '&errorMessage=' + encodeURIComponent(context.params.errorMessage);
+        }
+        context.params.redirect(url);
+      }
       $('#itemDetailsTab').tab('show');
     }
   });
@@ -2448,6 +2456,11 @@ var selectNode = function(context) {
   nodesViewModel.context = context;
   var type = context.params['type'];
   var nodeId = context.params['nodeid'];
+  if(type !== nodesViewModel.type()) {
+    //switch to a different type, then select this node
+    var url = '#/' + type + '?next=' + encodeURIComponent('#/' + type + '/' + nodeId)
+    nodesViewModel.context.redirect(url)
+  }
   node = nodesViewModel.findNode(nodeId);
   var nodeTreePresent = node !== null;
   if(nodesViewModel.isMain(node)) {
