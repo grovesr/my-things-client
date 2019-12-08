@@ -1902,7 +1902,7 @@ EditItemNodeModel.prototype.fillItemFromGoogle = function() {
   url += '&' + encodeURIComponent('key=' + secrets['MY_BOOKS_KEY']);
   nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultSpinnerIcon);
   $("html").addClass("waiting");
-  nodesViewModel.ajax('GET', url, alertIds.editItemNode, nodesViewModel.authHeader)
+  nodesViewModel.ajax('GET', url, alertIds.editItemNode)
   .then(function(data) {
     $("html").removeClass("waiting");
     nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultGoogleIcon);
@@ -2409,6 +2409,7 @@ var login = function(context) {
 var logout = function(context) {
   nodesViewModel.context = context;
   nodesViewModel.logout();
+  loginModel.username(nodesViewModel.currentUser());
   nodesViewModel.context.redirect('#/login');
 
 }
@@ -2421,7 +2422,12 @@ var setType = function(context) {
     errorMessage = nodesViewModel.context.params.errorMessage + ' attempting to redirect to ' + prevPath;
   }
   if(!nodesViewModel.loggedIn()) {
-    nodesViewModel.context.redirect('#/login');
+    var url = '#/login';
+    if('next' in nodesViewModel.context.params) {
+      url += '?next=' + encodeURIComponent(context.params.next);
+    }
+    loginModel.username(nodesViewModel.currentUser());
+    nodesViewModel.context.redirect(url);
   }
   nodesViewModel.type(context.params['type']);
   nodesViewModel.filterText('');
@@ -2434,6 +2440,7 @@ var setType = function(context) {
     if(!data && 'prev' in nodesViewModel.context.params && nodesViewModel.context.params.prev.includes('login')) {
       // error encountered
       setAlert(lastAjaxError,'alert-danger',alertIds.login);
+      loginModel.username(nodesViewModel.currentUser());
       nodesViewModel.context.redirect('#/login');
     } else if(!data && 'prev' in nodesViewModel.context.params) {
       setAlert(lastAjaxError,'alert-danger',alertIds.main);
@@ -2441,11 +2448,13 @@ var setType = function(context) {
       nodesViewModel.context.redirect(nodesViewModel.context.params.prev+'?errorMessage='+encodeURIComponent(lastAjaxError));
     } else {
       if('next' in nodesViewModel.context.params) {
-        url += '?next=' + encodeURIComponent(context.params.next);
+        url = nodesViewModel.context.params.next;
         if('errorMessage' in context.params) {
-          url += '&errorMessage=' + encodeURIComponent(context.params.errorMessage);
+          url += '?errorMessage=' + encodeURIComponent(context.params.errorMessage);
+        } else if(errorMessage !== '') {
+          url += '?errorMessage=' + encodeURIComponent(errorMessage);
         }
-        context.params.redirect(url);
+        context.redirect(url);
       }
       $('#itemDetailsTab').tab('show');
     }
@@ -2458,8 +2467,14 @@ var selectNode = function(context) {
   var nodeId = context.params['nodeid'];
   if(type !== nodesViewModel.type()) {
     //switch to a different type, then select this node
-    var url = '#/' + type + '?next=' + encodeURIComponent('#/' + type + '/' + nodeId)
-    nodesViewModel.context.redirect(url)
+    var url = '#/' + type + '?next=' + encodeURIComponent('#/' + type + '/' + nodeId);
+    if('errorMessage' in context.params) {
+      url += '&errorMessage=' + context.params.errorMessage;
+    }
+    return Promise.resolve(nodesViewModel.mainNodes([]))
+    .then(function() {
+      nodesViewModel.context.redirect(url)
+    });
   }
   node = nodesViewModel.findNode(nodeId);
   var nodeTreePresent = node !== null;
@@ -2479,7 +2494,9 @@ var selectNode = function(context) {
     var mainNode = nodesViewModel.getTree(node);
     handleNode(mainNode);
   }
-
+  if('errorMessage' in nodesViewModel.context.params) {
+    setAlert(nodesViewModel.context.params.errorMessage, 'alert-danger', alertIds.main);
+  }
 }
 
 var handleNode = function(mainNode) {
