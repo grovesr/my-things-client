@@ -7,7 +7,6 @@ var editSubNodeModel = null;
 var editItemNodeModel = null;
 var addTypeModel = null;
 var loginModel = null;
-var secrets = null;
 var app = null;
 var lastAjaxError = '';
 var defaultAlert = '';
@@ -741,10 +740,13 @@ NodesViewModel.prototype.sortMainRating = function(page=null) {
   if(page) {
     pageStr = '&page='+page;
   }
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3&excludeRoot&orderField=averageLeafRating&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
-  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, alertIds.main, self.authHeader);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/nodes?level=1&infoDepth=3&excludeRoot&orderField=averageLeafRating&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
+    url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    return self.ajax('GET', url, alertIds.main, self.authHeader);
+  })
 }
 
 NodesViewModel.prototype.sortItemRating = function(page=null) {
@@ -753,10 +755,13 @@ NodesViewModel.prototype.sortItemRating = function(page=null) {
   if(page) {
     pageStr = '&page='+page;
   }
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=rating&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
-  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, alertIds.main, self.authHeader);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/nodes?level=3&excludeRoot&orderField=rating&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
+    url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    return self.ajax('GET', url, alertIds.main, self.authHeader);
+  })
 }
 
 NodesViewModel.prototype.sortTried = function(page=null) {
@@ -765,10 +770,13 @@ NodesViewModel.prototype.sortTried = function(page=null) {
   if(page) {
     pageStr = '&page='+page;
   }
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=dateTried&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
-  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, alertIds.main, self.authHeader);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/nodes?level=3&excludeRoot&orderField=dateTried&orderDir=desc&perPage='+self.sortPerPageString()+pageStr;
+    url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    return self.ajax('GET', url, alertIds.main, self.authHeader);
+  })
 }
 
 NodesViewModel.prototype.filterMainName = function(filter, page=null) {
@@ -777,10 +785,13 @@ NodesViewModel.prototype.filterMainName = function(filter, page=null) {
   if(page) {
     pageStr = '&page='+page;
   }
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&excludeRoot&orderField=name&name='+filter+'&parentId='+self.rootNode.id()+'&perPage='+self.filterPerPageString()+pageStr;
-  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, alertIds.main, self.authHeader);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/nodes?level=1&excludeRoot&orderField=name&name='+filter+'&parentId='+self.rootNode.id()+'&perPage='+self.filterPerPageString()+pageStr;
+    url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    return self.ajax('GET', url, alertIds.main, self.authHeader);
+  })
 }
 
 NodesViewModel.prototype.filterItemName = function(filter, page=null) {
@@ -791,10 +802,13 @@ NodesViewModel.prototype.filterItemName = function(filter, page=null) {
   }
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&name='+filter+'&perPage='+self.filterPerPageString()+pageStr;
-  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, alertIds.main, self.authHeader);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/nodes?level=3&excludeRoot&orderField=name&name='+filter+'&perPage='+self.filterPerPageString()+pageStr;
+    url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    return self.ajax('GET', url, alertIds.main, self.authHeader);
+  })
 }
 
 NodesViewModel.prototype.filterItemDescription = function(filter, page=null) {
@@ -805,10 +819,13 @@ NodesViewModel.prototype.filterItemDescription = function(filter, page=null) {
   }
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&orderField=name&description='+filter+'&perPage='+self.filterPerPageString()+pageStr;
-  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, alertIds.main, self.authHeader);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/nodes?level=3&excludeRoot&orderField=name&description='+filter+'&perPage='+self.filterPerPageString()+pageStr;
+    url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    return self.ajax('GET', url, alertIds.main, self.authHeader);
+  })
 }
 
 NodesViewModel.prototype.filterItemReview = function(filter, page=null) {
@@ -819,10 +836,13 @@ NodesViewModel.prototype.filterItemReview = function(filter, page=null) {
   }
   var tempList = [];
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=3&excludeRoot&&orderField=name&review='+filter+'&perPage='+self.filterPerPageString()+pageStr;
-  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, alertIds.main, self.authHeader);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/nodes?level=3&excludeRoot&&orderField=name&review='+filter+'&perPage='+self.filterPerPageString()+pageStr;
+    url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    return self.ajax('GET', url, alertIds.main, self.authHeader);
+  })
 }
 
 NodesViewModel.prototype.nodeHref = function(nodeId) {
@@ -862,18 +882,21 @@ NodesViewModel.prototype.cancelLogin = function() {
 NodesViewModel.prototype.login = function(username, password, type) {
   var self = this;
   setAlert('','', alertIds.login);
-  var url = secrets['MY_THINGS_SERVER'] + '/admin/check/user/';
-  url += encodeURIComponent(username);
-  self.loggedIn(false);
-  return self.ajax('GET', url, alertIds.login, self.authHeader,null ,5000)
-  .then(function(data) {
-    if(data) {
-      self.authHeader = {'Authorization':'Basic ' + btoa(username + ':' + password)};
-      var url = secrets['MY_THINGS_SERVER'] + '/admin/user/' + username;
-      return self.ajax('GET', url, alertIds.login, self.authHeader)
-    } else {
-      return data
-    }
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/admin/check/user/';
+    url += encodeURIComponent(username);
+    self.loggedIn(false);
+    return self.ajax('GET', url, alertIds.login, self.authHeader,null ,5000)
+    .then(function(data) {
+      if(data) {
+        self.authHeader = {'Authorization':'Basic ' + btoa(username + ':' + password)};
+        var url = val + '/admin/user/' + username;
+        return self.ajax('GET', url, alertIds.login, self.authHeader)
+      } else {
+        return data
+      }
+    })
   })
 }
 
@@ -1050,28 +1073,31 @@ NodesViewModel.prototype.findNode = function(id) {
 
 NodesViewModel.prototype.proceedWithMainNodeDelete = function() {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/node/';
-  url += encodeURIComponent(self.selectedMainNode().id());
-  self.ajax('DELETE', url, alertIds.main, self.authHeader)
-  .then(function(response) {
-    $("html").removeClass("waiting");
-    if(response) {
-      $('a.mt-main-a').removeClass('active');
-      var nodeName = self.selectedMainNode().name();
-      var indexToRemove = self.adjacencyList[self.selectedMainNode().parentId()].indexOf(self.selectedMainNode());
-      if(indexToRemove !== -1) {
-        self.adjacencyList[self.rootNode.id()].splice(indexToRemove, 1);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/node/';
+    url += encodeURIComponent(self.selectedMainNode().id());
+    self.ajax('DELETE', url, alertIds.main, self.authHeader)
+    .then(function(response) {
+      $("html").removeClass("waiting");
+      if(response) {
+        $('a.mt-main-a').removeClass('active');
+        var nodeName = self.selectedMainNode().name();
+        var indexToRemove = self.adjacencyList[self.selectedMainNode().parentId()].indexOf(self.selectedMainNode());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.rootNode.id()].splice(indexToRemove, 1);
+        }
+        self.rootNode.children.remove(self.selectedMainNode());
+        self.mainNodes(self.rootNode.children());
+        self.selectedMainNode(null);
+        self.unloadItem();
+        $('mt-main-collapse').collapse('hide');
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+        self.filterItems([]);
+        self.sortedItems([]);
       }
-      self.rootNode.children.remove(self.selectedMainNode());
-      self.mainNodes(self.rootNode.children());
-      self.selectedMainNode(null);
-      self.unloadItem();
-      $('mt-main-collapse').collapse('hide');
-      setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
-      self.filterItems([]);
-      self.sortedItems([]);
-    }
-  });
+    })
+  })
 }
 
 NodesViewModel.prototype.beginDeleteMainNode = function() {
@@ -1099,53 +1125,59 @@ NodesViewModel.prototype.beginEditItem = function() {
 
 NodesViewModel.prototype.proceedWithSubNodeDelete = function() {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/node/';
-  url += encodeURIComponent(self.selectedSubNode().id());
-  self.ajax('DELETE', url, alertIds.main, self.authHeader)
-  .then(function(response) {
-    $("html").removeClass("waiting");
-    if(response) {
-      $('a.mt-sub-a').removeClass('active');
-      var nodeName = self.selectedSubNode().name();
-      var indexToRemove = self.adjacencyList[self.selectedSubNode().parentId()].indexOf(self.selectedSubNode());
-      if(indexToRemove !== -1) {
-        self.adjacencyList[self.selectedMainNode().id()].splice(indexToRemove, 1);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/node/';
+    url += encodeURIComponent(self.selectedSubNode().id());
+    self.ajax('DELETE', url, alertIds.main, self.authHeader)
+    .then(function(response) {
+      $("html").removeClass("waiting");
+      if(response) {
+        $('a.mt-sub-a').removeClass('active');
+        var nodeName = self.selectedSubNode().name();
+        var indexToRemove = self.adjacencyList[self.selectedSubNode().parentId()].indexOf(self.selectedSubNode());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.selectedMainNode().id()].splice(indexToRemove, 1);
+        }
+        self.selectedMainNode().children.remove(self.selectedSubNode());
+        self.selectedSubNode(null);
+        self.unloadItem();
+        $('mt-sub-collapse').collapse('hide');
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+        self.filterItems([]);
+        self.sortedItems([]);
       }
-      self.selectedMainNode().children.remove(self.selectedSubNode());
-      self.selectedSubNode(null);
-      self.unloadItem();
-      $('mt-sub-collapse').collapse('hide');
-      setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
-      self.filterItems([]);
-      self.sortedItems([]);
-    }
-  });
+    })
+  })
 }
 
 NodesViewModel.prototype.proceedWithItemDelete = function() {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/node/';
-  url += encodeURIComponent(self.selectedItem().id());
-  self.itemDeleteIcon(self.defaultSpinnerIcon);
-  self.ajax('DELETE', url, alertIds.main, self.authHeader)
-  .then(function(response) {
-    self.itemDeleteIcon(self.defaultItemDeleteIcon);
-    $("html").removeClass("waiting");
-    if(response) {
-      $('a.mt-item-a').removeClass('active');
-      var nodeName = self.selectedItem().name();
-      var indexToRemove = self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem());
-      if(indexToRemove !== -1) {
-        self.adjacencyList[self.selectedSubNode().id()].splice(indexToRemove, 1);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/node/';
+    url += encodeURIComponent(self.selectedItem().id());
+    self.itemDeleteIcon(self.defaultSpinnerIcon);
+    self.ajax('DELETE', url, alertIds.main, self.authHeader)
+    .then(function(response) {
+      self.itemDeleteIcon(self.defaultItemDeleteIcon);
+      $("html").removeClass("waiting");
+      if(response) {
+        $('a.mt-item-a').removeClass('active');
+        var nodeName = self.selectedItem().name();
+        var indexToRemove = self.adjacencyList[self.selectedItem().parentId()].indexOf(self.selectedItem());
+        if(indexToRemove !== -1) {
+          self.adjacencyList[self.selectedSubNode().id()].splice(indexToRemove, 1);
+        }
+        self.selectedSubNode().children.remove(self.selectedItem());
+        self.selectedItem(null);
+        self.unloadItem();
+        setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
+        self.filterItems([]);
+        self.sortedItems([]);
       }
-      self.selectedSubNode().children.remove(self.selectedItem());
-      self.selectedItem(null);
-      self.unloadItem();
-      setAlert('Successfully deleted "' + nodeName + '"', 'alert-success');
-      self.filterItems([]);
-      self.sortedItems([]);
-    }
-  });
+    })
+  })
 }
 
 NodesViewModel.prototype.beginEditMainNode = function() {
@@ -1158,23 +1190,26 @@ NodesViewModel.prototype.beginEditMainNode = function() {
 NodesViewModel.prototype.proceedWithMainNodeEdit = function(nodeData = {}) {
   // add a main or sub node
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedMainNode().id();
-  $('html').addClass('waitng');
-  self.ajax('PUT', url, alertIds.main, self.authHeader,nodeData)
-  .then(function(node) {
-    $("html").removeClass("waiting");
-    if(node) {
-      self.selectedMainNode().name(node.name);
-    self.selectedMainNode().description(node.description);
-    $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('dispose');
-    $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
-    setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
-    self.mainNodes.sort(self.sortByIndexOrPubDateOrName);
-    self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id());
-      self.filterItems([]);
-      self.sortedItems([]);
-    }
-  });
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/node/' + self.selectedMainNode().id();
+    $('html').addClass('waitng');
+    self.ajax('PUT', url, alertIds.main, self.authHeader,nodeData)
+    .then(function(node) {
+      $("html").removeClass("waiting");
+      if(node) {
+        self.selectedMainNode().name(node.name);
+      self.selectedMainNode().description(node.description);
+      $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+      $('a[mt-data-id="' + self.selectedMainNode().id() + '"] span.mt-tooltip').tooltip('enable');
+      setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+      self.mainNodes.sort(self.sortByIndexOrPubDateOrName);
+      self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id());
+        self.filterItems([]);
+        self.sortedItems([]);
+      }
+    })
+  })
 }
 
 NodesViewModel.prototype.beginEditSubNode = function() {
@@ -1187,23 +1222,26 @@ NodesViewModel.prototype.beginEditSubNode = function() {
 NodesViewModel.prototype.proceedWithSubNodeEdit = function(nodeData = {}) {
   // add a main or sub node
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.selectedSubNode().id();
-  $("html").addClass("waiting");
-  self.ajax('PUT', url, alertIds.main, self.authHeader, nodeDate)
-  .then(function(node) {
-    $("html").removeClass("waiting");
-    if(node) {
-      self.selectedSubNode().name(node.name);
-      self.selectedSubNode().description(node.description);
-      $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
-      $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
-      setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
-      self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
-      self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id());
-      self.filterItems([]);
-      self.sortedItems([]);
-    }
-  });
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/node/' + self.selectedSubNode().id();
+    $("html").addClass("waiting");
+    self.ajax('PUT', url, alertIds.main, self.authHeader, nodeDate)
+    .then(function(node) {
+      $("html").removeClass("waiting");
+      if(node) {
+        self.selectedSubNode().name(node.name);
+        self.selectedSubNode().description(node.description);
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
+        setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+        self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
+        self.context.redirect('#/'+self.type()+'/'+self.selectedMainNode().id()+'/'+self.selectedSubNode().id());
+        self.filterItems([]);
+        self.sortedItems([]);
+      }
+    })
+  })
 }
 
 NodesViewModel.prototype.beginAddMain = function() {
@@ -1213,72 +1251,75 @@ NodesViewModel.prototype.beginAddMain = function() {
 NodesViewModel.prototype.addNode = function(nodeData={}, alertId=alertIds.main) {
   // add a node
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/add/node';
-  var addedNode = null;
-  $("html").addClass("waiting");
-  return self.ajax('POST', url, alertId, self.authHeader, nodeData)
-  .then(function(node) {
-    $("html").removeClass("waiting");
-    if(node){
-      // build adjacencyList structure
-      addedNode = new Node(true, node, {'required':self.requiredAspects,
-                                        'nodeInfo': self.nodeInfoKeys()});
-      self.initNode(addedNode);
-      if(!(node.parentId in self.adjacencyList)) {
-        self.adjacencyList[node.parentId] = [];
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/add/node';
+    var addedNode = null;
+    $("html").addClass("waiting");
+    return self.ajax('POST', url, alertId, self.authHeader, nodeData)
+    .then(function(node) {
+      $("html").removeClass("waiting");
+      if(node){
+        // build adjacencyList structure
+        addedNode = new Node(true, node, {'required':self.requiredAspects,
+                                          'nodeInfo': self.nodeInfoKeys()});
+        self.initNode(addedNode);
+        if(!(node.parentId in self.adjacencyList)) {
+          self.adjacencyList[node.parentId] = [];
+        }
+        self.adjacencyList[node.parentId].push(addedNode);
+        var mainParent = self.findNode(node.parentId);
+        if(mainParent) {
+          mainParent.children.push(addedNode);
+          mainParent.children.sort(self.sortByIndexOrPubDateOrName);
+        } else {
+          self.rootNode.children.push(addedNode);
+          self.rootNode.children.sort(self.sortByIndexOrPubDateOrName);
+          self.mainNodes(self.rootNode.children());
+        }
+        return node;
       }
-      self.adjacencyList[node.parentId].push(addedNode);
-      var mainParent = self.findNode(node.parentId);
-      if(mainParent) {
-        mainParent.children.push(addedNode);
-        mainParent.children.sort(self.sortByIndexOrPubDateOrName);
-      } else {
-        self.rootNode.children.push(addedNode);
-        self.rootNode.children.sort(self.sortByIndexOrPubDateOrName);
-        self.mainNodes(self.rootNode.children());
+    })
+    .then(function(data) {
+      if(data) {
+        var main = false;
+        var sub = false;
+        var item = false;
+        if(addedNode.parentId() === self.rootNode.id()) {
+          main = true;
+          addedNode.nodeInfo()['needLeaves'](0);
+          addedNode.nodeInfo()['numberSubs'](0);
+          addedNode.nodeInfo()['numberLeaves'](0);
+          addedNode.nodeInfo()['averageLeafRating'](null);
+          $('a.mt-main-a').removeClass('active');
+          $('.mt-main-collapse').collapse('hide');
+          self.selectedMainNode(addedNode);
+          $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
+        } else if(addedNode.parentId() === self.selectedMainNode().id()){
+          sub = true;
+          $('a.mt-sub-a').removeClass('active');
+          $('.mt-sub-collapse').collapse('hide');
+          $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
+          self.selectedSubNode(addedNode);
+          $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
+        } else {
+          item = true;;
+          $('a.mt-item-a').removeClass('active');
+          $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
+          self.selectedItem(addedNode);
+          self.loadItem();
+          $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
+          $('#editItemNode').modal("hide");
+        }
+        self.updateItemListTooltips();
+        setAlert('Successfully Added "' + addedNode.name() +'"', 'alert-success');
+        $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
+        self.filterItems([]);
+        self.sortedItems([]);
+        self.context.redirect('#/'+self.type()+'/'+addedNode.id());
       }
-      return node;
-    }
+    })
   })
-  .then(function(data) {
-    if(data) {
-      var main = false;
-      var sub = false;
-      var item = false;
-      if(addedNode.parentId() === self.rootNode.id()) {
-        main = true;
-        addedNode.nodeInfo()['needLeaves'](0);
-        addedNode.nodeInfo()['numberSubs'](0);
-        addedNode.nodeInfo()['numberLeaves'](0);
-        addedNode.nodeInfo()['averageLeafRating'](null);
-        $('a.mt-main-a').removeClass('active');
-        $('.mt-main-collapse').collapse('hide');
-        self.selectedMainNode(addedNode);
-        $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
-      } else if(addedNode.parentId() === self.selectedMainNode().id()){
-        sub = true;
-        $('a.mt-sub-a').removeClass('active');
-        $('.mt-sub-collapse').collapse('hide');
-        $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
-        self.selectedSubNode(addedNode);
-        $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
-      } else {
-        item = true;;
-        $('a.mt-item-a').removeClass('active');
-        $('a[mt-data-id="' + addedNode.id() + '"]').addClass('active');
-        self.selectedItem(addedNode);
-        self.loadItem();
-        $('#accordianCollapse_' + addedNode.parentId()).collapse('show');
-        $('#editItemNode').modal("hide");
-      }
-      self.updateItemListTooltips();
-      setAlert('Successfully Added "' + addedNode.name() +'"', 'alert-success');
-      $('#accordianMain i.fa, #accordianMain i.far').css({'visibility':'visible'});
-      self.filterItems([]);
-      self.sortedItems([]);
-      self.context.redirect('#/'+self.type()+'/'+addedNode.id());
-    }
-  });
 }
 
 NodesViewModel.prototype.beginAddSub = function() {
@@ -1341,37 +1382,43 @@ NodesViewModel.prototype.updateItem = function() {
 
 NodesViewModel.prototype.getMainNodes = function() {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/nodes?level=1&infoDepth=3';
-  url += '&ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  return self.ajax('GET', url, alertIds.main, self.authHeader);
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/nodes?level=1&infoDepth=3';
+    url += '&ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    return self.ajax('GET', url, alertIds.main, self.authHeader);
+  })
 }
 
 NodesViewModel.prototype.getMainSubtree = function(id) {
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/tree?depth=3&id='+id;
-  url += 'ownerId=' + encodeURIComponent(self.currentUserId);
-  url += '&type=' + encodeURIComponent(self.type());
-  $("html").addClass("waiting");
-  return self.ajax('GET', url, alertIds.main, self.authHeader)
-  .then(function(tree) {
-    $("html").removeClass("waiting");
-    if(tree) {
-      var adjacencyList = {};
-      tree.nodes.forEach(function(node) {
-        if(!(node.parentId in adjacencyList)) {
-          adjacencyList[node.parentId] = [];
-        }
-        var newNode = new Node(true, node, {'required':nodesViewModel.requiredAspects,
-                                            'nodeInfo': nodesViewModel.nodeInfoKeys()});
-        nodesViewModel.initNode(newNode);
-        adjacencyList[node.parentId].push(newNode);
-      });
-      var main = nodesViewModel.buildNodeHierarchy(node=null, parentId=null, adjacencyList=adjacencyList).children()[0];
-      main.children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
-      return main;
-    }
-  });
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/tree?depth=3&id='+id;
+    url += 'ownerId=' + encodeURIComponent(self.currentUserId);
+    url += '&type=' + encodeURIComponent(self.type());
+    $("html").addClass("waiting");
+    return self.ajax('GET', url, alertIds.main, self.authHeader)
+    .then(function(tree) {
+      $("html").removeClass("waiting");
+      if(tree) {
+        var adjacencyList = {};
+        tree.nodes.forEach(function(node) {
+          if(!(node.parentId in adjacencyList)) {
+            adjacencyList[node.parentId] = [];
+          }
+          var newNode = new Node(true, node, {'required':nodesViewModel.requiredAspects,
+                                              'nodeInfo': nodesViewModel.nodeInfoKeys()});
+          nodesViewModel.initNode(newNode);
+          adjacencyList[node.parentId].push(newNode);
+        });
+        var main = nodesViewModel.buildNodeHierarchy(node=null, parentId=null, adjacencyList=adjacencyList).children()[0];
+        main.children.sort(nodesViewModel.sortByIndexOrPubDateOrName);
+        return main;
+      }
+    })
+  })
 }
 
 NodesViewModel.prototype.initNode = function(node) {
@@ -1739,7 +1786,7 @@ NodesViewModel.prototype.ajax = function(method, uri, alertId=alertIds.main, aut
     if(errorMessage === 'rejected' || errorMessage ==='timeout') {
       errorMessage = 'Possible network issue. Please try again later: ' + errorMessage;
     }
-    setAlert('Error contacting remote server ' + secrets['MY_THINGS_SERVER'] + ': ' + errorMessage, 'alert-danger', alertId);
+    setAlert('Error contacting remote server: ' + errorMessage, 'alert-danger', alertId);
     lastAjaxError = errorMessage;
     return false;
   })
@@ -1899,59 +1946,62 @@ EditItemNodeModel.prototype.fillItemFromGoogle = function() {
   self.itemNode().nodeInfo()['ISBN'](self.itemNode().nodeInfo()['ISBN']().replace('-','').trim());
   var url = 'https://www.googleapis.com/books/v1/volumes?q=';
   url += encodeURIComponent('ISBN=' + self.itemNode().nodeInfo()['ISBN']());
-  url += '&' + encodeURIComponent('key=' + secrets['MY_BOOKS_KEY']);
-  nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultSpinnerIcon);
-  $("html").addClass("waiting");
-  nodesViewModel.ajax('GET', url, alertIds.editItemNode)
-  .then(function(data) {
-    $("html").removeClass("waiting");
-    nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultGoogleIcon);
-    if(data) {
-      var parsedData = {};
-      if(data.totalItems === 0) {
-        setAlert('No books found with ISBN = ' + self.itemNode().nodeInfo()['ISBN'](), 'alert-danger');
-      } else {
-        if('title' in data.items[0].volumeInfo) {
-          parsedData['name'] = data.items[0].volumeInfo.title;
-        }
-        if('description' in data.items[0].volumeInfo) {
-          parsedData['description'] = data.items[0].volumeInfo.description;
-        }
-        if('publisher' in data.items[0].volumeInfo) {
-          parsedData['publisher'] = data.items[0].volumeInfo.publisher;
-        }
-        if('publishedDate' in data.items[0].volumeInfo) {
-          parsedData['publishedDate'] = data.items[0].volumeInfo.publishedDate;
-        }
-        if('pageCount' in data.items[0].volumeInfo) {
-          parsedData['pageCount'] = data.items[0].volumeInfo.pageCount;
-        }
-        if('industryIdentifiers' in data.items[0].volumeInfo) {
-          parsedIsbn = null
-          if(data.items[0].volumeInfo.industryIdentifiers.length >= 1) {
-            if(data.items[0].volumeInfo.industryIdentifiers.length >= 2) {
-              data.items[0].volumeInfo.industryIdentifiers.forEach(function(ident) {
-                if(ident.type === 'ISBN_13') {
-                  parsedIsbn = ident.identifier;
-                } else if(!parsedIsbn && ident.type === 'ISBN_10') {
-                  parsedIsbn = ident.identifier;
-                }
-              })
-            } else {
-              parsedIsbn = data.items[0].volumeInfo.industryIdentifiers[0].identifier;
+  return Promise.resolve(getSecrets('MY_BOOKS_KEY'))
+  .then(function(val) {
+    url += '&' + encodeURIComponent('key=' + val);
+    nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultSpinnerIcon);
+    $("html").addClass("waiting");
+    nodesViewModel.ajax('GET', url, alertIds.editItemNode)
+    .then(function(data) {
+      $("html").removeClass("waiting");
+      nodesViewModel.fillItemFromGoogleIcon(nodesViewModel.defaultGoogleIcon);
+      if(data) {
+        var parsedData = {};
+        if(data.totalItems === 0) {
+          setAlert('No books found with ISBN = ' + self.itemNode().nodeInfo()['ISBN'](), 'alert-danger');
+        } else {
+          if('title' in data.items[0].volumeInfo) {
+            parsedData['name'] = data.items[0].volumeInfo.title;
+          }
+          if('description' in data.items[0].volumeInfo) {
+            parsedData['description'] = data.items[0].volumeInfo.description;
+          }
+          if('publisher' in data.items[0].volumeInfo) {
+            parsedData['publisher'] = data.items[0].volumeInfo.publisher;
+          }
+          if('publishedDate' in data.items[0].volumeInfo) {
+            parsedData['publishedDate'] = data.items[0].volumeInfo.publishedDate;
+          }
+          if('pageCount' in data.items[0].volumeInfo) {
+            parsedData['pageCount'] = data.items[0].volumeInfo.pageCount;
+          }
+          if('industryIdentifiers' in data.items[0].volumeInfo) {
+            parsedIsbn = null
+            if(data.items[0].volumeInfo.industryIdentifiers.length >= 1) {
+              if(data.items[0].volumeInfo.industryIdentifiers.length >= 2) {
+                data.items[0].volumeInfo.industryIdentifiers.forEach(function(ident) {
+                  if(ident.type === 'ISBN_13') {
+                    parsedIsbn = ident.identifier;
+                  } else if(!parsedIsbn && ident.type === 'ISBN_10') {
+                    parsedIsbn = ident.identifier;
+                  }
+                })
+              } else {
+                parsedIsbn = data.items[0].volumeInfo.industryIdentifiers[0].identifier;
+              }
+            }
+            if(parsedIsbn) {
+              parsedData['ISBN'] = parsedIsbn;
             }
           }
-          if(parsedIsbn) {
-            parsedData['ISBN'] = parsedIsbn;
+          if('infoLink' in data.items[0].volumeInfo) {
+            parsedData['googleLink'] = data.items[0].volumeInfo.infoLink;
           }
+          self.itemNode().updateNodeInfoData(parsedData);
+          setAlert('Filled information from books.google.com', 'alert-success');
         }
-        if('infoLink' in data.items[0].volumeInfo) {
-          parsedData['googleLink'] = data.items[0].volumeInfo.infoLink;
-        }
-        self.itemNode().updateNodeInfoData(parsedData);
-        setAlert('Filled information from books.google.com', 'alert-success');
       }
-    }
+    })
   })
 }
 
@@ -2009,20 +2059,23 @@ EditItemNodeModel.prototype.saveItem = function() {
 EditItemNodeModel.prototype.proceedWithItemNodeEdit = function(nodeData = {}) {
   // add a main or sub node
   var self = this;
-  var url = secrets['MY_THINGS_SERVER'] + '/node/' + self.subNode().id();
-  $("html").addClass("waiting");
-  nodesViewModel.ajax('PUT', url, alertIds.editItemNode, nodesViewModel.authHeader, nodeDate)
-  .then(function(node) {
-    $("html").removeClass("waiting");
-    if(node) {
-      self.selectedSubNode().name(node.name);
-      self.selectedSubNode().description(node.description);
-      $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
-      $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
-      setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
-      self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
-    }
-  });
+  return Promise.resolve(getSecrets('MY_THINGS_SERVER'))
+  .then(function(val) {
+    var url = val + '/node/' + self.subNode().id();
+    $("html").addClass("waiting");
+    nodesViewModel.ajax('PUT', url, alertIds.editItemNode, nodesViewModel.authHeader, nodeDate)
+    .then(function(node) {
+      $("html").removeClass("waiting");
+      if(node) {
+        self.selectedSubNode().name(node.name);
+        self.selectedSubNode().description(node.description);
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('dispose');
+        $('a[mt-data-id="' + self.selectedSubNode().id() + '"] span.mt-tooltip').tooltip('enable');
+        setAlert('Successfully Edited "' + node.name +'"', 'alert-success');
+        self.selectedMainNode().children.sort(self.sortByIndexOrPubDateOrName);
+      }
+    })
+  })
 }
 
 EditItemNodeModel.prototype.beginEditItemLink = function() {
@@ -2280,8 +2333,6 @@ var handleMainClick =  function(mainNode) {
       $("a[mt-data-id=" + mainNodeId + "]").off('click', toggleCollapse);
       $("a[mt-data-id=" + mainNodeId + "]").on('click', toggleCollapse);
       $('#accordianCollapse_' + mainNodeId).collapse('show');
-      nodesViewModel.filterItems([]);
-      nodesViewModel.sortedItems([]);
       nodesViewModel.unloadItem();
     })
   }
@@ -2376,7 +2427,12 @@ var login = function(context) {
   loginModel.context = context;
   $('#login').modal({show: true,
                      backdrop: 'static'});
-  Promise.resolve($.ajax({
+}
+
+var getSecrets = function(key, alertId=alertIds['main']) {
+  var secret = '';
+  var secrets = {};
+  return Promise.resolve($.ajax({
     cache: false,
     url: "my_things/.secrets.json",
     dataType: "json",
@@ -2388,22 +2444,22 @@ var login = function(context) {
     if(errorMessage === 'rejected') {
       errorMessage = 'Possible network issue. Please try again later.';
     }
-    setAlert('error getting secrets file: ' + errorMessage, 'alert-danger','#loginAlertBox');
+    setAlert('error getting secrets file: ' + errorMessage, 'alert-danger',alertId);
   })
-  .then(function(jsonSecrets) {
+  .then(function(secrets) {
+    secret = secrets[key];
+    return checkServer(secrets['MY_THINGS_SERVER']);
+  })
+  .catch(function(err) {
     $("html").removeClass("waiting");
-    secrets = jsonSecrets;
+    if(err.status === 0) {
+      errorMessage = 'Possible network issue. Please try again later.';
+      setAlert('Error contacting remote server ' + secrets['MY_THINGS_SERVER'] + ': ' + errorMessage, 'alert-danger','#loginAlertBox');
+    }
   })
- .then(function(response) {
-   return checkServer(secrets['MY_THINGS_SERVER']);
- })
- .catch(function(err) {
-   $("html").removeClass("waiting");
-   if(err.status === 0) {
-     errorMessage = 'Possible network issue. Please try again later.';
-     setAlert('Error contacting remote server ' + secrets['MY_THINGS_SERVER'] + ': ' + errorMessage, 'alert-danger','#loginAlertBox');
-   }
- })
+  .then(function() {
+    return secret;
+  })
 }
 
 var logout = function(context) {
