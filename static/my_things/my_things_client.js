@@ -1765,7 +1765,7 @@ NodesViewModel.prototype.ajax = function(method, uri, alertId=alertIds.main, aut
   };
   if(data !== null) {
     request.dataType = 'json';
-    request.data = JSON.stringify(data);
+    request.data = ko.toJSON(data);
   }
   if(authHeader !== null) {
     request.headers = authHeader;
