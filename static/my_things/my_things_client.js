@@ -10,7 +10,7 @@ var loginModel = null;
 var app = null;
 var lastAjaxError = '';
 var defaultAlert = '';
-var defaultRequestTimeout = 12000;
+var defaultRequestTimeout = 20000;
 var alertIds = {'main':'#alertBox',
                 'login':'#loginAlertBox',
                 'editItemNode':'#editItemNodeAlertBox'}
