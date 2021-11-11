@@ -1,3 +1,5 @@
+.secrets.json
 static/my_things/.secrets.json
+static/my_things/.config.json
 docs/.~*
 docs/sql_queries.txt

@@ -11,8 +11,6 @@ var app = null;
 var lastAjaxError = '';
 var defaultAlert = '';
 var defaultRequestTimeout = 20000;
-var secrets = { 'MY_BOOKS_KEY':'AIzaSyBmAcOllAHcgEuVD3X-v7N_PRQiYih_Q30',
-                'MY_THINGS_SERVER':'https://robsapps.a2hosted.com/my_things_server'};
 var alertIds = {'main':'#alertBox',
                 'login':'#loginAlertBox',
                 'editItemNode':'#editItemNodeAlertBox'}
@@ -2432,7 +2430,36 @@ var login = function(context) {
 }
 
 var getSecrets = function(key, alertId=alertIds['main']) {
-  return Promise.resolve(secrets[key]);
+  var secret = '';
+  var secrets = {};
+  return Promise.resolve($.ajax({
+    cache: false,
+    url: "my_things/.config.json",
+    dataType: "json",
+    timeout: 5000
+  }))
+  .catch(function(err) {
+    $("html").removeClass("waiting");
+    errorMessage = err.state();
+    if(errorMessage === 'rejected') {
+      errorMessage = 'Possible network issue. Please try again later.';
+    }
+    setAlert('error getting secrets file: ' + errorMessage, 'alert-danger',alertId);
+  })
+  .then(function(secrets) {
+    secret = secrets[key];
+    return checkServer(secrets['MY_THINGS_SERVER']);
+  })
+  .catch(function(err) {
+    $("html").removeClass("waiting");
+    if(err.status === 0) {
+      errorMessage = 'Possible network issue. Please try again later.';
+      setAlert('Error contacting remote server ' + secrets['MY_THINGS_SERVER'] + ': ' + errorMessage, 'alert-danger','#loginAlertBox');
+    }
+  })
+  .then(function() {
+    return secret;
+  })
 }
 
 var logout = function(context) {
