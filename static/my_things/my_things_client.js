@@ -2432,7 +2432,7 @@ var login = function(context) {
 }
 
 var getSecrets = function(key, alertId=alertIds['main']) {
-  return new Promise.resolve(secrets[key]);
+  return Promise.resolve(secrets[key]);
 }
 
 var logout = function(context) {
