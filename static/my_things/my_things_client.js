@@ -11,8 +11,8 @@ var app = null;
 var lastAjaxError = '';
 var defaultAlert = '';
 var defaultRequestTimeout = 20000;
-var secrets = { 'MY_THINGS_SERVER':'AIzaSyBmAcOllAHcgEuVD3X-v7N_PRQiYih_Q30',
-                'MY_BOOKS_KEY':'https://robsapps.a2hosted.com/my_things_server'};
+var secrets = { 'MY_BOOKS_KEY':'AIzaSyBmAcOllAHcgEuVD3X-v7N_PRQiYih_Q30',
+                'MY_THINGS_SERVER':'https://robsapps.a2hosted.com/my_things_server'};
 var alertIds = {'main':'#alertBox',
                 'login':'#loginAlertBox',
                 'editItemNode':'#editItemNodeAlertBox'}
@@ -2432,7 +2432,7 @@ var login = function(context) {
 }
 
 var getSecrets = function(key, alertId=alertIds['main']) {
-  return new Promise.resolve(secrets[key]);
+  return Promise.resolve(secrets[key]);
 }
 
 var logout = function(context) {
