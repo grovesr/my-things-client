@@ -2121,7 +2121,11 @@ LoginModel.prototype.login = function() {
         $('#login').modal('hide');
         self.username('');
         self.types([]);
-        nodesViewModel.context.redirect('#/'+type+'?prev='+encodeURIComponent(nodesViewModel.context.path.split('?')[0]))
+        if(nodesViewModel.context.params.next) {
+          nodesViewModel.context.redirect('#/'+type+'?next='+encodeURIComponent(nodesViewModel.context.params.next)+'&prev='+encodeURIComponent(nodesViewModel.context.path.split('?')[0]))
+        } else {
+          nodesViewModel.context.redirect('#/'+type+'?prev='+encodeURIComponent(nodesViewModel.context.path.split('?')[0]))
+        }
       } else {
         $('html').removeClass('waiting');
         nodesViewModel.context.redirect('#/login');
@@ -2519,11 +2523,28 @@ var setType = function(context) {
 
 var selectNode = function(context) {
   nodesViewModel.context = context;
-  var type = context.params['type'];
-  var nodeId = context.params['nodeid'];
+  var type = null;
+  var nodeId = null;
+  if(context.params.type) {
+    type = context.params.type;
+    if(context.params.nodeid) {
+      nodeId = context.params.nodeid;
+    }
+    context.params.next = '#/' + type + '/' + nodeId;
+  }
+  if(!nodesViewModel.loggedIn()) {
+    var url = '#/login';
+    if('next' in nodesViewModel.context.params) {
+      url += '?next=' + encodeURIComponent(context.params.next);
+    }
+    loginModel.username(nodesViewModel.currentUser());
+    nodesViewModel.context.redirect(url);
+  }
+  var type = encodeURIComponent(context.params['type']);
+  var nodeId = encodeURIComponent(context.params['nodeid']);
   if(type !== nodesViewModel.type()) {
     //switch to a different type, then select this node
-    var url = '#/' + type + '?next=' + encodeURIComponent('#/' + type + '/' + nodeId);
+    var url = '#/' + type + '?next=' + '#/' + type + '/' + nodeId;
     if('errorMessage' in context.params) {
       url += '&errorMessage=' + context.params.errorMessage;
     }
